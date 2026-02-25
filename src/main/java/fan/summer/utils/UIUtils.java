@@ -1,4 +1,4 @@
-package fan.summer.ui.common;
+package fan.summer.utils;
 
 import javax.swing.*;
 import java.awt.*;

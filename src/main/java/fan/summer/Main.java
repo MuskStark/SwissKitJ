@@ -2,157 +2,161 @@ package fan.summer;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
 
-import fan.summer.ui.ToolPage;
-import fan.summer.ui.common.UIUtils;
-import fan.summer.ui.common.WelcomePage;
-import fan.summer.ui.excel.ExcelAddColumnPage;
-import fan.summer.ui.excel.ExcelSplitPage;
-import fan.summer.ui.email.EmailPage;
-import fan.summer.ui.sql.SqlQueryPage;
+import fan.summer.kitpage.KitPage;
+import fan.summer.utils.SideMenuBar;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class Main {
-    
-    private static final int NAV_WIDTH = 220;
-    
-    private JList<String> navList;
-    private JPanel contentPanel;
-    private DefaultListModel<String> listModel;
-    private List<ToolPage> pages;
-    
+
+    private SideMenuBar sideMenuBar;
+    private List<KitPage> pages;
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new Main().createAndShowGUI());
     }
-    
+
     private void createAndShowGUI() {
         FlatIntelliJLaf.setup();
-        
+
         JFrame frame = new JFrame("Swiss Kit");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         
+        // 设置应用图标
+        setAppIcon(frame);
+
         // 初始化页面
         initPages();
-        
+
+        // 内容面板
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        contentPanel.setBackground(Color.WHITE);
+
+        // 侧边菜单栏
+        sideMenuBar = new SideMenuBar(pages, contentPanel);
+
         // 主面板
         JPanel mainPanel = new JPanel(new BorderLayout());
-        
-        // 左侧导航
-        JPanel navPanel = createNavigationPanel();
-        
-        // 右侧内容
-        contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        contentPanel.add(pages.get(0).getPanel(), BorderLayout.CENTER);
-        
-        mainPanel.add(navPanel, BorderLayout.WEST);
+        mainPanel.add(sideMenuBar, BorderLayout.WEST);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
-        
+
         frame.add(mainPanel);
-        
+
+        // 默认选中第一个页面
+        sideMenuBar.selectPage(0);
+
         frame.pack();
         frame.setMinimumSize(new Dimension(800, 500));
         frame.setVisible(true);
     }
     
+    /**
+     * 设置应用图标
+     * 将图标文件放入 resources 目录，支持: icon.png, icon.jpg, app.png
+     */
+    private void setAppIcon(JFrame frame) {
+        String[] iconPaths = {"/icon.png", "/icon.jpg", "/app.png"};
+        
+        for (String path : iconPaths) {
+            URL url = getClass().getResource(path);
+            if (url != null) {
+                frame.setIconImage(new ImageIcon(url).getImage());
+                return;
+            }
+        }
+        // 未找到图标文件时使用默认
+        System.out.println("提示: 未找到应用图标，请添加 icon.png 到 resources 目录");
+    }
+
+    /**
+     * 自动扫描并注册所有 KitPage 实现类
+     */
     private void initPages() {
         pages = new ArrayList<>();
-        pages.add(new WelcomePage());                        // 0: 欢迎页
-        pages.add(new ExcelAddColumnPage());                 // 1: Excel增加英文列
-        pages.add(new ExcelSplitPage());                     // 2: Excel拆分
-        pages.add(new SqlQueryPage());                       // 3: SQL查询
-        pages.add(new EmailPage());                          // 4: 邮件发送
-    }
-    
-    private JPanel createNavigationPanel() {
-        JPanel navPanel = new JPanel(new BorderLayout());
-        navPanel.setPreferredSize(new Dimension(NAV_WIDTH, 0));
-        navPanel.setBackground(UIUtils.LIGHT_GRAY);
         
-        // 标题
-        JLabel titleLabel = new JLabel("Swiss Kit");
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
-        titleLabel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        String packageName = "fan.summer.kitpage";
+        String packagePath = packageName.replace('.', '/');
         
-        // 导航项
-        String[] navItems = {
-            "📊 Excel增加英文列工具",
-            "📄 Excel文件拆分工具",
-            "🔍 Sql待查询值生成",
-            "📧 邮件批量发送"
-        };
+        ClassLoader classLoader = getClass().getClassLoader();
+        URL packageURL = classLoader.getResource(packagePath);
         
-        listModel = new DefaultListModel<>();
-        for (String item : navItems) {
-            listModel.addElement(item);
+        if (packageURL != null) {
+            File packageDir = new File(packageURL.getFile());
+            if (packageDir.exists() && packageDir.isDirectory()) {
+                // 递归扫描包及其子包
+                List<Class<?>> pageClasses = scanPackage(packageDir, packageName, classLoader);
+                
+                // 按类名排序，确保顺序一致
+                pageClasses.sort(Comparator.comparing(Class::getName));
+                
+                // 实例化所有页面类
+                for (Class<?> clazz : pageClasses) {
+                    try {
+                        KitPage page = (KitPage) clazz.getDeclaredConstructor().newInstance();
+                        pages.add(page);
+                    } catch (Exception e) {
+                        System.err.println("无法实例化页面: " + clazz.getName());
+                    }
+                }
+            }
         }
         
-        navList = new JList<>(listModel);
-        navList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        navList.setSelectedIndex(0);
-        navList.setBackground(UIUtils.LIGHT_GRAY);
-        navList.setBorder(new EmptyBorder(10, 0, 0, 0));
-        navList.setCellRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                label.setOpaque(true);
-                if (isSelected) {
-                    label.setBackground(new Color(0x2D, 0x2D, 0x2D));
-                    label.setForeground(new Color(0xBB, 0x86, 0xFC));
-                } else {
-                    label.setBackground(UIUtils.LIGHT_GRAY);
-                    label.setForeground(UIUtils.TEXT_COLOR);
-                }
-                label.setBorder(new EmptyBorder(12, 20, 12, 20));
-                return label;
-            }
-        });
-        
-        navList.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int index = navList.getSelectedIndex();
-                if (index >= 0) {
-                    showPage(index + 1); // +1 因为欢迎页是第0个
-                }
-            }
-        });
-        
-        // 底部版权
-        JLabel footerLabel = new JLabel("© 2025 Summer", SwingConstants.CENTER);
-        footerLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        footerLabel.setForeground(new Color(0x90, 0x90, 0x90));
-        footerLabel.setBorder(new EmptyBorder(10, 0, 10, 0));
-        
-        JPanel footerPanel = new JPanel(new BorderLayout());
-        footerPanel.add(footerLabel, BorderLayout.SOUTH);
-        footerPanel.setBackground(UIUtils.LIGHT_GRAY);
-        
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(titleLabel, BorderLayout.NORTH);
-        topPanel.add(navList, BorderLayout.CENTER);
-        topPanel.setBackground(UIUtils.LIGHT_GRAY);
-        
-        navPanel.add(topPanel, BorderLayout.CENTER);
-        navPanel.add(footerPanel, BorderLayout.SOUTH);
-        
-        return navPanel;
+        // 如果反射扫描失败，使用备用方案
+        if (pages.isEmpty()) {
+            System.out.println("警告: 未能自动扫描到页面，使用备用方案");
+            fallbackInitPages();
+        }
     }
     
-    private void showPage(int index) {
-        if (index >= 0 && index < pages.size()) {
-            contentPanel.removeAll();
-            contentPanel.add(pages.get(index).getPanel(), BorderLayout.CENTER);
-            contentPanel.revalidate();
-            contentPanel.repaint();
+    /**
+     * 递归扫描包及其子包
+     */
+    private List<Class<?>> scanPackage(File dir, String packageName, ClassLoader classLoader) {
+        List<Class<?>> pageClasses = new ArrayList<>();
+        
+        File[] files = dir.listFiles();
+        if (files == null) return pageClasses;
+        
+        for (File file : files) {
+            if (file.isDirectory()) {
+                // 递归扫描子包
+                String subPackageName = packageName + "." + file.getName();
+                pageClasses.addAll(scanPackage(file, subPackageName, classLoader));
+            } else if (file.getName().endsWith(".class") && !file.getName().equals("KitPage.class")) {
+                String className = packageName + "." + file.getName().substring(0, file.getName().length() - 6);
+                try {
+                    Class<?> clazz = classLoader.loadClass(className);
+                    if (KitPage.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
+                        pageClasses.add(clazz);
+                    }
+                } catch (ClassNotFoundException | NoClassDefFoundError e) {
+                    // 忽略无法加载的类
+                }
+            }
+        }
+        
+        return pageClasses;
+    }
+    
+    /**
+     * 备用方案：手动注册页面（仅在反射失败时使用）
+     */
+    private void fallbackInitPages() {
+        pages = new ArrayList<>();
+        try {
+            pages.add((KitPage) Class.forName("fan.summer.kitpage.WelcomePage").getDeclaredConstructor().newInstance());
+            pages.add((KitPage) Class.forName("fan.summer.kitpage.email.EmailPage").getDeclaredConstructor().newInstance());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

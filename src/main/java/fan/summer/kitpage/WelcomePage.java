@@ -1,6 +1,5 @@
-package fan.summer.ui.common;
+package fan.summer.kitpage;
 
-import fan.summer.ui.ToolPage;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,7 +7,7 @@ import java.awt.*;
 /**
  * 工具箱欢迎页面
  */
-public class WelcomePage implements ToolPage {
+public class WelcomePage implements KitPage {
     
     private JPanel panel;
     
@@ -40,5 +39,20 @@ public class WelcomePage implements ToolPage {
     @Override
     public String getTitle() {
         return "Swiss Kit";
+    }
+    
+    @Override
+    public String getMenuName() {
+        return "🏠 欢迎";
+    }
+    
+    @Override
+    public Icon getMenuIcon() {
+        return null;
+    }
+    
+    @Override
+    public String getMenuTooltip() {
+        return "返回欢迎页面";
     }
 }

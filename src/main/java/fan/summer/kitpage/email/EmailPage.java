@@ -1,7 +1,7 @@
-package fan.summer.ui.email;
+package fan.summer.kitpage.email;
 
-import fan.summer.ui.ToolPage;
-import fan.summer.ui.common.UIUtils;
+import fan.summer.kitpage.KitPage;
+import fan.summer.utils.UIUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,7 +9,7 @@ import java.awt.*;
 /**
  * 邮件批量发送工具页面
  */
-public class EmailPage implements ToolPage {
+public class EmailPage implements KitPage {
     
     private JPanel panel;
     private JTextField smtpField;
@@ -107,5 +107,15 @@ public class EmailPage implements ToolPage {
     @Override
     public String getTitle() {
         return "邮件批量发送";
+    }
+    
+    @Override
+    public String getMenuName() {
+        return "📧 邮件发送";
+    }
+    
+    @Override
+    public String getMenuTooltip() {
+        return "批量发送邮件";
     }
 }
