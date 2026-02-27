@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 侧边菜单栏组件
- * 根据 KitPage 动态生成菜单
+ * Side menu bar component
+ * Dynamically generates menu based on KitPage
  */
 public class SideMenuBar extends JPanel {
 
@@ -30,10 +30,10 @@ public class SideMenuBar extends JPanel {
     private final JPanel menuContainer;
 
     /**
-     * 创建侧边菜单栏
+     * Create side menu bar
      *
-     * @param pages        页面列表
-     * @param contentPanel 内容面板（用于切换页面）
+     * @param pages        List of pages
+     * @param contentPanel Content panel (for switching pages)
      */
     public SideMenuBar(List<KitPage> pages, JPanel contentPanel) {
         this.pages = pages;
@@ -45,7 +45,7 @@ public class SideMenuBar extends JPanel {
         setPreferredSize(new Dimension(MENU_WIDTH, 0));
         setBackground(UIUtils.LIGHT_GRAY);
 
-        // 标题
+        // Title
         titleLabel = new JLabel("Swiss Kit", SwingConstants.LEFT);
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
         titleLabel.setForeground(UIUtils.TEXT_COLOR);
@@ -55,15 +55,15 @@ public class SideMenuBar extends JPanel {
         titlePanel.add(titleLabel, BorderLayout.NORTH);
         titlePanel.setBackground(UIUtils.LIGHT_GRAY);
 
-        // 菜单容器
+        // Menu container
         menuContainer = new JPanel();
         menuContainer.setLayout(new BoxLayout(menuContainer, BoxLayout.Y_AXIS));
         menuContainer.setBackground(UIUtils.LIGHT_GRAY);
 
-        // 构建菜单项
+        // Build menu items
         rebuildMenu();
 
-        // 底部版权
+        // Footer copyright
         JLabel footerLabel = new JLabel("© 2025 Summer", SwingConstants.CENTER);
         footerLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
         footerLabel.setForeground(new Color(0x90, 0x90, 0x90));
@@ -73,14 +73,14 @@ public class SideMenuBar extends JPanel {
         footerPanel.add(footerLabel, BorderLayout.SOUTH);
         footerPanel.setBackground(UIUtils.LIGHT_GRAY);
 
-        // 组装
+        // Assemble
         add(titlePanel, BorderLayout.NORTH);
         add(menuContainer, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
     }
 
     /**
-     * 重建菜单（用于动态更新菜单）
+     * Rebuild menu (for dynamic menu updates)
      */
     public void rebuildMenu() {
         menuContainer.removeAll();
@@ -98,7 +98,7 @@ public class SideMenuBar extends JPanel {
     }
 
     /**
-     * 创建菜单项
+     * Create menu item
      */
     private JLabel createMenuItem(KitPage page, int index) {
         String menuName = page.getMenuName();
@@ -118,7 +118,7 @@ public class SideMenuBar extends JPanel {
             label.setToolTipText(tooltip);
         }
 
-        // 点击事件
+        // Click event
         label.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -144,18 +144,18 @@ public class SideMenuBar extends JPanel {
     }
 
     /**
-     * 选择页面
+     * Select page
      */
     public void selectPage(int index) {
         if (index < 0 || index >= pages.size()) {
             return;
         }
 
-        // 更新选中状态
+        // Update selected state
         int previousIndex = selectedIndex;
         selectedIndex = index;
 
-        // 更新菜单项样式
+        // Update menu item styles
         if (previousIndex >= 0 && previousIndex < menuItems.size()) {
             JLabel prevLabel = menuItems.get(previousIndex);
             prevLabel.setBackground(UIUtils.LIGHT_GRAY);
@@ -166,7 +166,7 @@ public class SideMenuBar extends JPanel {
         selectedLabel.setBackground(SELECTED_BG);
         selectedLabel.setForeground(SELECTED_TEXT);
 
-        // 切换内容面板
+        // Switch content panel
         if (contentPanel != null) {
             contentPanel.removeAll();
             contentPanel.add(pages.get(index).getPanel(), BorderLayout.CENTER);
@@ -176,21 +176,21 @@ public class SideMenuBar extends JPanel {
     }
 
     /**
-     * 获取当前选中的页面索引
+     * Get current selected page index
      */
     public int getSelectedIndex() {
         return selectedIndex;
     }
 
     /**
-     * 设置标题
+     * Set title
      */
     public void setTitle(String title) {
         titleLabel.setText(title);
     }
 
     /**
-     * 添加页面
+     * Add page
      */
     public void addPage(KitPage page) {
         pages.add(page);
@@ -202,7 +202,7 @@ public class SideMenuBar extends JPanel {
     }
 
     /**
-     * 移除页面
+     * Remove page
      */
     public void removePage(int index) {
         if (index >= 0 && index < pages.size()) {
@@ -216,7 +216,7 @@ public class SideMenuBar extends JPanel {
     }
 
     /**
-     * 设置页面列表（会重建菜单）
+     * Set page list (will rebuild menu)
      */
     public void setPages(List<KitPage> newPages) {
         pages.clear();

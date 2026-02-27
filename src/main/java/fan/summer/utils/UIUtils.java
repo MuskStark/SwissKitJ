@@ -4,18 +4,18 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * UI 通用工具类
+ * UI common utility class
  */
 public class UIUtils {
     
-    // 常用颜色
+    // Common colors
     public static final Color PRIMARY_COLOR = new Color(0xBB, 0x86, 0xFC);
     public static final Color TEXT_COLOR = new Color(0x60, 0x60, 0x60);
     public static final Color LIGHT_GRAY = new Color(0xF3, 0xF3, 0xF3);
     public static final Color DIVIDER_COLOR = new Color(0xE0, 0xE0, 0xE0);
     
     /**
-     * 创建带标题的区域面板
+     * Create section panel with title
      */
     public static JPanel createSectionPanel(String title, JComponent content) {
         JPanel panel = new JPanel();
@@ -37,7 +37,7 @@ public class UIUtils {
     }
     
     /**
-     * 创建文件选择面板
+     * Create file selection panel
      */
     public static JPanel createFilePickerPanel(String label, JTextField textField, JButton button) {
         JPanel panel = new JPanel(new BorderLayout(10, 0));
@@ -47,7 +47,7 @@ public class UIUtils {
     }
     
     /**
-     * 创建文件夹选择面板
+     * Create folder selection panel
      */
     public static JPanel createFolderPickerPanel(String label, JTextField textField, JButton button) {
         JPanel panel = new JPanel(new BorderLayout(10, 0));
@@ -58,7 +58,7 @@ public class UIUtils {
     }
     
     /**
-     * 创建页面标题
+     * Create page title
      */
     public static JLabel createPageTitle(String title) {
         JLabel label = new JLabel(title);
@@ -67,7 +67,7 @@ public class UIUtils {
     }
     
     /**
-     * 创建文本域（带滚动）
+     * Create text area (with scroll)
      */
     public static JScrollPane createScrollableTextArea(JTextArea textArea, int rows, int cols) {
         textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -78,7 +78,7 @@ public class UIUtils {
     }
     
     /**
-     * 创建进度条
+     * Create progress bar
      */
     public static JProgressBar createProgressBar() {
         JProgressBar progressBar = new JProgressBar();
@@ -88,7 +88,7 @@ public class UIUtils {
     }
     
     /**
-     * 创建居中按钮面板
+     * Create centered button panel
      */
     public static JPanel createCenterButtonPanel(JButton... buttons) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -99,14 +99,14 @@ public class UIUtils {
     }
     
     /**
-     * 创建空白间隔
+     * Create vertical spacing
      */
     public static Component createVerticalStrut(int size) {
         return Box.createVerticalStrut(size);
     }
     
     /**
-     * 创建水平空白间隔
+     * Create horizontal spacing
      */
     public static Component createHorizontalStrut(int size) {
         return Box.createHorizontalStrut(size);
