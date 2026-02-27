@@ -15,33 +15,52 @@
     </properties>
 
     <dependencies>
-        <!-- FlatLaf 核心库 -->
+        <!-- FlatLaf core -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
             <version>3.5</version>
         </dependency>
         
-        <!-- 可选：FlatLaf 额外主题 -->
+        <!-- FlatLaf -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf-extras</artifactId>
             <version>3.5</version>
         </dependency>
         
-        <!-- FlatLaf IntelliJ 主题 -->
+        <!-- FlatLaf IntelliJ -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf-intellij-themes</artifactId>
             <version>3.5</version>
         </dependency>
         
-        <!-- SwingX 扩展库（可选，增强 UI 组件） -->
+        <!-- SwingX  -->
         <dependency>
             <groupId>org.swinglabs.swingx</groupId>
             <artifactId>swingx-all</artifactId>
             <version>1.6.5</version>
         </dependency>
+
+        <!-- Excel -->
+        <dependency>
+            <groupId>org.apache.fesod</groupId>
+            <artifactId>fesod-sheet</artifactId>
+            <version>2.0.1-incubating</version>
+        </dependency>
+        <!-- Log -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.25.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.20.0</version>
+        </dependency>
+
     </dependencies>
 
 </project>
