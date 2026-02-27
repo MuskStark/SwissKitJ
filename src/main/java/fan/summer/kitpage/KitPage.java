@@ -5,33 +5,32 @@ import java.awt.*;
 
 public interface KitPage {
     /**
-     * 获取页面面板
+     * Get page panel
      */
-    JPanel getPanel();
-
-    /**
-     * 获取页面标题
+        JPanel getPanel();
+    
+        /**
+         * Get page title
      */
-    String getTitle();
-
-    /**
-     * 获取菜单显示名称
+        String getTitle();
+    
+        /**
+         * Get menu display name
      */
-    default String getMenuName() {
-        return getTitle();
-    }
-
-    /**
-     * 获取菜单图标（可返回 null）
+        default String getMenuName() {
+            return getTitle();
+        }
+    
+        /**
+         * Get menu icon (can return null)
      */
-    default Icon getMenuIcon() {
-        return null;
-    }
-
-    /**
-     * 获取菜单提示文本
+        default Icon getMenuIcon() {
+            return null;
+        }
+    
+        /**
+         * Get menu tooltip text
      */
-    default String getMenuTooltip() {
-        return null;
-    }
-}
+        default String getMenuTooltip() {
+            return null;
+        }}

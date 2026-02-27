@@ -5,7 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * 工具箱欢迎页面
+ * Toolbox welcome page
  */
 public class WelcomePage implements KitPage {
     
@@ -43,7 +43,7 @@ public class WelcomePage implements KitPage {
     
     @Override
     public String getMenuName() {
-        return "🏠 欢迎";
+        return "🏠 Welcome";
     }
     
     @Override
@@ -53,6 +53,6 @@ public class WelcomePage implements KitPage {
     
     @Override
     public String getMenuTooltip() {
-        return "返回欢迎页面";
+        return "Return to welcome page";
     }
 }

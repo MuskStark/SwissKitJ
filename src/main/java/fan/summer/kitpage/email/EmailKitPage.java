@@ -5,7 +5,8 @@ import fan.summer.kitpage.KitPage;
 import javax.swing.*;
 
 /**
- * 类的详细说明
+ * Email Tool Page
+ * Provides email sending functionality
  *
  * @author summer
  * @version 1.00

@@ -1,7 +1,6 @@
 package fan.summer;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
-
 import fan.summer.kitpage.KitPage;
 import fan.summer.utils.SideMenuBar;
 
@@ -30,38 +29,40 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         
-        // 设置应用图标
+        // Set application icon
         setAppIcon(frame);
 
-        // 初始化页面
+        // Initialize pages
         initPages();
 
-        // 内容面板
+        // Content panel
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         contentPanel.setBackground(Color.WHITE);
 
-        // 侧边菜单栏
+        // Side menu bar
         sideMenuBar = new SideMenuBar(pages, contentPanel);
 
-        // 主面板
+        // Main panel
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(sideMenuBar, BorderLayout.WEST);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
         frame.add(mainPanel);
 
-        // 默认选中第一个页面
+        // Select the first page by default
         sideMenuBar.selectPage(0);
 
-        frame.pack();
+//        frame.pack();
+        frame.setSize(new Dimension(900, 600));
         frame.setMinimumSize(new Dimension(800, 500));
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
     
     /**
-     * 设置应用图标
-     * 将图标文件放入 resources 目录，支持: icon.png, icon.jpg, app.png
+     * Set application icon
+     * Place icon file in resources directory, supports: icon.png, icon.jpg, app.png
      */
     private void setAppIcon(JFrame frame) {
         String[] iconPaths = {"/icon.png", "/icon.jpg", "/app.png"};
@@ -73,12 +74,12 @@ public class Main {
                 return;
             }
         }
-        // 未找到图标文件时使用默认
+        // Use default when icon file not found
         System.out.println("提示: 未找到应用图标，请添加 icon.png 到 resources 目录");
     }
 
     /**
-     * 自动扫描并注册所有 KitPage 实现类
+     * Automatically scan and register all KitPage implementation classes
      */
     private void initPages() {
         pages = new ArrayList<>();
@@ -92,13 +93,13 @@ public class Main {
         if (packageURL != null) {
             File packageDir = new File(packageURL.getFile());
             if (packageDir.exists() && packageDir.isDirectory()) {
-                // 递归扫描包及其子包
+                // Recursively scan package and its sub-packages
                 List<Class<?>> pageClasses = scanPackage(packageDir, packageName, classLoader);
                 
-                // 按类名排序，确保顺序一致
+                // Sort by class name to ensure consistent order
                 pageClasses.sort(Comparator.comparing(Class::getName));
                 
-                // 实例化所有页面类
+                // Instantiate all page classes
                 for (Class<?> clazz : pageClasses) {
                     try {
                         KitPage page = (KitPage) clazz.getDeclaredConstructor().newInstance();
@@ -110,7 +111,7 @@ public class Main {
             }
         }
         
-        // 如果反射扫描失败，使用备用方案
+        // If reflection scan fails, use fallback
         if (pages.isEmpty()) {
             System.out.println("警告: 未能自动扫描到页面，使用备用方案");
             fallbackInitPages();
@@ -118,7 +119,7 @@ public class Main {
     }
     
     /**
-     * 递归扫描包及其子包
+     * Recursively scan package and its sub-packages
      */
     private List<Class<?>> scanPackage(File dir, String packageName, ClassLoader classLoader) {
         List<Class<?>> pageClasses = new ArrayList<>();
@@ -128,7 +129,7 @@ public class Main {
         
         for (File file : files) {
             if (file.isDirectory()) {
-                // 递归扫描子包
+                // Recursively scan sub-packages
                 String subPackageName = packageName + "." + file.getName();
                 pageClasses.addAll(scanPackage(file, subPackageName, classLoader));
             } else if (file.getName().endsWith(".class") && !file.getName().equals("KitPage.class")) {
@@ -139,7 +140,7 @@ public class Main {
                         pageClasses.add(clazz);
                     }
                 } catch (ClassNotFoundException | NoClassDefFoundError e) {
-                    // 忽略无法加载的类
+                    // Ignore classes that cannot be loaded
                 }
             }
         }
@@ -148,7 +149,7 @@ public class Main {
     }
     
     /**
-     * 备用方案：手动注册页面（仅在反射失败时使用）
+     * Fallback: Manually register pages (only used when reflection fails)
      */
     private void fallbackInitPages() {
         pages = new ArrayList<>();
