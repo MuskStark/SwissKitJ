@@ -54,7 +54,12 @@ public class ExcelKitPage implements KitPage {
         fileSelectBt.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            fileChooser.setDialogTitle("Select Output Directory");
+
+            // 设置 Excel 文件过滤器
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                    "Excel Files (*.xlsx, *.xls)", "xlsx", "xls"
+            ));
+            fileChooser.setDialogTitle("Select Excel File");
             int result = fileChooser.showOpenDialog(excelKitPage);
             if (result == JFileChooser.APPROVE_OPTION) {
                 excelFilePath = fileChooser.getSelectedFile().toPath();
