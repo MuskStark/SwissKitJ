@@ -25,6 +25,12 @@ public class Main {
     private void createAndShowGUI() {
         FlatIntelliJLaf.setup();
 
+        UIManager.put("ProgressBar.arc", 10);
+        UIManager.put("ProgressBar.foreground", new Color(64,158,255));
+        UIManager.put("ProgressBar.background", new Color(240,240,240));
+        UIManager.put("ProgressBar.selectionForeground", Color.WHITE);
+        UIManager.put("ProgressBar.selectionBackground", Color.GRAY);
+
         JFrame frame = new JFrame("Swiss Kit");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);

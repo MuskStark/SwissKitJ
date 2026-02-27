@@ -1,9 +1,10 @@
 package fan.summer.kitpage.excel;
 
 import fan.summer.kitpage.KitPage;
-import fan.summer.kitpage.excel.uiComponents.FixedWidthComboBox;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisCallback;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisWorker;
+import fan.summer.ui.components.FixedWidthComboBox;
+import fan.summer.ui.components.GradientProgressBar;
 
 import javax.swing.*;
 import java.nio.file.Path;
@@ -174,6 +175,7 @@ public class ExcelKitPage implements KitPage {
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
+        progressBar1 = new GradientProgressBar();
         choiceSheetBox = new FixedWidthComboBox(200);
         choiceColumnBox = new FixedWidthComboBox(200);
     }

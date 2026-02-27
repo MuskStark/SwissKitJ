@@ -1,4 +1,4 @@
-package fan.summer.kitpage.excel.uiComponents;
+package fan.summer.ui.components;
 
 import javax.swing.*;
 import java.awt.*;
