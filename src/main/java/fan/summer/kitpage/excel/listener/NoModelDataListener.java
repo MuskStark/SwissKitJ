@@ -20,6 +20,9 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Obje
     private List<Map<Integer, Object>> cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
     private boolean usedDataBase;
 
+    /**
+     * Clears the cached data list and reinitializes it for the next batch of data.
+     */
     public void clear() {
         cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
     }
@@ -45,7 +48,7 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Obje
     }
 
     /**
-     * Save data to database
+     * Saves data to the database (placeholder implementation).
      */
     private void saveData() {
         log.info("{} rows of data, starting to save to database!", cachedDataList.size());

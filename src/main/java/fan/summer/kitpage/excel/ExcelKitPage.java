@@ -6,10 +6,11 @@ import fan.summer.kitpage.excel.worker.ExcelAnalysisWorker;
 import fan.summer.kitpage.excel.worker.ExcelSplitWorker;
 import fan.summer.ui.components.FixedWidthComboBox;
 import fan.summer.ui.components.GradientProgressBar;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,6 +23,7 @@ import java.util.Set;
  * @Date 2026/2/26
  */
 public class ExcelKitPage implements KitPage {
+    private static final Logger logger = LoggerFactory.getLogger(ExcelKitPage.class);
 
     private JPanel excelKitPage;
     private JButton fileSelectBt;
@@ -45,8 +47,6 @@ public class ExcelKitPage implements KitPage {
     private String selectedColumnNm;
 
 
-
-
     /**
      * Constructor - Initialize the Excel tool page and set up all event listeners
      */
@@ -66,6 +66,7 @@ public class ExcelKitPage implements KitPage {
             if (result == JFileChooser.APPROVE_OPTION) {
                 excelFilePath = fileChooser.getSelectedFile().toPath();
                 selectedFilePath.setText(fileChooser.getSelectedFile().getAbsolutePath());
+                logger.info("Excel file selected: {}", excelFilePath);
             }
 
         });
@@ -83,27 +84,33 @@ public class ExcelKitPage implements KitPage {
         });
 
         // ActionListener for analysis button - starts Excel file analysis in background worker
-        excelFileAnalysisBt.addActionListener(e -> new ExcelAnalysisWorker(excelFilePath, progressBar1, excelSplitBt, new ExcelAnalysisCallback() {
-            @Override
-            public void onSuccess(Map<String, Map<Integer, String>> result) {
-                excelFileAnalysisResultMap = result;
-            }
-            @Override
-            public void onFailure(Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }).execute());
+        excelFileAnalysisBt.addActionListener(e -> {
+            excelFileAnalysisBt.setEnabled(false);
+            new ExcelAnalysisWorker(excelFilePath, progressBar1, excelSplitBt, new ExcelAnalysisCallback() {
+                @Override
+                public void onSuccess(Map<String, Map<Integer, String>> result) {
+                    excelFileAnalysisResultMap = result;
+                    excelFileAnalysisBt.setEnabled(true);
+                    logger.info("Excel file analysis completed successfully. Found {} sheets", result.size());
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    excelFileAnalysisBt.setEnabled(true);
+                    logger.error("Excel file analysis failed: {}", e.getMessage(), e);
+                }
+            }).execute();
+        });
+
 
         // ActionListener for split button - executes file splitting logic (to be implemented)
         excelSplitBt.addActionListener(e -> {
-            // TODO: Implement file splitting logic
             ExcelSplitWorker excelSplitWorker = new ExcelSplitWorker(Path.of(outputPath.getText()), excelFilePath, progressBar1, excelSplitBt);
-            if(splitBySheetCheckBox.isSelected()){
+            if (splitBySheetCheckBox.isSelected()) {
                 excelSplitWorker.setSplitSheetModel(excelFileAnalysisResultMap.keySet()).setExcelFileAnalysisResultMap(excelFileAnalysisResultMap).execute();
-            }
-            else if(splitByColumnCheckBox.isSelected()) {
-
-            }else  {
+            } else if (splitByColumnCheckBox.isSelected()) {
+                excelSplitWorker.setSplitColumnModel((String) choiceSheetBox.getSelectedItem(), (String) choiceColumnBox.getSelectedItem()).setExcelFileAnalysisResultMap(excelFileAnalysisResultMap).execute();
+            } else {
                 JOptionPane.showMessageDialog(excelKitPage,
                         "Please select a split mode first!",
                         "Warning",
@@ -113,19 +120,19 @@ public class ExcelKitPage implements KitPage {
         });
 
         // ChangeListener for split by sheet checkbox - triggers mutual exclusion logic
-        splitBySheetCheckBox.addActionListener( e -> checkBoxInterlocked());
+        splitBySheetCheckBox.addActionListener(e -> checkBoxInterlocked());
 
         // ChangeListener for split by column checkbox - loads sheet names and triggers mutual exclusion logic
-        splitByColumnCheckBox.addActionListener( e -> {
+        splitByColumnCheckBox.addActionListener(e -> {
             choiceSheetBox.removeAllItems();
-            if(splitByColumnCheckBox.isSelected()){
+            if (splitByColumnCheckBox.isSelected()) {
                 // check excelFileAnalysisResultMap
-                if(excelFileAnalysisResultMap!=null){
+                if (excelFileAnalysisResultMap != null) {
                     Set<String> sheets = excelFileAnalysisResultMap.keySet();
-                    for (String sheet: sheets) {
+                    for (String sheet : sheets) {
                         choiceSheetBox.addItem(sheet);
                     }
-                }else {
+                } else {
                     choiceSheetBox.removeAllItems();
                 }
             }
@@ -146,10 +153,10 @@ public class ExcelKitPage implements KitPage {
 
         // ActionListener for column selection combo box - handles column selection (to be implemented)
         choiceColumnBox.addActionListener(e -> {
-            if(choiceColumnBox.getSelectedIndex() != -1){
+            if (choiceColumnBox.getSelectedIndex() != -1) {
                 String columnName = (String) choiceColumnBox.getSelectedItem();
                 selectedColumnNm = columnName;
-                System.out.println(columnName);
+                logger.debug("Column selected: {}", columnName);
             }
         });
     }
@@ -158,17 +165,17 @@ public class ExcelKitPage implements KitPage {
      * Handle the mutual exclusion logic between splitBySheetCheckBox and splitByColumnCheckBox
      * When one checkbox is selected, the other is disabled and unselected
      */
-    private void checkBoxInterlocked(){
-        if(splitBySheetCheckBox.isSelected()){
+    private void checkBoxInterlocked() {
+        if (splitBySheetCheckBox.isSelected()) {
             splitByColumnCheckBox.setSelected(false);
             splitByColumnCheckBox.setEnabled(false);
-        }else {
+        } else {
             splitByColumnCheckBox.setEnabled(true);
         }
-        if(splitByColumnCheckBox.isSelected()){
+        if (splitByColumnCheckBox.isSelected()) {
             splitBySheetCheckBox.setEnabled(false);
             splitBySheetCheckBox.setSelected(false);
-        }else {
+        } else {
             splitBySheetCheckBox.setEnabled(true);
         }
     }
@@ -193,6 +200,10 @@ public class ExcelKitPage implements KitPage {
         return "Excel";
     }
 
+    /**
+     * Initialize and create custom UI components.
+     * Creates the gradient progress bar and fixed-width combo boxes for sheet and column selection.
+     */
     private void createUIComponents() {
         // TODO: place custom component creation code here
         progressBar1 = new GradientProgressBar();

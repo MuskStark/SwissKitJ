@@ -1,25 +1,17 @@
 package fan.summer.kitpage.excel.worker;
 
 import fan.summer.kitpage.excel.listener.NoModelDataListener;
-import org.apache.fesod.sheet.EasyExcel;
 import org.apache.fesod.sheet.ExcelReader;
 import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.read.metadata.ReadSheet;
-import org.apache.fesod.sheet.context.AnalysisContext;
-import org.apache.fesod.sheet.event.AnalysisEventListener;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Worker for splitting Excel files into separate files.
@@ -42,10 +34,10 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
     /**
      * Constructor for ExcelSplitWorker.
      *
-     * @param outputPath       the directory to save split files
-     * @param orgFilePath      the original Excel file path
-     * @param progressBar      the progress bar to update
-     * @param button           the button to disable during processing
+     * @param outputPath  the directory to save split files
+     * @param orgFilePath the original Excel file path
+     * @param progressBar the progress bar to update
+     * @param button      the button to disable during processing
      */
     public ExcelSplitWorker(Path outputPath, Path orgFilePath, JProgressBar progressBar, JButton button) {
         this.outputPath = outputPath;
@@ -67,8 +59,30 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
         return this;
     }
 
+    /**
+     * Sets the split model to split by column values.
+     * Each unique value in the specified column will create a separate file.
+     *
+     * @param sheetName  the name of the sheet to split
+     * @param columnName the name of the column to group by
+     * @return this worker for method chaining
+     */
+    public ExcelSplitWorker setSplitColumnModel(String sheetName, String columnName) {
+        config.clear();
+        config.put("model", "SCM");
+        config.put("sheetName", sheetName);
+        config.put("columnName", columnName);
+        return this;
+    }
+
+    /**
+     * Sets the Excel file analysis result map containing sheet names and column headers.
+     *
+     * @param excelFileAnalysisResultMap map of sheet names to column header maps
+     * @return this worker for method chaining
+     */
     public ExcelSplitWorker setExcelFileAnalysisResultMap(Map<String, Map<Integer, String>> excelFileAnalysisResultMap) {
-        if(configValidation()){
+        if (configValidation()) {
             config.put("excelFileAnalysisResultMap", excelFileAnalysisResultMap);
         }
         return this;
@@ -95,6 +109,9 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
                 case "SSM":
                     doSplitBySheet((Set<String>) config.get("sheetNames"));
                     return null;
+                case "SCM":
+                    doSplitByColumn((String) config.get("sheetName"), (String) config.get("columnName"));
+                    return null;
                 default:
                     return null;
             }
@@ -116,6 +133,26 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
         }
     }
 
+
+    /**
+     * Processes progress updates published by doInBackground.
+     * Updates the progress bar in the EDT thread.
+     *
+     * @param chunks list of progress values
+     */
+    @Override
+    protected void process(List<Integer> chunks) {
+        if (!chunks.isEmpty()) {
+            int latestProgress = chunks.get(chunks.size() - 1);
+            progressBar.setValue(latestProgress);
+            progressBar.setString("Splitting... " + latestProgress + "%");
+        }
+    }
+
+    /*
+      ExcelFile Split Function
+     */
+
     /**
      * Splits Excel file by selected sheet names.
      * Each selected sheet will be saved to a separate file.
@@ -134,9 +171,9 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
                 excelReader.read(sheet2);
                 List<Map<Integer, Object>> cachedDataList = noModelDataListener.getCachedDataList();
                 Map<Integer, String> headerMap = excelFileAnalysisResultMap.get(sheetName);
-                List<List<String>> headers= buildHeaders(headerMap);
-                List<List<Object>> rows = buildRows(headerMap,cachedDataList);
-                Path resolve = outputPath.resolve(sheetName +".xlsx");
+                List<List<String>> headers = buildHeaders(headerMap);
+                List<List<Object>> rows = buildRows(headerMap, cachedDataList);
+                Path resolve = outputPath.resolve(orgFilePath.getFileName() + "_" + sheetName + ".xlsx");
                 FesodSheet.write(resolve.toFile())
                         .sheet(sheetName)
                         .head(headers)
@@ -148,21 +185,54 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
         }
     }
 
+
     /**
-     * Processes progress updates published by doInBackground.
-     * Updates the progress bar in the EDT thread.
+     * Splits Excel file by column values.
+     * Groups rows based on unique values in the specified column and writes each group to a separate file.
      *
-     * @param chunks list of progress values
+     * @param sheetName  the name of the sheet to split
+     * @param columnName the name of the column to group by
      */
-    @Override
-    protected void process(List<Integer> chunks) {
-        if (!chunks.isEmpty()) {
-            int latestProgress = chunks.get(chunks.size() - 1);
-            progressBar.setValue(latestProgress);
-            progressBar.setString("Splitting... " + latestProgress + "%");
+    private void doSplitByColumn(String sheetName, String columnName) {
+        NoModelDataListener noModelDataListener = new NoModelDataListener();
+        Map<String, Map<Integer, String>> excelFileAnalysisResultMap = (Map<String, Map<Integer, String>>) config.get("excelFileAnalysisResultMap");
+        Map<Integer, String> headers = excelFileAnalysisResultMap.get(sheetName);
+        // Get target column index
+        AtomicInteger targetColumnIndex = new AtomicInteger(-1);
+        headers.forEach((k, v) -> {
+            if (v.equals(columnName)) {
+                targetColumnIndex.set(k);
+            }
+        });
+        // Read Excel By sheetName
+        try (ExcelReader excelReader = FesodSheet.read(orgFilePath.toFile()).build()) {
+            ReadSheet sheet = FesodSheet.readSheet(sheetName).registerReadListener(noModelDataListener).build();
+            excelReader.read(sheet);
+            List<Map<Integer, Object>> cachedDataList = noModelDataListener.getCachedDataList();
+            // GroupBy target index by value
+            Map<Object, List<Map<Integer, Object>>> group = cachedDataList.stream().collect(Collectors.groupingBy(row -> row.getOrDefault(targetColumnIndex.get(), 0)));
+            int total = group.keySet().size();
+            AtomicInteger current = new AtomicInteger(0);
+            group.forEach((k, v) -> {
+                List<List<Object>> rows = buildRows(headers, v);
+                Path resolve = outputPath.resolve(orgFilePath.getFileName() + "_" + k.toString() + ".xlsx");
+                FesodSheet.write(resolve.toFile())
+                        .sheet(sheetName)
+                        .head(buildHeaders(headers))
+                        .doWrite(rows);
+                current.set(current.get() + 1);
+                publish(current.get() * 100 / total);
+            });
+            noModelDataListener.clear();
         }
     }
 
+    /**
+     * Converts header map to the format required by FesodSheet for writing.
+     *
+     * @param headMap map of column index to header name
+     * @return list of header lists for Excel writing
+     */
     // Convert Map<Integer, String> header to List<List<String>> format required by EasyExcel
     private static List<List<String>> buildHeaders(Map<Integer, String> headMap) {
         List<List<String>> headers = new ArrayList<>();
@@ -173,6 +243,13 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
         return headers;
     }
 
+    /**
+     * Converts raw data rows to the format required by FesodSheet for writing.
+     *
+     * @param headMap   map of column index to header name
+     * @param dataList  list of row data maps
+     * @return list of rows in correct column order
+     */
     private static List<List<Object>> buildRows(Map<Integer, String> headMap,
                                                 List<Map<Integer, Object>> dataList) {
         List<Integer> sortedKeys = new ArrayList<>(new TreeMap<>(headMap).keySet());
@@ -187,19 +264,19 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
         return rows;
     }
 
-    private boolean configValidation(){
-        try{
+    /**
+     * Validates that the configuration has been properly set.
+     *
+     * @return true if configuration is valid, false otherwise
+     */
+    private boolean configValidation() {
+        try {
             config.get("model");
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
-
-
-
-
-
 
 
 }

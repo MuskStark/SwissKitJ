@@ -24,12 +24,12 @@ public class ExcelAnalysisWorker extends SwingWorker<Map<String, Map<Integer, St
     /**
      * Constructor - Initialize the Excel analysis worker
      *
-     * @param filePath the path to the Excel file to analyze
+     * @param filePath    the path to the Excel file to analyze
      * @param progressBar the progress bar to update during analysis
-     * @param startBtn the start button to enable/disable during analysis
-     * @param callback the callback interface to notify of success or failure
+     * @param startBtn    the start button to enable/disable during analysis
+     * @param callback    the callback interface to notify of success or failure
      */
-    public ExcelAnalysisWorker(Path filePath,JProgressBar progressBar, JButton startBtn, ExcelAnalysisCallback callback) {
+    public ExcelAnalysisWorker(Path filePath, JProgressBar progressBar, JButton startBtn, ExcelAnalysisCallback callback) {
         this.filePath = filePath;
         this.progressBar = progressBar;
         this.startBtn = startBtn;
