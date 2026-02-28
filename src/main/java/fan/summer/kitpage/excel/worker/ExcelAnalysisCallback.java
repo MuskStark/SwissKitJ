@@ -9,7 +9,7 @@ public interface ExcelAnalysisCallback {
      *
      * @param result a map where keys are sheet names and values are lists of header strings
      */
-    void onSuccess(Map<String, List<String>> result);
+    void onSuccess(Map<String, Map<Integer, String>> result);
     /**
      * Called when the Excel analysis fails
      *

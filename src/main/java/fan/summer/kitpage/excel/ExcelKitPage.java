@@ -3,6 +3,7 @@ package fan.summer.kitpage.excel;
 import fan.summer.kitpage.KitPage;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisCallback;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisWorker;
+import fan.summer.kitpage.excel.worker.ExcelSplitWorker;
 import fan.summer.ui.components.FixedWidthComboBox;
 import fan.summer.ui.components.GradientProgressBar;
 
@@ -37,7 +38,7 @@ public class ExcelKitPage implements KitPage {
     private JComboBox choiceColumnBox;
 
     private Path excelFilePath;
-    Map<String, List<String>> excelFileAnalysisResultMap;
+    Map<String, Map<Integer, String>> excelFileAnalysisResultMap;
 
     // simple split
     private String selectedSheetNm;
@@ -50,12 +51,13 @@ public class ExcelKitPage implements KitPage {
      * Constructor - Initialize the Excel tool page and set up all event listeners
      */
     public ExcelKitPage() {
+        excelSplitBt.setEnabled(false);
         // ActionListener for file selection button - opens file chooser dialog and updates file path
         fileSelectBt.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
-            // 设置 Excel 文件过滤器
+            // Set Excel file filter
             fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
                     "Excel Files (*.xlsx, *.xls)", "xlsx", "xls"
             ));
@@ -83,7 +85,7 @@ public class ExcelKitPage implements KitPage {
         // ActionListener for analysis button - starts Excel file analysis in background worker
         excelFileAnalysisBt.addActionListener(e -> new ExcelAnalysisWorker(excelFilePath, progressBar1, excelSplitBt, new ExcelAnalysisCallback() {
             @Override
-            public void onSuccess(Map<String, List<String>> result) {
+            public void onSuccess(Map<String, Map<Integer, String>> result) {
                 excelFileAnalysisResultMap = result;
             }
             @Override
@@ -95,6 +97,19 @@ public class ExcelKitPage implements KitPage {
         // ActionListener for split button - executes file splitting logic (to be implemented)
         excelSplitBt.addActionListener(e -> {
             // TODO: Implement file splitting logic
+            ExcelSplitWorker excelSplitWorker = new ExcelSplitWorker(Path.of(outputPath.getText()), excelFilePath, progressBar1, excelSplitBt);
+            if(splitBySheetCheckBox.isSelected()){
+                excelSplitWorker.setSplitSheetModel(excelFileAnalysisResultMap.keySet()).setExcelFileAnalysisResultMap(excelFileAnalysisResultMap).execute();
+            }
+            else if(splitByColumnCheckBox.isSelected()) {
+
+            }else  {
+                JOptionPane.showMessageDialog(excelKitPage,
+                        "Please select a split mode first!",
+                        "Warning",
+                        JOptionPane.WARNING_MESSAGE);
+            }
+
         });
 
         // ChangeListener for split by sheet checkbox - triggers mutual exclusion logic
@@ -123,7 +138,7 @@ public class ExcelKitPage implements KitPage {
             if (choiceSheetBox.getSelectedIndex() != -1) {
                 String sheetName = (String) choiceSheetBox.getSelectedItem();
                 selectedSheetNm = sheetName;
-                excelFileAnalysisResultMap.get(sheetName).forEach(sheet -> {
+                excelFileAnalysisResultMap.get(sheetName).values().forEach(sheet -> {
                     choiceColumnBox.addItem(sheet);
                 });
             }

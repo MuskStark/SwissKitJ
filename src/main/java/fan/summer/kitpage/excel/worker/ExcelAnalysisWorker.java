@@ -14,7 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ExcelAnalysisWorker extends SwingWorker<Map<String, List<String>>, Integer> {
+public class ExcelAnalysisWorker extends SwingWorker<Map<String, Map<Integer, String>>, Integer> {
 
     private final ExcelAnalysisCallback callback;
     private final Path filePath;
@@ -44,7 +44,13 @@ public class ExcelAnalysisWorker extends SwingWorker<Map<String, List<String>>, 
      * @throws Exception if the file cannot be read or parsed
      */
     @Override
-    protected Map<String, List<String>> doInBackground() throws Exception {
+    protected Map<String, Map<Integer, String>> doInBackground() throws Exception {
+        // Initialize progress bar in EDT thread
+        SwingUtilities.invokeLater(() -> {
+            progressBar.setValue(0);
+            progressBar.setStringPainted(true);
+        });
+
         // 1. Get all sheet names
         List<String> sheetNames = new ArrayList<>();
         try (Workbook workbook = WorkbookFactory.create(filePath.toFile())) {
@@ -54,7 +60,7 @@ public class ExcelAnalysisWorker extends SwingWorker<Map<String, List<String>>, 
         }
 
         int total = sheetNames.size();
-        Map<String, List<String>> result = new LinkedHashMap<>();
+        Map<String, Map<Integer, String>> result = new LinkedHashMap<>();
 
         // 2. Read sheet headers one by one, update progress after each sheet is read
         try (ExcelReader excelReader = FesodSheet.read(filePath.toFile()).build()) {
@@ -67,6 +73,7 @@ public class ExcelAnalysisWorker extends SwingWorker<Map<String, List<String>>, 
                         .registerReadListener(headerListener)
                         .build();
                 excelReader.read(readSheet);
+
                 result.put(sheetName, headerListener.getHeaders());
 
                 // Calculate percentage and publish progress
@@ -90,7 +97,7 @@ public class ExcelAnalysisWorker extends SwingWorker<Map<String, List<String>>, 
         // EDT thread: Update progress bar
         int latestProgress = chunks.get(chunks.size() - 1);
         progressBar.setValue(latestProgress);
-        progressBar.setString("解析中... " + latestProgress + "%");
+        progressBar.setString("Parsing... " + latestProgress + "%");
     }
 
     /**
@@ -101,14 +108,14 @@ public class ExcelAnalysisWorker extends SwingWorker<Map<String, List<String>>, 
     protected void done() {
         // EDT thread: Task completion cleanup
         try {
-            Map<String, List<String>> result = get(); // Get return value from doInBackground
-            progressBar.setString("解析完成！共 " + result.size() + " 个 Sheet");
+            Map<String, Map<Integer, String>> result = get(); // Get return value from doInBackground
+            progressBar.setString("Parsing completed! Total " + result.size() + " sheets");
             startBtn.setEnabled(true);
             // Post-process result, such as displaying in a table...
             callback.onSuccess(result);
         } catch (Exception e) {
-            progressBar.setString("解析失败：" + e.getMessage());
-            startBtn.setEnabled(true);
+            progressBar.setString("Parsing failed: " + e.getMessage());
+            startBtn.setEnabled(false);
             callback.onFailure(e);
         }
     }

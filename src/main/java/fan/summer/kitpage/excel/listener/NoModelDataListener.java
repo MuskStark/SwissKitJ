@@ -1,0 +1,55 @@
+package fan.summer.kitpage.excel.listener;
+
+import com.alibaba.fastjson2.JSON;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.fesod.common.util.ListUtils;
+import org.apache.fesod.sheet.context.AnalysisContext;
+import org.apache.fesod.sheet.event.AnalysisEventListener;
+
+import java.util.List;
+import java.util.Map;
+
+
+
+@Slf4j
+public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Object>> {
+
+    private static final int BATCH_COUNT = 500000;
+    @Getter
+    private List<Map<Integer, Object>> cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
+    private boolean usedDataBase;
+
+    public void clear() {
+        cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
+    }
+
+    @Override
+    public void invoke(Map<Integer, Object> data, AnalysisContext context) {
+        log.info("Parsed one data row: {}", JSON.toJSONString(data));
+        usedDataBase = false;
+        cachedDataList.add(data);
+        if (cachedDataList.size() >= BATCH_COUNT) {
+            saveData();
+            cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
+        }
+    }
+
+    @Override
+    public void doAfterAllAnalysed(AnalysisContext context) {
+        if (usedDataBase) {
+            saveData();
+            usedDataBase = false;
+        }
+        log.info("All data parsing completed!");
+    }
+
+    /**
+     * Save data to database
+     */
+    private void saveData() {
+        log.info("{} rows of data, starting to save to database!", cachedDataList.size());
+        usedDataBase = true;
+        log.info("Database save successful!");
+    }
+}

@@ -5,11 +5,12 @@ import org.apache.fesod.sheet.event.AnalysisEventListener;
 import org.apache.fesod.sheet.exception.ExcelAnalysisStopException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class HeaderListener extends AnalysisEventListener<Map<Integer, String>> {
-        private List<String> headers = new ArrayList<>();
+        private Map<Integer, String> headers = new HashMap<>();
         private boolean headRead = false;
 
         /**
@@ -24,9 +25,8 @@ public class HeaderListener extends AnalysisEventListener<Map<Integer, String>> 
             // This method is triggered when reading the header row
             if (!headRead) {
                 // Sort by column number and collect headers
-                headMap.entrySet().stream()
-                        .sorted(Map.Entry.comparingByKey())
-                        .forEach(e -> headers.add(e.getValue()));
+                this.headers.clear();
+                this.headers = headMap;
                 headRead = true;
             }
         }
@@ -58,7 +58,7 @@ public class HeaderListener extends AnalysisEventListener<Map<Integer, String>> 
          *
          * @return a list of header strings in column order
          */
-        public List<String> getHeaders() {
+        public Map<Integer, String> getHeaders() {
             return headers;
         }
     }

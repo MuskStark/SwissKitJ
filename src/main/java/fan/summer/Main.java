@@ -3,6 +3,8 @@ package fan.summer;
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import fan.summer.kitpage.KitPage;
 import fan.summer.utils.SideMenuBar;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -14,6 +16,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class Main {
+
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     private SideMenuBar sideMenuBar;
     private List<KitPage> pages;
@@ -72,7 +76,7 @@ public class Main {
      */
     private void setAppIcon(JFrame frame) {
         String[] iconPaths = {"/icon.png", "/icon.jpg", "/app.png"};
-        
+
         for (String path : iconPaths) {
             URL url = getClass().getResource(path);
             if (url != null) {
@@ -81,7 +85,7 @@ public class Main {
             }
         }
         // Use default when icon file not found
-        System.out.println("提示: 未找到应用图标，请添加 icon.png 到 resources 目录");
+        logger.info("Application icon not found. Please add icon.png to resources directory");
     }
 
     /**
@@ -89,43 +93,57 @@ public class Main {
      */
     private void initPages() {
         pages = new ArrayList<>();
-        
+
         String packageName = "fan.summer.kitpage";
         String packagePath = packageName.replace('.', '/');
-        
+
         ClassLoader classLoader = getClass().getClassLoader();
         URL packageURL = classLoader.getResource(packagePath);
-        
+
         if (packageURL != null) {
-            File packageDir = new File(packageURL.getFile());
-            if (packageDir.exists() && packageDir.isDirectory()) {
-                // Recursively scan package and its sub-packages
-                List<Class<?>> pageClasses = scanPackage(packageDir, packageName, classLoader);
-                
-                // Sort by class name to ensure consistent order
-                pageClasses.sort(Comparator.comparing(Class::getName));
-                
-                // Instantiate all page classes
-                for (Class<?> clazz : pageClasses) {
-                    try {
-                        KitPage page = (KitPage) clazz.getDeclaredConstructor().newInstance();
-                        pages.add(page);
-                    } catch (Exception e) {
-                        System.err.println("无法实例化页面: " + clazz.getName());
-                    }
+            List<Class<?>> pageClasses;
+
+            if (packageURL.getProtocol().equals("jar")) {
+                // Scan from JAR file
+                logger.info("Scanning pages from JAR file");
+                pageClasses = scanPackageFromJar(packageURL, packagePath, classLoader);
+            } else {
+                // Scan from file system
+                logger.info("Scanning pages from file system");
+                File packageDir = new File(packageURL.getFile());
+                if (packageDir.exists() && packageDir.isDirectory()) {
+                    pageClasses = scanPackage(packageDir, packageName, classLoader);
+                } else {
+                    pageClasses = new ArrayList<>();
+                }
+            }
+
+            // Sort by class name to ensure consistent order
+            pageClasses.sort(Comparator.comparing(Class::getName));
+
+            // Instantiate all page classes
+            for (Class<?> clazz : pageClasses) {
+                try {
+                    KitPage page = (KitPage) clazz.getDeclaredConstructor().newInstance();
+                    pages.add(page);
+                    logger.info("Loaded page: {}", clazz.getSimpleName());
+                } catch (Exception e) {
+                    logger.error("Failed to instantiate page: {}", clazz.getName(), e);
                 }
             }
         }
-        
+
         // If reflection scan fails, use fallback
         if (pages.isEmpty()) {
-            System.out.println("警告: 未能自动扫描到页面，使用备用方案");
+            logger.warn("Failed to scan pages automatically, using fallback method");
             fallbackInitPages();
         }
+
+        logger.info("Total pages loaded: {}", pages.size());
     }
     
     /**
-     * Recursively scan package and its sub-packages
+     * Recursively scan package and its sub-packages (file system)
      */
     private List<Class<?>> scanPackage(File dir, String packageName, ClassLoader classLoader) {
         List<Class<?>> pageClasses = new ArrayList<>();
@@ -151,6 +169,47 @@ public class Main {
             }
         }
         
+        return pageClasses;
+    }
+    
+    /**
+     * Scan package from JAR file
+     */
+    private List<Class<?>> scanPackageFromJar(URL jarUrl, String packagePath, ClassLoader classLoader) {
+        List<Class<?>> pageClasses = new ArrayList<>();
+
+        try {
+            String jarPath = jarUrl.getPath().substring(5, jarUrl.getPath().indexOf("!"));
+            java.util.jar.JarFile jarFile = new java.util.jar.JarFile(jarPath);
+            java.util.Enumeration<java.util.jar.JarEntry> entries = jarFile.entries();
+
+            String basePath = packagePath + "/";
+
+            while (entries.hasMoreElements()) {
+                java.util.jar.JarEntry entry = entries.nextElement();
+                String entryName = entry.getName();
+
+                if (entryName.startsWith(basePath) && entryName.endsWith(".class")) {
+                    String className = entryName.replace('/', '.').substring(0, entryName.length() - 6);
+
+                    if (!className.equals("fan.summer.kitpage.KitPage")) {
+                        try {
+                            Class<?> clazz = classLoader.loadClass(className);
+                            if (KitPage.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
+                                pageClasses.add(clazz);
+                            }
+                        } catch (ClassNotFoundException | NoClassDefFoundError e) {
+                            // Ignore classes that cannot be loaded
+                        }
+                    }
+                }
+            }
+
+            jarFile.close();
+        } catch (Exception e) {
+            logger.error("Failed to scan JAR file: {}", e.getMessage(), e);
+        }
+
         return pageClasses;
     }
     
