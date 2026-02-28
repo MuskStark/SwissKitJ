@@ -1,0 +1,112 @@
+name: Create Release
+
+on:
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          version=${GITHUB_REF#refs/tags/v}
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          echo "### SHA-256 Checksums" > checksums.txt
+          echo "" >> checksums.txt
+          echo "```" >> checksums.txt
+          find . -type f \( -name "*.jar" -o -name "*.zip" \) -exec sh -c 'echo "{}:" >> checksums.txt && sha256sum "{}" | cut -d" " -f1 >> checksums.txt' \;
+          echo "```" >> checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: SwissKit ${{ steps.get_version.outputs.version }}
+          body: |
+            ## SwissKit ${{ steps.get_version.outputs.version }}
+
+            ### What's New
+            - See the [CHANGELOG](https://github.com/MuskStark/SwissKitJ/blob/main/CHANGELOG.md) for details.
+
+            ### Installation Options
+
+            #### Cross-platform JAR
+            - Download: `SwissKit-1.0-SNAPSHOT.jar`
+            - Requires Java 11 or higher
+            - Run: `java -jar SwissKit-1.0-SNAPSHOT.jar`
+
+            #### Windows Portable (ZIP)
+            - Download: `SwissKit-portable-windows.zip`
+            - Extract to any folder
+            - Run `run.bat` to start the application
+            - Requires Java 11 or higher
+
+            #### Linux Portable (ZIP)
+            - Download: `SwissKit-portable-linux.zip`
+            - Extract to any folder
+            - Run `./run.sh` to start the application
+            - Requires Java 11 or higher
+
+            #### macOS Portable (ZIP)
+            - Download: `SwissKit-portable-macos.zip`
+            - Extract to any folder
+            - Run `./run.sh` to start the application
+            - Requires Java 11 or higher
+
+            ### Requirements
+            - **Java 11 or higher** (for all versions)
+            - **Windows 10/11** (for Windows portable)
+            - **Linux** (for Linux portable)
+            - **macOS 10.13+** (for macOS portable)
+
+            ### Documentation
+            - [README](https://github.com/MuskStark/SwissKitJ#readme)
+            - [AGENTS.md](https://github.com/MuskStark/SwissKitJ/blob/main/AGENTS.md) (Technical Documentation)
+
+            ### Quick Start
+            ```bash
+            # Clone the repository
+            git clone https://github.com/MuskStark/SwissKitJ.git
+            cd SwissKit
+
+            # Build and run
+            mvn clean package
+            java -jar target/SwissKit-1.0-SNAPSHOT.jar
+            ```
+
+            ---
+
+            **Note**: This release was automatically created by GitHub Actions.
+
+            **Checksums**:
+            See the `checksums.txt` file for SHA-256 checksums of all artifacts.
+          files: |
+            artifacts/**/*.jar
+            artifacts/**/*.zip
+            artifacts/checksums.txt
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -10,7 +10,10 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     
     steps:
       - name: Checkout code
@@ -18,127 +21,75 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 17
+      - name: Set up JDK 11
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'temurin'
           cache: maven
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Create JAR package
+      - name: Create platform-specific packages
         run: |
-          mkdir -p release/jar
-          cp target/SwissKit-*.jar release/jar/SwissKit.jar
-          cp README.md release/jar/
+          mkdir -p release/${{ matrix.os }}
 
-      - name: Create Windows portable package (ZIP)
+      - name: Create Windows packages
+        if: matrix.os == 'windows-latest'
         run: |
-          mkdir -p release/portable
-          cp target/SwissKit-*.jar release/portable/SwissKit.jar
-          echo "@echo off" > release/portable/run.bat
-          echo "start javaw -jar SwissKit.jar" >> release/portable/run.bat
-          echo "#!/bin/bash" > release/portable/run.sh
-          echo "java -jar SwissKit.jar" >> release/portable/run.sh
-          cp README.md release/portable/
-          cd release/portable
-          Compress-Archive -Path * -DestinationPath ../SwissKit-portable-windows.zip
+          mkdir -p release/windows/jar
+          cp target/SwissKit-*.jar release/windows/jar/SwissKit.jar
+          cp README.md release/windows/jar/
 
-      - name: Compile to EXE using jpackage
+          # Create portable package
+          mkdir -p release/windows/portable
+          cp target/SwissKit-*.jar release/windows/portable/SwissKit.jar
+          echo "@echo off" > release/windows/portable/run.bat
+          echo "start javaw -jar SwissKit.jar" >> release/windows/portable/run.bat
+          echo "#!/bin/bash" > release/windows/portable/run.sh
+          echo "java -jar SwissKit.jar" >> release/windows/portable/run.sh
+          cp README.md release/windows/portable/
+          cd release/windows/portable
+          Compress-Archive -Path * -DestinationPath ../../SwissKit-portable-windows.zip
+
+      - name: Create Linux packages
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          $version = "${{ github.ref_name }}" -replace 'v', ''
-          
-          jpackage `
-            --input target `
-            --main-jar SwissKit-*.jar `
-            --main-class fan.summer.Main `
-            --name SwissKit `
-            --app-version $version `
-            --type exe `
-            --vendor "SwissKit Team" `
-            --description "SwissKit Desktop Toolbox" `
-            --copyright "Copyright 2025 SwissKit Team" `
-            --win-dir-chooser `
-            --win-menu `
-            --win-shortcut `
-            --dest release `
-            --temp build-temp
-          
-          Move-Item -Path release/SwissKit-$version.exe -Destination release/SwissKit.exe
+          mkdir -p release/linux
+          cp target/SwissKit-*.jar release/linux/SwissKit.jar
+          cp README.md release/linux/
+          # Create portable package
+          mkdir -p release/linux/portable
+          cp target/SwissKit-*.jar release/linux/portable/SwissKit.jar
+          echo "#!/bin/bash" > release/linux/portable/run.sh
+          echo "java -jar SwissKit.jar" >> release/linux/portable/run.sh
+          chmod +x release/linux/portable/run.sh
+          cp README.md release/linux/portable/
+          cd release/linux/portable
+          zip -r ../../SwissKit-portable-linux.zip .
 
-      - name: Get version from tag
-        id: get_version
+      - name: Create macOS packages
+        if: matrix.os == 'macos-latest'
         run: |
-          $version = "${{ github.ref_name }}" -replace 'v', ''
-          echo "version=$version" >> $env:GITHUB_OUTPUT
+          mkdir -p release/macos
+          cp target/SwissKit-*.jar release/macos/SwissKit.jar
+          cp README.md release/macos/
+          # Create portable package
+          mkdir -p release/macos/portable
+          cp target/SwissKit-*.jar release/macos/portable/SwissKit.jar
+          echo "#!/bin/bash" > release/macos/portable/run.sh
+          echo "java -jar SwissKit.jar" >> release/macos/portable/run.sh
+          chmod +x release/macos/portable/run.sh
+          cp README.md release/macos/portable/
+          cd release/macos/portable
+          zip -r ../../SwissKit-portable-macos.zip .
 
-      - name: Generate checksums
-        run: |
-          cd release
-          echo "### SHA-256 Checksums" > checksums.txt
-          echo "" >> checksums.txt
-          echo "```" >> checksums.txt
-          echo "SwissKit.exe:" >> checksums.txt
-          Get-FileHash -Algorithm SHA256 SwissKit.exe | Select-Object -ExpandProperty Hash >> checksums.txt
-          echo "SwissKit-portable-windows.zip:" >> checksums.txt
-          Get-FileHash -Algorithm SHA256 SwissKit-portable-windows.zip | Select-Object -ExpandProperty Hash >> checksums.txt
-          echo "SwissKit.jar:" >> checksums.txt
-          Get-FileHash -Algorithm SHA256 jar/SwissKit.jar | Select-Object -ExpandProperty Hash >> checksums.txt
-          echo "```" >> checksums.txt
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: SwissKit ${{ steps.get_version.outputs.version }}
-          body: |
-            ## SwissKit ${{ steps.get_version.outputs.version }}
-            
-            ### What's New
-            - See the [CHANGELOG](https://github.com/MuskStark/SwissKitJ/blob/main/CHANGELOG.md) for details.
-            
-            ### Installation Options
-            
-            #### Windows EXE (Native Application)
-            - Download: `SwissKit.exe`
-            - Direct executable, no Java installation required
-            - Double-click to run
-            - Includes bundled JRE
-            
-            #### Windows Portable (ZIP)
-            - Download: `SwissKit-portable-windows.zip`
-            - Extract to any folder
-            - Run `run.bat` to start the application
-            - Requires Java 17 or higher
-            
-            #### Cross-platform JAR
-            - Download: `SwissKit.jar`
-            - Requires Java 17 or higher
-            - Run: `java -jar SwissKit.jar`
-            
-            ### Requirements
-            - **Windows 10/11** (for Windows packages)
-            - **Java 17 or higher** (for JAR and portable versions)
-            
-            ### Documentation
-            - [README](https://github.com/MuskStark/SwissKitJ#readme)
-            
-            ---
-            
-            **Note**: This release was automatically created by GitHub Actions.
-          files: |
-            release/SwissKit.exe
-            release/SwissKit-portable-windows.zip
-            release/jar/SwissKit.jar
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload checksums as release artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: checksums
-          path: release/checksums.txt
+          name: swisskit-${{ matrix.os }}
+          path: |
+            release/**/*.jar
+            release/**/*.zip
+          retention-days: 30
