@@ -2,7 +2,7 @@ package fan.summer.ui.home;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import fan.summer.kitpage.KitPage;
-import fan.summer.utils.SideMenuBar;
+import fan.summer.ui.sidebar.SideMenuBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,6 +1,7 @@
-package fan.summer.utils;
+package fan.summer.ui.sidebar;
 
 import fan.summer.kitpage.KitPage;
+import fan.summer.utils.UIUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -16,7 +17,7 @@ import java.util.List;
  */
 public class SideMenuBar extends JPanel {
 
-    private static final int MENU_WIDTH = 220;
+    private static final int MENU_WIDTH = 160;
     private static final Color SELECTED_BG = new Color(0x2D, 0x2D, 0x2D);
     private static final Color SELECTED_TEXT = new Color(0xBB, 0x86, 0xFC);
     private static final Color HOVER_BG = new Color(0xE8, 0xE8, 0xE8);
@@ -46,18 +47,17 @@ public class SideMenuBar extends JPanel {
         setBackground(UIUtils.LIGHT_GRAY);
 
         // Title
-        titleLabel = new JLabel("Swiss Kit", SwingConstants.LEFT);
+        titleLabel = new JLabel("Swiss Kit", SwingConstants.CENTER);
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
         titleLabel.setForeground(UIUtils.TEXT_COLOR);
-        titleLabel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        titleLabel.setBorder(new EmptyBorder(20, 10, 20, 10));
 
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.add(titleLabel, BorderLayout.NORTH);
         titlePanel.setBackground(UIUtils.LIGHT_GRAY);
 
-        // Menu container
-        menuContainer = new JPanel();
-        menuContainer.setLayout(new BoxLayout(menuContainer, BoxLayout.Y_AXIS));
+        // Menu container - use BorderLayout for top alignment without filling
+        menuContainer = new JPanel(new BorderLayout(0, 0));
         menuContainer.setBackground(UIUtils.LIGHT_GRAY);
 
         // Build menu items
@@ -86,12 +86,30 @@ public class SideMenuBar extends JPanel {
         menuContainer.removeAll();
         menuItems.clear();
 
+        // Create a vertical panel for menu items
+        JPanel menuItemsPanel = new JPanel();
+        menuItemsPanel.setLayout(new BoxLayout(menuItemsPanel, BoxLayout.Y_AXIS));
+        menuItemsPanel.setBackground(UIUtils.LIGHT_GRAY);
+
         for (int i = 0; i < pages.size(); i++) {
             KitPage page = pages.get(i);
             JLabel menuItem = createMenuItem(page, i);
+
+            // Wrap in centered panel
+            JPanel menuItemPanel = new JPanel(new GridBagLayout());
+            menuItemPanel.setBackground(UIUtils.LIGHT_GRAY);
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridx = 0;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.weightx = 1.0;
+            menuItemPanel.add(menuItem, gbc);
+
             menuItems.add(menuItem);
-            menuContainer.add(menuItem);
+            menuItemsPanel.add(menuItemPanel);
         }
+
+        // Add to NORTH position for top alignment without filling
+        menuContainer.add(menuItemsPanel, BorderLayout.NORTH);
 
         menuContainer.revalidate();
         menuContainer.repaint();
@@ -105,14 +123,16 @@ public class SideMenuBar extends JPanel {
         Icon menuIcon = page.getMenuIcon();
         String tooltip = page.getMenuTooltip();
 
-        JLabel label = new JLabel(menuName, menuIcon, SwingConstants.LEFT);
+        JLabel label = new JLabel(menuName, menuIcon, SwingConstants.CENTER);
         label.setFont(new Font("SansSerif", Font.PLAIN, 13));
         label.setForeground(UIUtils.TEXT_COLOR);
         label.setBackground(UIUtils.LIGHT_GRAY);
         label.setOpaque(true);
-        label.setBorder(new EmptyBorder(12, 20, 12, 20));
+        label.setBorder(new EmptyBorder(12, 10, 12, 10));
         label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         label.setFocusable(true);
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
 
         if (tooltip != null) {
             label.setToolTipText(tooltip);
