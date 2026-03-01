@@ -37,6 +37,7 @@ jobs:
 
       - name: Create Windows packages
         if: matrix.os == 'windows-latest'
+        shell: pwsh
         run: |
           mkdir -p release/windows/jar
           cp target/SwissKit-*.jar release/windows/jar/SwissKit.jar
@@ -45,12 +46,11 @@ jobs:
           # Create portable package
           mkdir -p release/windows/portable
           cp target/SwissKit-*.jar release/windows/portable/SwissKit.jar
-          echo "@echo off" > release/windows/portable/run.bat
-          echo "start javaw -jar SwissKit.jar" >> release/windows/portable/run.bat
-          echo "#!/bin/bash" > release/windows/portable/run.sh
-          echo "java -jar SwissKit.jar" >> release/windows/portable/run.sh
+          "@echo off" > release/windows/portable/run.bat
+          "start javaw -jar SwissKit.jar" >> release/windows/portable/run.bat
+          "#!/bin/bash" > release/windows/portable/run.sh
+          "java -jar SwissKit.jar" >> release/windows/portable/run.sh
           cp README.md release/windows/portable/
-          cd release/windows/portable
           Compress-Archive -Path * -DestinationPath ../../SwissKit-portable-windows.zip
 
       - name: Create Linux packages
@@ -91,5 +91,107 @@ jobs:
           name: swisskit-${{ matrix.os }}
           path: |
             release/**/*.jar
-            release/**/*.zip
+            release/*.zip
           retention-days: 30
+
+  create-release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          version="${GITHUB_REF#refs/tags/v}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate checksums
+        run: |
+          {
+            echo "### SHA-256 Checksums"
+            echo ""
+            echo "\`\`\`"
+            find artifacts -type f \( -name "*.jar" -o -name "*.zip" \) -exec sh -c 'printf "%s:" "$1"; sha256sum -- "$1" | cut -d" " -f1' _ {} \;
+            echo "\`\`\`"
+          } > artifacts/checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: SwissKit ${{ steps.get_version.outputs.version }}
+          body: |
+            ## SwissKit ${{ steps.get_version.outputs.version }}
+
+            ### What's New
+            - See the [CHANGELOG](https://github.com/MuskStark/SwissKitJ/blob/main/CHANGELOG.md) for details.
+
+            ### Installation Options
+
+            #### Cross-platform JAR
+            - Download: `SwissKit-1.0-SNAPSHOT.jar`
+            - Requires Java 11 or higher
+            - Run: `java -jar SwissKit-1.0-SNAPSHOT.jar`
+
+            #### Windows Portable (ZIP)
+            - Download: `SwissKit-portable-windows.zip`
+            - Extract to any folder
+            - Run `run.bat` to start the application
+            - Requires Java 11 or higher
+
+            #### Linux Portable (ZIP)
+            - Download: `SwissKit-portable-linux.zip`
+            - Extract to any folder
+            - Run `./run.sh` to start the application
+            - Requires Java 11 or higher
+
+            #### macOS Portable (ZIP)
+            - Download: `SwissKit-portable-macos.zip`
+            - Extract to any folder
+            - Run `./run.sh` to start the application
+            - Requires Java 11 or higher
+
+            ### Requirements
+            - **Java 11 or higher** (for all versions)
+            - **Windows 10/11** (for Windows portable)
+            - **Linux** (for Linux portable)
+            - **macOS 10.13+** (for macOS portable)
+
+            ### Documentation
+            - [README](https://github.com/MuskStark/SwissKitJ#readme)
+            - [AGENTS.md](https://github.com/MuskStark/SwissKitJ/blob/main/AGENTS.md) (Technical Documentation)
+
+            ### Quick Start
+            ```bash
+            # Clone the repository
+            git clone https://github.com/MuskStark/SwissKitJ.git
+            cd SwissKit
+
+            # Build and run
+            mvn clean package
+            java -jar target/SwissKit-1.0-SNAPSHOT.jar
+            ```
+
+            ---
+
+            **Note**: This release was automatically created by GitHub Actions.
+
+            **Checksums**:
+            See the `checksums.txt` file for SHA-256 checksums of all artifacts.
+          files: |
+            artifacts/*.jar
+            artifacts/*.zip
+            artifacts/checksums.txt
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
