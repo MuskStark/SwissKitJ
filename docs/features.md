@@ -166,11 +166,20 @@ To add a new tool:
 
 1. Create a package under `fan.summer.kitpage`
 2. Implement the `KitPage` interface
-3. Add your UI components
-4. The tool will be automatically discovered
+3. Add `@SwissKitPage` annotation for menu configuration
+4. The tool will be automatically discovered and sorted by order
 
 **Example**:
 ```java
+import fan.summer.kitpage.KitPage;
+import fan.summer.annoattion.SwissKitPage;
+
+@SwissKitPage(
+    menuName = "🔧 My Tool",
+    menuTooltip = "Open My Tool",
+    visible = true,
+    order = 10
+)
 public class MyToolPage implements KitPage {
     private JPanel panel;
 
@@ -181,16 +190,6 @@ public class MyToolPage implements KitPage {
     @Override
     public JPanel getPanel() {
         return panel;
-    }
-
-    @Override
-    public String getTitle() {
-        return "My Tool";
-    }
-
-    @Override
-    public String getMenuName() {
-        return "🔧 My Tool";
     }
 }
 ```

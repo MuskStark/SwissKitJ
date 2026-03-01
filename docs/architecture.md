@@ -27,8 +27,11 @@ SwissKit follows these architectural principles:
 SwissKit/
 ├── src/main/java/fan/summer/
 │   ├── Main.java                        # Application entry point
+│   ├── annoattion/                      # Annotations
+│   │   └── SwissKitPage.java           # Page annotation
 │   ├── kitpage/                         # Tool page modules
 │   │   ├── KitPage.java                # Page interface
+│   │   ├── KitPageScanner.java         # Auto-discovery scanner
 │   │   ├── WelcomePage.java            # Welcome page
 │   │   ├── email/                      # Email tool
 │   │   │   ├── EmailKitPage.java
@@ -57,6 +60,21 @@ SwissKit/
 
 The plugin system is the core of SwissKit's extensibility.
 
+### @SwissKitPage Annotation
+
+All tools use the `@SwissKitPage` annotation for configuration:
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface SwissKitPage {
+    String menuName() default "";
+    String menuTooltip() default "";
+    boolean visible() default true;
+    int order() default 0;
+}
+```
+
 ### KitPage Interface
 
 All tools must implement the `KitPage` interface:
@@ -64,10 +82,36 @@ All tools must implement the `KitPage` interface:
 ```java
 public interface KitPage {
     JPanel getPanel();              // Get page panel
-    String getTitle();              // Get page title
-    String getMenuName();           // Get menu display name
-    Icon getMenuIcon();             // Get menu icon (optional)
-    String getMenuTooltip();        // Get menu tooltip (optional)
+    default String getMenuName() {  // Get menu display name (from annotation)
+        return "";
+    }
+    default Icon getMenuIcon() {    // Get menu icon (optional)
+        return null;
+    }
+    default String getMenuTooltip() { // Get menu tooltip (from annotation)
+        return "";
+    }
+}
+```
+
+### KitPageScanner
+
+The `KitPageScanner` class handles automatic discovery of all tool pages:
+
+```java
+public class KitPageScanner {
+    /**
+     * Scans for KitPage implementations in the specified package and subpackages.
+     *
+     * @param packageName the base package to scan
+     * @return list of visible KitPage instances sorted by order
+     */
+    public static List<KitPage> scan(String packageName) {
+        // 1. Find all classes with @SwissKitPage annotation
+        // 2. Filter by visible = true
+        // 3. Sort by order() value
+        // 4. Instantiate and return
+    }
 }
 ```
 
@@ -77,54 +121,26 @@ SwissKit automatically discovers and loads all tools at runtime:
 
 **Discovery Methods**:
 
-1. **File System Scanning** - Scans compiled `.class` files
+1. **File System Scanning** - Scans compiled `.class` files recursively
 2. **JAR File Scanning** - Reads JAR entries for packaged applications
 
 **Loading Process**:
 
 ```java
-// Main.java
+// HomePage.java
 private void initPages() {
-    pages = new ArrayList<>();
-
-    String packageName = "fan.summer.kitpage";
-    String packagePath = packageName.replace('.', '/');
-
-    ClassLoader classLoader = getClass().getClassLoader();
-    URL packageURL = classLoader.getResource(packagePath);
-
-    if (packageURL != null) {
-        List<Class<?>> pageClasses;
-
-        if (packageURL.getProtocol().equals("jar")) {
-            // Scan from JAR file
-            pageClasses = scanPackageFromJar(packageURL, packagePath, classLoader);
-        } else {
-            // Scan from file system
-            File packageDir = new File(packageURL.getFile());
-            pageClasses = scanPackage(packageDir, packageName, classLoader);
-        }
-
-        // Sort by class name
-        pageClasses.sort(Comparator.comparing(Class::getName));
-
-        // Instantiate all page classes
-        for (Class<?> clazz : pageClasses) {
-            try {
-                KitPage page = (KitPage) clazz.getDeclaredConstructor().newInstance();
-                pages.add(page);
-            } catch (Exception e) {
-                logger.error("Failed to instantiate page: {}", clazz.getName(), e);
-            }
-        }
-    }
+    // Scan all packages under fan.summer.kitpage
+    // Includes subpackages: email/, excel/, etc.
+    pages = KitPageScanner.scan("fan.summer.kitpage");
 }
 ```
 
 **Key Features**:
 
 - No manual registration required
-- Automatic sorting by class name
+- Recursive subpackage scanning
+- Automatic sorting by `order` value
+- Visibility filtering
 - Supports both development and production environments
 - Fallback mechanism if scanning fails
 

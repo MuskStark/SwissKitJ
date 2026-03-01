@@ -82,8 +82,11 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 ```
 SwissKit/
 ├── Main.java                        # Application entry point
+├── annoattion/                      # Annotations
+│   └── SwissKitPage.java           # Page annotation
 ├── kitpage/                         # Tool page modules
 │   ├── KitPage.java                # Page interface definition
+│   ├── KitPageScanner.java         # Auto-discovery scanner
 │   ├── WelcomePage.java            # Welcome page
 │   ├── email/                      # Email tool
 │   │   ├── EmailKitPage.java
@@ -109,13 +112,13 @@ SwissKit/
 
 ### Plugin System
 
-SwissKit uses an automatic discovery mechanism for tool pages:
+SwissKit uses an automatic discovery mechanism with annotations for tool pages:
 
 1. **Interface**: Implement the `KitPage` interface
-2. **Methods**: Provide `getPanel()` and `getTitle()` methods
-3. **Auto-discovery**: Pages are automatically discovered at runtime from file system or JAR
+2. **Annotation**: Add `@SwissKitPage` annotation to configure menu properties
+3. **Auto-discovery**: Pages are automatically discovered at runtime using `KitPageScanner`
 4. **No Registration**: No manual registration required
-5. **Sorting**: Pages are displayed alphabetically by class name
+5. **Sorting**: Pages are sorted by `order()` value in annotation
 
 Example:
 
@@ -123,8 +126,15 @@ Example:
 package fan.summer.kitpage.mytool;
 
 import fan.summer.kitpage.KitPage;
+import fan.summer.annoattion.SwissKitPage;
 import javax.swing.*;
 
+@SwissKitPage(
+    menuName = "🔧 My Tool",
+    menuTooltip = "Open My Tool",
+    visible = true,
+    order = 10
+)
 public class MyToolPage implements KitPage {
     private JPanel panel;
 
@@ -143,23 +153,17 @@ public class MyToolPage implements KitPage {
     public JPanel getPanel() {
         return panel;
     }
-
-    @Override
-    public String getTitle() {
-        return "My Tool";
-    }
-
-    @Override
-    public String getMenuName() {
-        return "🔧 My Tool";
-    }
-
-    @Override
-    public String getMenuTooltip() {
-        return "Open My Tool";
-    }
 }
 ```
+
+**Annotation Properties**:
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `menuName` | String | "" | Display name in sidebar |
+| `menuTooltip` | String | "" | Tooltip on hover |
+| `visible` | boolean | true | Whether to show in menu |
+| `order` | int | 0 | Display order (lower = first) |
 
 ### Tech Stack
 

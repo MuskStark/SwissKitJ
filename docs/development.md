@@ -73,8 +73,11 @@ Or run `Main.java` directly from your IDE.
 SwissKit/
 ├── src/main/java/fan/summer/
 │   ├── Main.java                    # Entry point
+│   ├── annoattion/                  # Annotations
+│   │   └── SwissKitPage.java       # Page annotation
 │   ├── kitpage/                     # Tool modules
 │   │   ├── KitPage.java            # Interface
+│   │   ├── KitPageScanner.java     # Auto-discovery scanner
 │   │   ├── WelcomePage.java        # Welcome page
 │   │   ├── excel/                  # Excel tool
 │   │   │   ├── listener/           # Event listeners
@@ -165,14 +168,22 @@ panel.add(titleLabel, BorderLayout.NORTH);
 mkdir -p src/main/java/fan/summer/kitpage/mytool
 ```
 
-**2. Implement KitPage Interface**
+**2. Implement KitPage Interface with @SwissKitPage Annotation**
 
 ```java
 package fan.summer.kitpage.mytool;
 
 import fan.summer.kitpage.KitPage;
+import fan.summer.annoattion.SwissKitPage;
 import javax.swing.*;
+import java.awt.*;
 
+@SwissKitPage(
+    menuName = "🔧 My Tool",
+    menuTooltip = "Open My Tool",
+    visible = true,
+    order = 10
+)
 public class MyToolPage implements KitPage {
     private JPanel panel;
 
@@ -194,23 +205,17 @@ public class MyToolPage implements KitPage {
     public JPanel getPanel() {
         return panel;
     }
-
-    @Override
-    public String getTitle() {
-        return "My Tool";
-    }
-
-    @Override
-    public String getMenuName() {
-        return "🔧 My Tool";
-    }
-
-    @Override
-    public String getMenuTooltip() {
-        return "Open My Tool";
-    }
 }
 ```
+
+**Annotation Properties**:
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `menuName` | String | "" | Display name in sidebar |
+| `menuTooltip` | String | "" | Tooltip on hover |
+| `visible` | boolean | true | Whether to show in menu |
+| `order` | int | 0 | Display order (lower = first) |
 
 **3. Build and Test**
 
@@ -219,7 +224,7 @@ mvn clean compile
 mvn exec:java -Dexec.mainClass="fan.summer.Main"
 ```
 
-Your new tool should appear automatically in the sidebar!
+Your new tool will appear automatically in the sidebar!
 
 ### Adding Background Processing
 

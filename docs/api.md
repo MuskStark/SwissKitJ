@@ -5,6 +5,8 @@ This section provides detailed API documentation for SwissKit's core interfaces 
 ## Table of Contents
 
 - [KitPage Interface](#kitpage-interface)
+- [@SwissKitPage Annotation](#swisskitpage-annotation)
+- [KitPageScanner](#kitpagescanner)
 - [UI Components](#ui-components)
 - [Worker Classes](#worker-classes)
 - [Utility Classes](#utility-classes)
@@ -30,20 +32,13 @@ public interface KitPage {
     JPanel getPanel();
 
     /**
-     * Returns the title of this page.
-     *
-     * @return the title string
-     */
-    String getTitle();
-
-    /**
      * Returns the display name for the menu.
-     * Defaults to getTitle() if not overridden.
+     * Defaults to @SwissKitPage annotation value.
      *
      * @return the menu display name
      */
     default String getMenuName() {
-        return getTitle();
+        return "";
     }
 
     /**
@@ -57,11 +52,12 @@ public interface KitPage {
 
     /**
      * Returns the tooltip text for the menu item.
+     * Defaults to @SwissKitPage annotation value.
      *
      * @return the tooltip text, or null if no tooltip
      */
     default String getMenuTooltip() {
-        return null;
+        return "";
     }
 }
 ```
@@ -71,14 +67,22 @@ public interface KitPage {
 | Method | Return Type | Description |
 |--------|-------------|-------------|
 | `getPanel()` | `JPanel` | Returns the main panel containing all UI elements |
-| `getTitle()` | `String` | Returns the page title |
-| `getMenuName()` | `String` | Returns the menu display name (default: `getTitle()`) |
+| `getMenuName()` | `String` | Returns the menu display name (default: from annotation) |
 | `getMenuIcon()` | `Icon` | Returns the menu icon (default: `null`) |
-| `getMenuTooltip()` | `String` | Returns the menu tooltip (default: `null`) |
+| `getMenuTooltip()` | `String` | Returns the menu tooltip (default: from annotation) |
 
 ### Example Implementation
 
 ```java
+import fan.summer.kitpage.KitPage;
+import fan.summer.annoattion.SwissKitPage;
+
+@SwissKitPage(
+    menuName = "📋 Example",
+    menuTooltip = "Open Example Tool",
+    visible = true,
+    order = 10
+)
 public class ExamplePage implements KitPage {
     private JPanel panel;
 
@@ -91,23 +95,72 @@ public class ExamplePage implements KitPage {
     public JPanel getPanel() {
         return panel;
     }
+}
+```
 
-    @Override
-    public String getTitle() {
-        return "Example";
-    }
+---
 
-    @Override
-    public String getMenuName() {
-        return "📋 Example";
-    }
+## @SwissKitPage Annotation
 
-    @Override
-    public String getMenuTooltip() {
-        return "Open Example Tool";
+The `@SwissKitPage` annotation configures tool page menu properties.
+
+### Annotation Definition
+
+```java
+package fan.summer.annoattion;
+
+import java.lang.annotation.*;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface SwissKitPage {
+    String menuName() default "";
+    String menuTooltip() default "";
+    boolean visible() default true;
+    int order() default 0;
+}
+```
+
+### Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `menuName` | String | "" | Display name in sidebar |
+| `menuTooltip` | String | "" | Tooltip on hover |
+| `visible` | boolean | true | Whether to show in menu |
+| `order` | int | 0 | Display order (lower = first) |
+
+---
+
+## KitPageScanner
+
+The `KitPageScanner` class automatically discovers and loads all `KitPage` implementations.
+
+```java
+package fan.summer.kitpage;
+
+public class KitPageScanner {
+    public static List<KitPage> scan(String packageName) {
+        // Scans package and subpackages for @SwissKitPage annotated classes
+        // Filters by visible=true, sorts by order value
     }
 }
 ```
+
+### Key Features
+
+- **Recursive Scanning**: Scans subpackages (e.g., `email/`, `excel/`)
+- **Visibility Filter**: Only includes pages with `visible = true`
+- **Order Sorting**: Sorts by `order()` value in annotation
+- **Auto-Instantiation**: Creates page instances automatically
+
+### Example Usage
+
+```java
+List<KitPage> pages = KitPageScanner.scan("fan.summer.kitpage");
+```
+
+---
 
 ## UI Components
 
