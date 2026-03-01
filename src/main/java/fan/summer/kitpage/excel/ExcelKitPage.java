@@ -1,5 +1,6 @@
 package fan.summer.kitpage.excel;
 
+import fan.summer.annoattion.SwissKitPage;
 import fan.summer.kitpage.KitPage;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisCallback;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisWorker;
@@ -22,6 +23,7 @@ import java.util.Set;
  * @version 1.00
  * @Date 2026/2/26
  */
+@SwissKitPage(menuName = "Excel", menuTooltip = "Excel", order = 1)
 public class ExcelKitPage implements KitPage {
     private static final Logger logger = LoggerFactory.getLogger(ExcelKitPage.class);
 
@@ -188,16 +190,6 @@ public class ExcelKitPage implements KitPage {
     @Override
     public JPanel getPanel() {
         return excelKitPage;
-    }
-
-    /**
-     * Get the title of this page
-     *
-     * @return the title string "Excel"
-     */
-    @Override
-    public String getTitle() {
-        return "Excel";
     }
 
     /**
