@@ -35,14 +35,13 @@ jobs:
 
       - name: Verify JAR exists
         run: |
-          if [ -f target/SwissKit-*.jar ]; then
-            echo "✅ JAR file created successfully"
-            ls -lh target/SwissKit-*.jar
+          jar_file=$(find target -maxdepth 1 -name "SwissKit-*.jar" -type f | head -1)
+          if [ -n "$jar_file" ]; then
+            echo "✅ JAR file created: $jar_file"
           else
             echo "❌ JAR file not found"
             exit 1
           fi
-        shell: bash
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
