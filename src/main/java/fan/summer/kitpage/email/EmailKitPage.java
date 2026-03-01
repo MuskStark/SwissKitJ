@@ -1,5 +1,6 @@
 package fan.summer.kitpage.email;
 
+import fan.summer.annoattion.SwissKitPage;
 import fan.summer.kitpage.KitPage;
 
 import javax.swing.*;
@@ -12,6 +13,7 @@ import javax.swing.*;
  * @version 1.00
  * @Date 2026/2/26
  */
+@SwissKitPage(menuName = "Email", menuTooltip = "Email", order = 2, visible = false)
 public class EmailKitPage implements KitPage {
     private JPanel emailPanel;
     private JTextField subject;
@@ -30,10 +32,5 @@ public class EmailKitPage implements KitPage {
     @Override
     public JPanel getPanel() {
         return emailPanel;
-    }
-
-    @Override
-    public String getTitle() {
-        return "Email";
     }
 }
