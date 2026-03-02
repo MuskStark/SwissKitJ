@@ -6,7 +6,7 @@ new FormModel {
 		add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
 			"$layoutConstraints": "insets 0,hidemode 3,gap 10 5"
 			"$columnConstraints": "[fill][grow,fill][fill]"
-			"$rowConstraints": "[fill][fill][fill][grow 1,fill]"
+			"$rowConstraints": "[fill][60,fill][275,fill][49,grow 1,fill]"
 		} ) {
 			name: "excelKitPage"
 			add( new FormComponent( "javax.swing.JButton" ) {
@@ -41,7 +41,7 @@ new FormModel {
 					"$columnConstraints": "[fill][fill][grow 1,fill][fill][fill][fill][fill]"
 					"$rowConstraints": "[fill][][fill][fill]"
 				} ) {
-					name: "panel1"
+					name: "simpleSplitTab"
 					auxiliary() {
 						"JavaCodeGenerator.variableLocal": true
 					}
@@ -90,13 +90,86 @@ new FormModel {
 							"JavaCodeGenerator.customCreate": true
 						}
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
-						"value": "cell 2 3 4 1,growx"
+						"value": "cell 2 3 4 1,aligny top,grow 100 0"
 					} )
 				}, new FormLayoutConstraints( null ) {
 					"title": "SimpleSplit"
 				} )
+				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+					"$layoutConstraints": "hidemode 3"
+					"$columnConstraints": "[89,fill][389,fill]"
+					"$rowConstraints": "[][][][]"
+				} ) {
+					name: "complexSplitTab"
+					"preferredSize": new java.awt.Dimension( 368, 116 )
+					auxiliary() {
+						"JavaCodeGenerator.variableLocal": true
+					}
+					add( new FormComponent( "javax.swing.JLabel" ) {
+						name: "label3"
+						"text": "ChoiceSheet"
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 0 0,alignx center,growx 0"
+					} )
+					add( new FormComponent( "javax.swing.JComboBox" ) {
+						name: "complexSheetChoiceBox"
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 1 0,grow"
+					} )
+					add( new FormComponent( "javax.swing.JLabel" ) {
+						name: "label4"
+						"text": "HeaderRowIndex"
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 0 1"
+					} )
+					add( new FormComponent( "javax.swing.JTextField" ) {
+						name: "complexHRowIndex"
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 1 1,grow"
+					} )
+					add( new FormComponent( "javax.swing.JLabel" ) {
+						name: "label5"
+						"text": "SplitColumnIndex"
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 0 2"
+					} )
+					add( new FormComponent( "javax.swing.JTextField" ) {
+						name: "complexColIndex"
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 1 2,grow"
+					} )
+					add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+						"$layoutConstraints": "hidemode 3"
+						"$columnConstraints": "[240,fill][266,fill]"
+						"$rowConstraints": "[][][][][]"
+					} ) {
+						name: "panel3"
+						add( new FormComponent( "javax.swing.JButton" ) {
+							name: "button1"
+							"text": "text"
+						}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+							"value": "cell 0 1,growx"
+						} )
+						add( new FormComponent( "javax.swing.JButton" ) {
+							name: "button2"
+							"text": "text"
+						}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+							"value": "cell 1 1,growx"
+						} )
+						add( new FormComponent( "javax.swing.JButton" ) {
+							name: "button3"
+							"text": "text"
+						}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+							"value": "cell 0 2 2 1,growy"
+						} )
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 0 3 2 1,growx"
+					} )
+				}, new FormLayoutConstraints( null ) {
+					"title": "ComplexSplit"
+				} )
 			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
-				"value": "cell 0 2 3 1,aligny center,grow 100 0"
+				"value": "cell 0 2 3 1,aligny top,grow 100 0"
 			} )
 			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
 				"$layoutConstraints": "insets 0,hidemode 3,gap 10 5"

@@ -1,5 +1,6 @@
 package fan.summer.kitpage.excel;
 
+import java.awt.*;
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisCallback;
@@ -204,11 +205,22 @@ public class ExcelKitPage implements KitPage {
         outputPathBt = new JButton();
         outputPath = new JTextField();
         splitWayPane = new JTabbedPane();
-        var panel1 = new JPanel();
+        var simpleSplitTab = new JPanel();
         splitBySheetCheckBox = new JCheckBox();
         splitByColumnCheckBox = new JCheckBox();
         var label1 = new JLabel();
         var label2 = new JLabel();
+        var complexSplitTab = new JPanel();
+        label3 = new JLabel();
+        complexSheetChoiceBox = new JComboBox();
+        label4 = new JLabel();
+        complexHRowIndex = new JTextField();
+        label5 = new JLabel();
+        complexColIndex = new JTextField();
+        panel3 = new JPanel();
+        button1 = new JButton();
+        button2 = new JButton();
+        button3 = new JButton();
         var panel2 = new JPanel();
         excelSplitBt = new JButton();
         excelFileAnalysisBt = new JButton();
@@ -223,9 +235,9 @@ public class ExcelKitPage implements KitPage {
                 "[fill]",
                 // rows
                 "[fill]" +
-                "[fill]" +
-                "[fill]" +
-                "[grow 1,fill]"));
+                "[60,fill]" +
+                "[275,fill]" +
+                "[49,grow 1,fill]"));
 
             //---- fileSelectBt ----
             fileSelectBt.setText("SelectFile");
@@ -247,9 +259,9 @@ public class ExcelKitPage implements KitPage {
             {
                 splitWayPane.setEnabled(true);
 
-                //======== panel1 ========
+                //======== simpleSplitTab ========
                 {
-                    panel1.setLayout(new MigLayout(
+                    simpleSplitTab.setLayout(new MigLayout(
                         "insets 0,hidemode 3,gap 10 5",
                         // columns
                         "[fill]" +
@@ -267,28 +279,87 @@ public class ExcelKitPage implements KitPage {
 
                     //---- splitBySheetCheckBox ----
                     splitBySheetCheckBox.setText("SplitBySheet");
-                    panel1.add(splitBySheetCheckBox, "cell 1 0,align left center,grow 0 0");
+                    simpleSplitTab.add(splitBySheetCheckBox, "cell 1 0,align left center,grow 0 0");
 
                     //---- splitByColumnCheckBox ----
                     splitByColumnCheckBox.setText("SplitByColumn");
-                    panel1.add(splitByColumnCheckBox, "cell 1 1 1 3,align left center,grow 0 0");
+                    simpleSplitTab.add(splitByColumnCheckBox, "cell 1 1 1 3,align left center,grow 0 0");
 
                     //---- label1 ----
                     label1.setText("ChoiceSheet");
-                    panel1.add(label1, "cell 2 1 4 1");
+                    simpleSplitTab.add(label1, "cell 2 1 4 1");
 
                     //---- choiceSheetBox ----
                     choiceSheetBox.setLightWeightPopupEnabled(true);
-                    panel1.add(choiceSheetBox, "cell 2 1 4 1,growx");
+                    simpleSplitTab.add(choiceSheetBox, "cell 2 1 4 1,growx");
 
                     //---- label2 ----
                     label2.setText("ChoiceColumn");
-                    panel1.add(label2, "cell 2 3 4 1,align left center,grow 0 0");
-                    panel1.add(choiceColumnBox, "cell 2 3 4 1,growx");
+                    simpleSplitTab.add(label2, "cell 2 3 4 1,align left center,grow 0 0");
+                    simpleSplitTab.add(choiceColumnBox, "cell 2 3 4 1,aligny top,grow 100 0");
                 }
-                splitWayPane.addTab("SimpleSplit", panel1);
+                splitWayPane.addTab("SimpleSplit", simpleSplitTab);
+
+                //======== complexSplitTab ========
+                {
+                    complexSplitTab.setPreferredSize(new Dimension(368, 116));
+                    complexSplitTab.setLayout(new MigLayout(
+                        "hidemode 3",
+                        // columns
+                        "[89,fill]" +
+                        "[389,fill]",
+                        // rows
+                        "[]" +
+                        "[]" +
+                        "[]" +
+                        "[]"));
+
+                    //---- label3 ----
+                    label3.setText("ChoiceSheet");
+                    complexSplitTab.add(label3, "cell 0 0,alignx center,growx 0");
+                    complexSplitTab.add(complexSheetChoiceBox, "cell 1 0,grow");
+
+                    //---- label4 ----
+                    label4.setText("HeaderRowIndex");
+                    complexSplitTab.add(label4, "cell 0 1");
+                    complexSplitTab.add(complexHRowIndex, "cell 1 1,grow");
+
+                    //---- label5 ----
+                    label5.setText("SplitColumnIndex");
+                    complexSplitTab.add(label5, "cell 0 2");
+                    complexSplitTab.add(complexColIndex, "cell 1 2,grow");
+
+                    //======== panel3 ========
+                    {
+                        panel3.setLayout(new MigLayout(
+                            "hidemode 3",
+                            // columns
+                            "[240,fill]" +
+                            "[266,fill]",
+                            // rows
+                            "[]" +
+                            "[]" +
+                            "[]" +
+                            "[]" +
+                            "[]"));
+
+                        //---- button1 ----
+                        button1.setText("text");
+                        panel3.add(button1, "cell 0 1,growx");
+
+                        //---- button2 ----
+                        button2.setText("text");
+                        panel3.add(button2, "cell 1 1,growx");
+
+                        //---- button3 ----
+                        button3.setText("text");
+                        panel3.add(button3, "cell 0 2 2 1,growy");
+                    }
+                    complexSplitTab.add(panel3, "cell 0 3 2 1,growx");
+                }
+                splitWayPane.addTab("ComplexSplit", complexSplitTab);
             }
-            excelKitPage.add(splitWayPane, "cell 0 2 3 1,aligny center,grow 100 0");
+            excelKitPage.add(splitWayPane, "cell 0 2 3 1,aligny top,grow 100 0");
 
             //======== panel2 ========
             {
@@ -331,6 +402,16 @@ public class ExcelKitPage implements KitPage {
     private JCheckBox splitByColumnCheckBox;
     private JComboBox choiceSheetBox;
     private JComboBox choiceColumnBox;
+    private JLabel label3;
+    private JComboBox complexSheetChoiceBox;
+    private JLabel label4;
+    private JTextField complexHRowIndex;
+    private JLabel label5;
+    private JTextField complexColIndex;
+    private JPanel panel3;
+    private JButton button1;
+    private JButton button2;
+    private JButton button3;
     private JButton excelSplitBt;
     private JButton excelFileAnalysisBt;
     private JProgressBar progressBar1;
