@@ -1,12 +1,13 @@
 package fan.summer.kitpage.excel;
 
 import fan.summer.annoattion.SwissKitPage;
-import fan.summer.kitpage.KitPage;
+import fan.summer.api.KitPage;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisCallback;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisWorker;
 import fan.summer.kitpage.excel.worker.ExcelSplitWorker;
 import fan.summer.ui.components.FixedWidthComboBox;
 import fan.summer.ui.components.GradientProgressBar;
+import net.miginfocom.swing.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,20 +28,6 @@ import java.util.Set;
 public class ExcelKitPage implements KitPage {
     private static final Logger logger = LoggerFactory.getLogger(ExcelKitPage.class);
 
-    private JPanel excelKitPage;
-    private JButton fileSelectBt;
-    private JTextField selectedFilePath;
-    private JButton outputPathBt;
-    private JTextField outputPath;
-    private JTabbedPane splitWayPane;
-    private JProgressBar progressBar1;
-    private JButton excelFileAnalysisBt;
-    private JButton excelSplitBt;
-    private JCheckBox splitBySheetCheckBox;
-    private JCheckBox splitByColumnCheckBox;
-    private JComboBox choiceSheetBox;
-    private JComboBox choiceColumnBox;
-
     private Path excelFilePath;
     Map<String, Map<Integer, String>> excelFileAnalysisResultMap;
 
@@ -53,6 +40,10 @@ public class ExcelKitPage implements KitPage {
      * Constructor - Initialize the Excel tool page and set up all event listeners
      */
     public ExcelKitPage() {
+        initComponents();
+        initComponents();
+        initComponents();
+        initComponents();
         excelSplitBt.setEnabled(false);
         // ActionListener for file selection button - opens file chooser dialog and updates file path
         fileSelectBt.addActionListener(e -> {
@@ -202,4 +193,146 @@ public class ExcelKitPage implements KitPage {
         choiceSheetBox = new FixedWidthComboBox(200);
         choiceColumnBox = new FixedWidthComboBox(200);
     }
+
+    private void initComponents() {
+        // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
+        createUIComponents();
+
+        excelKitPage = new JPanel();
+        fileSelectBt = new JButton();
+        selectedFilePath = new JTextField();
+        outputPathBt = new JButton();
+        outputPath = new JTextField();
+        splitWayPane = new JTabbedPane();
+        var panel1 = new JPanel();
+        splitBySheetCheckBox = new JCheckBox();
+        splitByColumnCheckBox = new JCheckBox();
+        var label1 = new JLabel();
+        var label2 = new JLabel();
+        var panel2 = new JPanel();
+        excelSplitBt = new JButton();
+        excelFileAnalysisBt = new JButton();
+
+        //======== excelKitPage ========
+        {
+            excelKitPage.setLayout(new MigLayout(
+                "insets 0,hidemode 3,gap 10 5",
+                // columns
+                "[fill]" +
+                "[grow,fill]" +
+                "[fill]",
+                // rows
+                "[fill]" +
+                "[fill]" +
+                "[fill]" +
+                "[grow 1,fill]"));
+
+            //---- fileSelectBt ----
+            fileSelectBt.setText("SelectFile");
+            excelKitPage.add(fileSelectBt, "cell 0 0,aligny center,grow 100 0");
+
+            //---- selectedFilePath ----
+            selectedFilePath.setEditable(false);
+            excelKitPage.add(selectedFilePath, "cell 1 0,aligny center,grow 100 0");
+
+            //---- outputPathBt ----
+            outputPathBt.setText("SelectOutPutPath");
+            excelKitPage.add(outputPathBt, "cell 0 1,aligny center,grow 100 0");
+
+            //---- outputPath ----
+            outputPath.setEditable(false);
+            excelKitPage.add(outputPath, "cell 1 1,aligny center,grow 100 0");
+
+            //======== splitWayPane ========
+            {
+                splitWayPane.setEnabled(true);
+
+                //======== panel1 ========
+                {
+                    panel1.setLayout(new MigLayout(
+                        "insets 0,hidemode 3,gap 10 5",
+                        // columns
+                        "[fill]" +
+                        "[fill]" +
+                        "[grow 1,fill]" +
+                        "[fill]" +
+                        "[fill]" +
+                        "[fill]" +
+                        "[fill]",
+                        // rows
+                        "[fill]" +
+                        "[]" +
+                        "[fill]" +
+                        "[fill]"));
+
+                    //---- splitBySheetCheckBox ----
+                    splitBySheetCheckBox.setText("SplitBySheet");
+                    panel1.add(splitBySheetCheckBox, "cell 1 0,align left center,grow 0 0");
+
+                    //---- splitByColumnCheckBox ----
+                    splitByColumnCheckBox.setText("SplitByColumn");
+                    panel1.add(splitByColumnCheckBox, "cell 1 1 1 3,align left center,grow 0 0");
+
+                    //---- label1 ----
+                    label1.setText("ChoiceSheet");
+                    panel1.add(label1, "cell 2 1 4 1");
+
+                    //---- choiceSheetBox ----
+                    choiceSheetBox.setLightWeightPopupEnabled(true);
+                    panel1.add(choiceSheetBox, "cell 2 1 4 1,growx");
+
+                    //---- label2 ----
+                    label2.setText("ChoiceColumn");
+                    panel1.add(label2, "cell 2 3 4 1,align left center,grow 0 0");
+                    panel1.add(choiceColumnBox, "cell 2 3 4 1,growx");
+                }
+                splitWayPane.addTab("SimpleSplit", panel1);
+            }
+            excelKitPage.add(splitWayPane, "cell 0 2 3 1,aligny center,grow 100 0");
+
+            //======== panel2 ========
+            {
+                panel2.setLayout(new MigLayout(
+                    "insets 0,hidemode 3,gap 10 5",
+                    // columns
+                    "[grow 1,fill]" +
+                    "[fill]" +
+                    "[fill]",
+                    // rows
+                    "[fill]" +
+                    "[]" +
+                    "[fill]" +
+                    "[]" +
+                    "[]"));
+
+                //---- excelSplitBt ----
+                excelSplitBt.setText("SplitExcel");
+                panel2.add(excelSplitBt, "cell 0 2 3 1,aligny center,grow 100 0");
+
+                //---- excelFileAnalysisBt ----
+                excelFileAnalysisBt.setActionCommand("Button");
+                excelFileAnalysisBt.setText("ExcelFileAnalysis");
+                panel2.add(excelFileAnalysisBt, "cell 0 1 3 1,aligny center,grow 100 0");
+                panel2.add(progressBar1, "cell 0 3 3 2");
+            }
+            excelKitPage.add(panel2, "cell 0 3 3 1,aligny top,grow 100 0");
+        }
+        // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
+    }
+
+    // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
+    private JPanel excelKitPage;
+    private JButton fileSelectBt;
+    private JTextField selectedFilePath;
+    private JButton outputPathBt;
+    private JTextField outputPath;
+    private JTabbedPane splitWayPane;
+    private JCheckBox splitBySheetCheckBox;
+    private JCheckBox splitByColumnCheckBox;
+    private JComboBox choiceSheetBox;
+    private JComboBox choiceColumnBox;
+    private JButton excelSplitBt;
+    private JButton excelFileAnalysisBt;
+    private JProgressBar progressBar1;
+    // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }

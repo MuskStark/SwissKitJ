@@ -173,16 +173,17 @@ mkdir -p src/main/java/fan/summer/kitpage/mytool
 ```java
 package fan.summer.kitpage.mytool;
 
-import fan.summer.kitpage.KitPage;
+import fan.summer.api.KitPage;
 import fan.summer.annoattion.SwissKitPage;
+
 import javax.swing.*;
 import java.awt.*;
 
 @SwissKitPage(
-    menuName = "🔧 My Tool",
-    menuTooltip = "Open My Tool",
-    visible = true,
-    order = 10
+        menuName = "🔧 My Tool",
+        menuTooltip = "Open My Tool",
+        visible = true,
+        order = 10
 )
 public class MyToolPage implements KitPage {
     private JPanel panel;

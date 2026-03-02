@@ -1,6 +1,6 @@
 package fan.summer.ui.sidebar;
 
-import fan.summer.kitpage.KitPage;
+import fan.summer.api.KitPage;
 import fan.summer.utils.UIUtils;
 
 import javax.swing.*;

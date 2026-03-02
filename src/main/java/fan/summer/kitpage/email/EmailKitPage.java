@@ -1,7 +1,7 @@
 package fan.summer.kitpage.email;
 
 import fan.summer.annoattion.SwissKitPage;
-import fan.summer.kitpage.KitPage;
+import fan.summer.api.KitPage;
 
 import javax.swing.*;
 

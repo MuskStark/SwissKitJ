@@ -1,9 +1,8 @@
-package fan.summer.kitpage;
+package fan.summer.api;
 
 import fan.summer.annoattion.SwissKitPage;
 
 import javax.swing.*;
-import java.awt.*;
 
 public interface KitPage {
     /**

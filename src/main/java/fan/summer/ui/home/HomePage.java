@@ -1,8 +1,8 @@
 package fan.summer.ui.home;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
-import fan.summer.kitpage.KitPage;
-import fan.summer.kitpage.KitPageScanner;
+import fan.summer.api.KitPage;
+import fan.summer.scaner.SwissKitPageScaner;
 import fan.summer.ui.sidebar.SideMenuBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class HomePage {
         setAppIcon(frame);
 
         // Initialize pages using KitPageScanner
-        pages = KitPageScanner.scan("fan.summer.kitpage");
+        pages = SwissKitPageScaner.scan();
 
         // Content panel
         JPanel contentPanel = new JPanel(new BorderLayout());

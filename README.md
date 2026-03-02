@@ -125,34 +125,35 @@ Example:
 ```java
 package fan.summer.kitpage.mytool;
 
-import fan.summer.kitpage.KitPage;
+import fan.summer.api.KitPage;
 import fan.summer.annoattion.SwissKitPage;
+
 import javax.swing.*;
 
 @SwissKitPage(
-    menuName = "🔧 My Tool",
-    menuTooltip = "Open My Tool",
-    visible = true,
-    order = 10
+        menuName = "🔧 My Tool",
+        menuTooltip = "Open My Tool",
+        visible = true,
+        order = 10
 )
 public class MyToolPage implements KitPage {
-    private JPanel panel;
+  private JPanel panel;
 
-    public MyToolPage() {
-        initComponents();
-    }
+  public MyToolPage() {
+    initComponents();
+  }
 
-    private void initComponents() {
-        panel = new JPanel(new BorderLayout());
-        JLabel titleLabel = new JLabel("My Tool");
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
-        panel.add(titleLabel, BorderLayout.NORTH);
-    }
+  private void initComponents() {
+    panel = new JPanel(new BorderLayout());
+    JLabel titleLabel = new JLabel("My Tool");
+    titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
+    panel.add(titleLabel, BorderLayout.NORTH);
+  }
 
-    @Override
-    public JPanel getPanel() {
-        return panel;
-    }
+  @Override
+  public JPanel getPanel() {
+    return panel;
+  }
 }
 ```
 

@@ -74,14 +74,14 @@ public interface KitPage {
 ### Example Implementation
 
 ```java
-import fan.summer.kitpage.KitPage;
+import fan.summer.api.KitPage;
 import fan.summer.annoattion.SwissKitPage;
 
 @SwissKitPage(
-    menuName = "📋 Example",
-    menuTooltip = "Open Example Tool",
-    visible = true,
-    order = 10
+        menuName = "📋 Example",
+        menuTooltip = "Open Example Tool",
+        visible = true,
+        order = 10
 )
 public class ExamplePage implements KitPage {
     private JPanel panel;
@@ -138,6 +138,8 @@ The `KitPageScanner` class automatically discovers and loads all `KitPage` imple
 
 ```java
 package fan.summer.kitpage;
+
+import fan.summer.api.KitPage;
 
 public class KitPageScanner {
     public static List<KitPage> scan(String packageName) {

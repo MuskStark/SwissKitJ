@@ -170,15 +170,16 @@ To add a new tool:
 4. The tool will be automatically discovered and sorted by order
 
 **Example**:
+
 ```java
-import fan.summer.kitpage.KitPage;
+import fan.summer.api.KitPage;
 import fan.summer.annoattion.SwissKitPage;
 
 @SwissKitPage(
-    menuName = "🔧 My Tool",
-    menuTooltip = "Open My Tool",
-    visible = true,
-    order = 10
+        menuName = "🔧 My Tool",
+        menuTooltip = "Open My Tool",
+        visible = true,
+        order = 10
 )
 public class MyToolPage implements KitPage {
     private JPanel panel;
