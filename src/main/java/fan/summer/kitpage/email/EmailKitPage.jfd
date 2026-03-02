@@ -1,0 +1,52 @@
+JFDML JFormDesigner: "8.3" encoding: "UTF-8"
+
+new FormModel {
+	contentType: "form/swing"
+	root: new FormRoot {
+		add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+			"$layoutConstraints": "insets 0,hidemode 3,gap 10 5"
+			"$columnConstraints": "[fill][grow,fill][grow,fill]"
+			"$rowConstraints": "[fill][fill][grow,fill][][fill]"
+		} ) {
+			name: "emailPanel"
+			add( new FormComponent( "javax.swing.JLabel" ) {
+				name: "emailTitle"
+				"text": "Subject:"
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 0,align left center,grow 0 0"
+			} )
+			add( new FormComponent( "javax.swing.JTextField" ) {
+				name: "subject"
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 1 0 2 1,aligny center,grow 100 0"
+			} )
+			add( new FormComponent( "javax.swing.JLabel" ) {
+				name: "to"
+				"text": "To:"
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 1,align left center,grow 0 0"
+			} )
+			add( new FormComponent( "javax.swing.JTextField" ) {
+				name: "toText"
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 1 1 2 1,aligny center,grow 100 0"
+			} )
+			add( new FormComponent( "javax.swing.JTextArea" ) {
+				name: "body"
+				"lineWrap": false
+				"text": ""
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 2 3 1,grow"
+			} )
+			add( new FormComponent( "javax.swing.JButton" ) {
+				name: "sentButton"
+				"text": "Sent"
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 3 3 1"
+			} )
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 0, 5 )
+			"size": new java.awt.Dimension( 534, 445 )
+		} )
+	}
+}

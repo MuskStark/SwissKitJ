@@ -4,9 +4,9 @@ new FormModel {
 	contentType: "form/swing"
 	root: new FormRoot {
 		add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
-			"$layoutConstraints": "insets 0,hidemode 3,gap 10 5"
+			"$layoutConstraints": "insets 0,hidemode 3,align center center,gap 10 5"
 			"$columnConstraints": "[501,fill]"
-			"$rowConstraints": "[175,fill][92,fill][fill]"
+			"$rowConstraints": "[131,fill][92,fill][fill]"
 		} ) {
 			name: "welcome"
 			"background": new java.awt.Color( 255, 255, 255, 255 )

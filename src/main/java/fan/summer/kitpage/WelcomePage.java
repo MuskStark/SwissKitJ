@@ -2,9 +2,10 @@ package fan.summer.kitpage;
 
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
-import net.miginfocom.swing.*;
+import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -58,11 +59,11 @@ public class WelcomePage implements KitPage {
             welcome.setBackground(Color.white);
             welcome.setForeground(Color.white);
             welcome.setLayout(new MigLayout(
-                "insets 0,hidemode 3,gap 10 5",
+                "insets 0,hidemode 3,align center center,gap 10 5",
                 // columns
                 "[501,fill]",
                 // rows
-                "[175,fill]" +
+                "[131,fill]" +
                 "[92,fill]" +
                 "[fill]"));
 

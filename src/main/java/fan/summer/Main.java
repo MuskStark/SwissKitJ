@@ -7,6 +7,7 @@ import javax.swing.*;
 public class Main {
 
     public static void main(String[] args) {
+        // Todo create program database
         SwingUtilities.invokeLater(() -> new HomePage().init());
     }
 

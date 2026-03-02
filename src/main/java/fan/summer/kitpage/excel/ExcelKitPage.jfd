@@ -36,6 +36,7 @@ new FormModel {
 			add( new FormContainer( "javax.swing.JTabbedPane", new FormLayoutManager( class javax.swing.JTabbedPane ) ) {
 				name: "splitWayPane"
 				"enabled": true
+				addEvent( new FormEvent( "javax.swing.event.ChangeListener", "stateChanged", "splitWayPaneStateChanged", true ) )
 				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
 					"$layoutConstraints": "insets 0,hidemode 3,gap 10 5"
 					"$columnConstraints": "[fill][fill][grow 1,fill][fill][fill][fill][fill]"
@@ -146,19 +147,22 @@ new FormModel {
 						name: "panel3"
 						add( new FormComponent( "javax.swing.JButton" ) {
 							name: "button1"
-							"text": "text"
+							"text": "ClearConfig"
+							"foreground": new java.awt.Color( 255, 23, 68, 255 )
 						}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 							"value": "cell 0 1,growx"
 						} )
 						add( new FormComponent( "javax.swing.JButton" ) {
 							name: "button2"
-							"text": "text"
+							"text": "ViewConfig"
+							"foreground": new java.awt.Color( 0, 255, 255, 255 )
 						}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 							"value": "cell 1 1,growx"
 						} )
 						add( new FormComponent( "javax.swing.JButton" ) {
 							name: "button3"
-							"text": "text"
+							"text": "SetConfig"
+							"foreground": new java.awt.Color( 255, 179, 186, 255 )
 						}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 							"value": "cell 0 2 2 1,growy"
 						} )

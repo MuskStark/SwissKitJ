@@ -1,6 +1,5 @@
 package fan.summer.kitpage.excel;
 
-import java.awt.*;
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisCallback;
@@ -8,11 +7,13 @@ import fan.summer.kitpage.excel.worker.ExcelAnalysisWorker;
 import fan.summer.kitpage.excel.worker.ExcelSplitWorker;
 import fan.summer.ui.components.FixedWidthComboBox;
 import fan.summer.ui.components.GradientProgressBar;
-import net.miginfocom.swing.*;
+import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import java.awt.*;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
@@ -36,14 +37,14 @@ public class ExcelKitPage implements KitPage {
     private String selectedSheetNm;
     private String selectedColumnNm;
 
+    // complex split
+    private String splitTaskId;
+
 
     /**
      * Constructor - Initialize the Excel tool page and set up all event listeners
      */
     public ExcelKitPage() {
-        initComponents();
-        initComponents();
-        initComponents();
         initComponents();
         excelSplitBt.setEnabled(false);
         // ActionListener for file selection button - opens file chooser dialog and updates file path
@@ -95,7 +96,6 @@ public class ExcelKitPage implements KitPage {
                 }
             }).execute();
         });
-
 
         // ActionListener for split button - executes file splitting logic (to be implemented)
         excelSplitBt.addActionListener(e -> {
@@ -156,6 +156,16 @@ public class ExcelKitPage implements KitPage {
     }
 
     /**
+     * Get the main panel of this Excel tool page
+     *
+     * @return the JPanel component containing all UI elements
+     */
+    @Override
+    public JPanel getPanel() {
+        return excelKitPage;
+    }
+
+    /**
      * Handle the mutual exclusion logic between splitBySheetCheckBox and splitByColumnCheckBox
      * When one checkbox is selected, the other is disabled and unselected
      */
@@ -174,15 +184,14 @@ public class ExcelKitPage implements KitPage {
         }
     }
 
-    /**
-     * Get the main panel of this Excel tool page
-     *
-     * @return the JPanel component containing all UI elements
-     */
-    @Override
-    public JPanel getPanel() {
-        return excelKitPage;
+    private void restSimpleSplitConfig() {
+        selectedSheetNm = null;
+        selectedColumnNm = null;
     }
+
+    /*
+    JFrom Functions
+     */
 
     /**
      * Initialize and create custom UI components.
@@ -193,6 +202,25 @@ public class ExcelKitPage implements KitPage {
         progressBar1 = new GradientProgressBar();
         choiceSheetBox = new FixedWidthComboBox(200);
         choiceColumnBox = new FixedWidthComboBox(200);
+    }
+    /*
+    JForm Events
+     */
+
+    private void splitWayPaneStateChanged(ChangeEvent e) {
+        // TODO add your code here
+        int selectedIndex = splitWayPane.getSelectedIndex();
+        if (selectedIndex == -1) return;
+        if (selectedIndex == 1) {
+            complexSheetChoiceBox.removeAllItems();
+            //prepare combox data
+            if (excelFileAnalysisResultMap != null) {
+                for (String sheetName : excelFileAnalysisResultMap.keySet()) {
+                    complexSheetChoiceBox.addItem(sheetName);
+                }
+            }
+
+        }
     }
 
     private void initComponents() {
@@ -258,6 +286,7 @@ public class ExcelKitPage implements KitPage {
             //======== splitWayPane ========
             {
                 splitWayPane.setEnabled(true);
+                splitWayPane.addChangeListener(e -> splitWayPaneStateChanged(e));
 
                 //======== simpleSplitTab ========
                 {
@@ -344,15 +373,18 @@ public class ExcelKitPage implements KitPage {
                             "[]"));
 
                         //---- button1 ----
-                        button1.setText("text");
+                        button1.setText("ClearConfig");
+                        button1.setForeground(new Color(0xff1744));
                         panel3.add(button1, "cell 0 1,growx");
 
                         //---- button2 ----
-                        button2.setText("text");
+                        button2.setText("ViewConfig");
+                        button2.setForeground(Color.cyan);
                         panel3.add(button2, "cell 1 1,growx");
 
                         //---- button3 ----
-                        button3.setText("text");
+                        button3.setText("SetConfig");
+                        button3.setForeground(new Color(0xffb3ba));
                         panel3.add(button3, "cell 0 2 2 1,growy");
                     }
                     complexSplitTab.add(panel3, "cell 0 3 2 1,growx");
