@@ -3,7 +3,7 @@ package fan.summer.database.entity.email;
 import lombok.Data;
 
 /**
- * 类的详细说明
+ * Email settings entity
  *
  * @author summer
  * @version 1.00

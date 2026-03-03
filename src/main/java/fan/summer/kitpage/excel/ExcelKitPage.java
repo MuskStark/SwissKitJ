@@ -1,24 +1,21 @@
 package fan.summer.kitpage.excel;
 
-import java.awt.event.*;
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
-import fan.summer.database.DatabaseInit;
-import fan.summer.database.entity.excel.ComplexSplitConfigEntity;
-import fan.summer.database.mapper.excel.ComplexSplitConfigMapper;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisCallback;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisWorker;
 import fan.summer.kitpage.excel.worker.ExcelSplitWorker;
+import fan.summer.kitpage.excel.worker.SetComplexSplitWorker;
 import fan.summer.ui.components.FixedWidthComboBox;
 import fan.summer.ui.components.GradientProgressBar;
 import net.miginfocom.swing.MigLayout;
-import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
@@ -219,7 +216,7 @@ public class ExcelKitPage implements KitPage {
         if (selectedIndex == -1) return;
         if (selectedIndex == 1) {
             // set task id
-            this.splitTaskId = "CSM-"+ UUID.randomUUID();
+            this.splitTaskId = "CSM-" + UUID.randomUUID();
             complexSheetChoiceBox.removeAllItems();
             //prepare combox data
             if (excelFileAnalysisResultMap != null) {
@@ -233,19 +230,11 @@ public class ExcelKitPage implements KitPage {
 
     private void setConfigBtActionListener(ActionEvent e) {
         // TODO add your code here
-        try(SqlSession sqlSession = DatabaseInit.getSqlSession()){
-            ComplexSplitConfigMapper mapper = sqlSession.getMapper(ComplexSplitConfigMapper.class);
-            ComplexSplitConfigEntity entity = new ComplexSplitConfigEntity();
-            entity.setTaskId(this.splitTaskId);
-            entity.setFieldName(excelFilePath.getFileName().toString());
-            entity.setSheetName(this.complexSheetChoiceBox.getSelectedItem().toString());
-            entity.setHeaderIndex(Integer.parseInt(this.complexHRowIndex.getText()));
-            entity.setColumnIndex(Integer.parseInt(this.complexColIndex.getText()));
-            mapper.insert(entity);
-            sqlSession.commit();
-        }
-
-
+        new SetComplexSplitWorker(
+                excelKitPage, progressBar1, setConfigBt,
+                excelFilePath, splitTaskId,
+                complexSheetChoiceBox, complexHRowIndex, complexColIndex
+        ).execute();
     }
 
     private void initComponents() {
@@ -273,7 +262,7 @@ public class ExcelKitPage implements KitPage {
         panel3 = new JPanel();
         button1 = new JButton();
         button2 = new JButton();
-        button3 = new JButton();
+        setConfigBt = new JButton();
         var panel2 = new JPanel();
         excelSplitBt = new JButton();
         excelFileAnalysisBt = new JButton();
@@ -407,11 +396,11 @@ public class ExcelKitPage implements KitPage {
                         button2.setForeground(Color.cyan);
                         panel3.add(button2, "cell 1 1,growx");
 
-                        //---- button3 ----
-                        button3.setText("SetConfig");
-                        button3.setForeground(new Color(0xffb3ba));
-                        button3.addActionListener(e -> setConfigBtActionListener(e));
-                        panel3.add(button3, "cell 0 2 2 1,growy");
+                        //---- setConfigBt ----
+                        setConfigBt.setText("SetConfig");
+                        setConfigBt.setForeground(new Color(0xff6b35));
+                        setConfigBt.addActionListener(e -> setConfigBtActionListener(e));
+                        panel3.add(setConfigBt, "cell 0 2 2 1,growy");
                     }
                     complexSplitTab.add(panel3, "cell 0 3 2 1,growx");
                 }
@@ -469,7 +458,7 @@ public class ExcelKitPage implements KitPage {
     private JPanel panel3;
     private JButton button1;
     private JButton button2;
-    private JButton button3;
+    private JButton setConfigBt;
     private JButton excelSplitBt;
     private JButton excelFileAnalysisBt;
     private JProgressBar progressBar1;

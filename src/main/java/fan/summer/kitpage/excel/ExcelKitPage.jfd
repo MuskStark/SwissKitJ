@@ -160,9 +160,9 @@ new FormModel {
 							"value": "cell 1 1,growx"
 						} )
 						add( new FormComponent( "javax.swing.JButton" ) {
-							name: "button3"
+							name: "setConfigBt"
 							"text": "SetConfig"
-							"foreground": new java.awt.Color( 255, 179, 186, 255 )
+							"foreground": new java.awt.Color( 255, 107, 53, 255 )
 							addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "setConfigBtActionListener", true ) )
 						}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 							"value": "cell 0 2 2 1,growy"

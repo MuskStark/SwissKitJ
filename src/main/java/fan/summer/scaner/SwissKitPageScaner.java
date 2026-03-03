@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 /**
- * 类的详细说明
+ * KitPage scanner that uses Java SPI to discover and register all KitPage implementations
  *
  * @author summer
  * @version 1.00
@@ -30,13 +30,13 @@ public class SwissKitPageScaner {
         for (KitPage page : loader) {
             SwissKitPage annotation = page.getClass().getAnnotation(SwissKitPage.class);
 
-            // 没有注解的跳过
+            // Skip if no annotation
             if (annotation == null) {
                 logger.debug("Skipped (no annotation): {}", page.getClass().getName());
                 continue;
             }
 
-            // visible=false 的跳过
+            // Skip if visible=false
             if (!annotation.visible()) {
                 logger.debug("Skipped (invisible): {}", page.getClass().getName());
                 continue;
@@ -47,7 +47,7 @@ public class SwissKitPageScaner {
                     annotation.menuName(), annotation.order());
         }
 
-        // 按 order 排序
+        // Sort by order
         pages.sort(Comparator.comparingInt(
                 p -> p.getClass().getAnnotation(SwissKitPage.class).order()
         ));

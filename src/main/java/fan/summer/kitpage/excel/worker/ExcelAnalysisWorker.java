@@ -1,11 +1,6 @@
 package fan.summer.kitpage.excel.worker;
 
-import fan.summer.kitpage.excel.listener.HeaderListener;
-import org.apache.fesod.sheet.ExcelReader;
-import org.apache.fesod.sheet.FesodSheet;
-import org.apache.fesod.sheet.read.metadata.ReadSheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.*;
 
 import javax.swing.*;
 import java.nio.file.Path;
@@ -51,37 +46,53 @@ public class ExcelAnalysisWorker extends SwingWorker<Map<String, Map<Integer, St
             progressBar.setStringPainted(true);
         });
 
+        Map<String, Map<Integer, String>> result = new LinkedHashMap<>();
+
         // 1. Get all sheet names
         List<String> sheetNames = new ArrayList<>();
         try (Workbook workbook = WorkbookFactory.create(filePath.toFile())) {
-            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-                sheetNames.add(workbook.getSheetName(i));
-            }
-        }
+            int totalSheets = workbook.getNumberOfSheets();
+            for (int i = 0; i < totalSheets; i++) {
+                Sheet sheet = workbook.getSheetAt(i);
+                String sheetName = sheet.getSheetName();
 
-        int total = sheetNames.size();
-        Map<String, Map<Integer, String>> result = new LinkedHashMap<>();
+                Map<Integer, String> headers = new LinkedHashMap<>();
+                        Row headerRow = sheet.getRow(0); // Get the first row directly
 
-        // 2. Read sheet headers one by one, update progress after each sheet is read
-        try (ExcelReader excelReader = FesodSheet.read(filePath.toFile()).build()) {
-            for (int i = 0; i < sheetNames.size(); i++) {
-                String sheetName = sheetNames.get(i);
-
-                HeaderListener headerListener = new HeaderListener();
-                ReadSheet readSheet = FesodSheet.readSheet(sheetName)
-                        .headRowNumber(1)
-                        .registerReadListener(headerListener)
-                        .build();
-                excelReader.read(readSheet);
-
-                result.put(sheetName, headerListener.getHeaders());
-
-                // Calculate percentage and publish progress
-                int progress = (int) ((i + 1) * 100.0 / total);
+                if (headerRow != null) {
+                    for (Cell cell : headerRow) {
+                        headers.put(cell.getColumnIndex(), cell.getStringCellValue());
+                    }
+                }
+                result.put(sheetName, headers);
+                int progress = (int) ((i + 1) * 100.0 / totalSheets);
                 publish(progress);
-                setProgress(progress); // Can also use PropertyChangeListener to monitor
+//                sheetNames.add(workbook.getSheetName(i));
             }
         }
+//
+//        int total = sheetNames.size();
+//
+//        // 2. Read sheet headers one by one, update progress after each sheet is read
+//        try (ExcelReader excelReader = FesodSheet.read(filePath.toFile()).build()) {
+//            for (int i = 0; i < sheetNames.size(); i++) {
+//                String sheetName = sheetNames.get(i);
+//
+//                HeaderListener headerListener = new HeaderListener();
+//                ReadSheet readSheet = FesodSheet.readSheet(sheetName)
+//                        .headRowNumber(1)
+//                        .registerReadListener(headerListener)
+//                        .build();
+//                excelReader.read(readSheet);
+//
+//                result.put(sheetName, headerListener.getHeaders());
+//
+//                // Calculate percentage and publish progress
+//                int progress = (int) ((i + 1) * 100.0 / total);
+//                publish(progress);
+//                setProgress(progress); // Can also use PropertyChangeListener to monitor
+//            }
+//        }
 
         return result;
     }

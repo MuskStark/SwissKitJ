@@ -3,7 +3,7 @@ package fan.summer.database.entity.excel;
 import lombok.Data;
 
 /**
- * 类的详细说明
+ * Excel complex split configuration entity
  *
  * @author summer
  * @version 1.00
