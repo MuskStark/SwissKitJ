@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+
+    <settings>
+        <!-- 开启驼峰命名自动映射，如 user_name -> userName -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 开启懒加载 -->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <!-- 控制台打印 SQL 日志 -->
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+        <setting name="localCacheScope" value="STATEMENT"/>
+        <setting name="cacheEnabled" value="false"/>
+    </settings>
+
+    <environments default="swisskit">
+        <environment id="swisskit">
+            <transactionManager type="JDBC"/>
+            <dataSource type="org.apache.ibatis.datasource.unpooled.UnpooledDataSourceFactory">
+                <property name="driver" value="org.sqlite.JDBC"/>
+                <!-- 数据库保存在运行根目录下的 .swisskit 文件夹 -->
+                <property name="url" value="jdbc:sqlite:.swisskit/swisskit.db"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+
+
+
+    <!-- 注册所有 Mapper -->
+    <mappers>
+        <mapper resource="mapper/SwissKitSettingEmailMapper.xml"/>
+        <mapper resource="mapper/excel/ComplexSplitConfigMapper.xml"/>
+    </mappers>
+
+</configuration>
