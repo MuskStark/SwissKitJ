@@ -1,13 +1,18 @@
 package fan.summer.kitpage.excel;
 
+import java.awt.event.*;
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
+import fan.summer.database.DatabaseInit;
+import fan.summer.database.entity.excel.ComplexSplitConfigEntity;
+import fan.summer.database.mapper.excel.ComplexSplitConfigMapper;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisCallback;
 import fan.summer.kitpage.excel.worker.ExcelAnalysisWorker;
 import fan.summer.kitpage.excel.worker.ExcelSplitWorker;
 import fan.summer.ui.components.FixedWidthComboBox;
 import fan.summer.ui.components.GradientProgressBar;
 import net.miginfocom.swing.MigLayout;
+import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +22,7 @@ import java.awt.*;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Excel Tool Page
@@ -212,6 +218,8 @@ public class ExcelKitPage implements KitPage {
         int selectedIndex = splitWayPane.getSelectedIndex();
         if (selectedIndex == -1) return;
         if (selectedIndex == 1) {
+            // set task id
+            this.splitTaskId = "CSM-"+ UUID.randomUUID();
             complexSheetChoiceBox.removeAllItems();
             //prepare combox data
             if (excelFileAnalysisResultMap != null) {
@@ -221,6 +229,23 @@ public class ExcelKitPage implements KitPage {
             }
 
         }
+    }
+
+    private void setConfigBtActionListener(ActionEvent e) {
+        // TODO add your code here
+        try(SqlSession sqlSession = DatabaseInit.getSqlSession()){
+            ComplexSplitConfigMapper mapper = sqlSession.getMapper(ComplexSplitConfigMapper.class);
+            ComplexSplitConfigEntity entity = new ComplexSplitConfigEntity();
+            entity.setTaskId(this.splitTaskId);
+            entity.setFieldName(excelFilePath.getFileName().toString());
+            entity.setSheetName(this.complexSheetChoiceBox.getSelectedItem().toString());
+            entity.setHeaderIndex(Integer.parseInt(this.complexHRowIndex.getText()));
+            entity.setColumnIndex(Integer.parseInt(this.complexColIndex.getText()));
+            mapper.insert(entity);
+            sqlSession.commit();
+        }
+
+
     }
 
     private void initComponents() {
@@ -385,6 +410,7 @@ public class ExcelKitPage implements KitPage {
                         //---- button3 ----
                         button3.setText("SetConfig");
                         button3.setForeground(new Color(0xffb3ba));
+                        button3.addActionListener(e -> setConfigBtActionListener(e));
                         panel3.add(button3, "cell 0 2 2 1,growy");
                     }
                     complexSplitTab.add(panel3, "cell 0 3 2 1,growx");
