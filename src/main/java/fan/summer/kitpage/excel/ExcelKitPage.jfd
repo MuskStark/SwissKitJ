@@ -163,6 +163,7 @@ new FormModel {
 							name: "button3"
 							"text": "SetConfig"
 							"foreground": new java.awt.Color( 255, 179, 186, 255 )
+							addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "setConfigBtActionListener", true ) )
 						}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 							"value": "cell 0 2 2 1,growy"
 						} )
