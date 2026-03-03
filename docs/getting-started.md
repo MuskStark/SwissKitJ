@@ -95,11 +95,12 @@ If you're using IntelliJ IDEA:
 
 Once SwissKit is running:
 
-1. **Welcome Page** - You'll see the welcome page with an overview
-2. **Select a Tool** - Choose a tool from the left sidebar:
+1. **Splash Screen** - You'll see a loading screen while the application initializes
+2. **Welcome Page** - After loading, you'll see the welcome page with an overview
+3. **Select a Tool** - Choose a tool from the left sidebar:
    - **Excel Tool** - Process and split Excel files
    - **Email Tool** - Compose and send emails (in development)
-3. **Explore** - Click around to explore the available features
+4. **Explore** - Click around to explore the available features
 
 ## Troubleshooting
 

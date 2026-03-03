@@ -28,32 +28,53 @@ SwissKit/
 ├── src/main/java/fan/summer/
 │   ├── Main.java                        # Application entry point
 │   ├── annoattion/                      # Annotations
-│   │   └── SwissKitPage.java           # Page annotation
+│   │   └── SwissKitPage.java            # Page annotation
+│   ├── api/                             # API interfaces
+│   │   └── KitPage.java                 # Plugin interface
+│   ├── scaner/                          # SPI-based scanner
+│   │   └── SwissKitPageScaner.java      # Auto-discovery scanner
+│   ├── database/                        # Database layer
+│   │   ├── DatabaseInit.java            # Database initialization
+│   │   ├── SwissKitDBTable.java         # Table marker interface
+│   │   ├── entity/                      # Entity classes
+│   │   │   ├── email/
+│   │   │   │   └── SwissKitSettingEmailEntity.java
+│   │   │   └── excel/
+│   │   │       └── ComplexSplitConfigEntity.java
+│   │   └── mapper/                      # MyBatis mappers
+│   │       ├── email/
+│   │       │   └── SwissKitSettingEmailMapper.java
+│   │       └── excel/
+│   │           └── ComplexSplitConfigMapper.java
 │   ├── kitpage/                         # Tool page modules
-│   │   ├── KitPage.java                # Page interface
-│   │   ├── KitPageScanner.java         # Auto-discovery scanner
-│   │   ├── WelcomePage.java            # Welcome page
-│   │   ├── email/                      # Email tool
+│   │   ├── welcome/                     # Welcome page
+│   │   │   ├── WelcomePage.java
+│   │   │   └── WelcomePage.jfd
+│   │   ├── email/                        # Email tool
 │   │   │   ├── EmailKitPage.java
-│   │   │   └── EmailKitPage.form
-│   │   └── excel/                      # Excel tool
+│   │   │   └── EmailKitPage.jfd
+│   │   └── excel/                       # Excel tool
 │   │       ├── ExcelKitPage.java
-│   │       ├── ExcelKitPage.form
-│   │       ├── listener/               # Event listeners
+│   │       ├── ExcelKitPage.jfd
+│   │       ├── listener/                # Event listeners
 │   │       │   ├── HeaderListener.java
 │   │       │   └── NoModelDataListener.java
-│   │       └── worker/                 # Background workers
+│   │       └── worker/                  # Background workers
 │   │           ├── ExcelAnalysisWorker.java
 │   │           ├── ExcelAnalysisCallback.java
 │   │           └── ExcelSplitWorker.java
-│   ├── ui/                             # Custom UI components
+│   ├── ui/                              # UI components
+│   │   ├── StartLoadingPage.java        # Splash screen
+│   │   ├── home/
+│   │   │   └── HomePage.java            # Main window
+│   │   ├── sidebar/
+│   │   │   └── SideMenuBar.java         # Side menu
 │   │   └── components/
 │   │       ├── GradientProgressBar.java
 │   │       └── FixedWidthComboBox.java
-│   └── utils/                          # Utility classes
-│       ├── SideMenuBar.java
-│       └── UIUtils.java
-└── docs/                               # Documentation
+│   └── utils/
+│       └── UIUtils.java                 # UI utilities
+└── docs/                                # Documentation
 ```
 
 ## Plugin System
@@ -96,53 +117,195 @@ public interface KitPage {
 
 ### KitPageScanner
 
-The `KitPageScanner` class handles automatic discovery of all tool pages:
+
+
+The `SwissKitPageScaner` class handles automatic discovery of all tool pages using SPI:
+
+
 
 ```java
-public class KitPageScanner {
+
+public class SwissKitPageScaner {
+
     /**
-     * Scans for KitPage implementations in the specified package and subpackages.
+
+     * Scans for KitPage implementations using SPI ServiceLoader.
+
      *
-     * @param packageName the base package to scan
+
      * @return list of visible KitPage instances sorted by order
+
      */
-    public static List<KitPage> scan(String packageName) {
-        // 1. Find all classes with @SwissKitPage annotation
-        // 2. Filter by visible = true
+
+    public static List<KitPage> scan() {
+
+        // 1. Load services from META-INF/services/
+
+        // 2. Filter by @SwissKitPage visible = true
+
         // 3. Sort by order() value
+
         // 4. Instantiate and return
+
     }
+
 }
+
 ```
+
+
 
 ### Auto-Discovery Mechanism
 
-SwissKit automatically discovers and loads all tools at runtime:
 
-**Discovery Methods**:
 
-1. **File System Scanning** - Scans compiled `.class` files recursively
-2. **JAR File Scanning** - Reads JAR entries for packaged applications
+SwissKit automatically discovers and loads all tools at runtime using SPI:
+
+
+
+**Discovery Method**: Java SPI (Service Provider Interface)
+
+
+
+**SPI Service File**: `src/main/resources/META-INF/services/fan.summer.api.KitPage`
+
+
+
+**Format**: One fully-qualified class name per line
+
+
 
 **Loading Process**:
 
+
+
 ```java
+
 // HomePage.java
+
 private void initPages() {
-    // Scan all packages under fan.summer.kitpage
-    // Includes subpackages: email/, excel/, etc.
-    pages = KitPageScanner.scan("fan.summer.kitpage");
+
+    // Scan all KitPage implementations via SPI
+
+    pages = SwissKitPageScaner.scan();
+
 }
+
 ```
+
+
 
 **Key Features**:
 
-- No manual registration required
-- Recursive subpackage scanning
+- No manual registration required (except SPI file)
+
 - Automatic sorting by `order` value
+
 - Visibility filtering
+
 - Supports both development and production environments
-- Fallback mechanism if scanning fails
+
+- Works with packaged JAR files
+
+
+
+## Database Layer
+
+
+
+SwissKit uses SQLite as embedded database with MyBatis for data access.
+
+
+
+### Database Location
+
+
+
+- **Path**: `.swisskit/swisskit.db` (relative to application runtime directory)
+
+- **Type**: SQLite (embedded, no external server required)
+
+
+
+### Database Initialization
+
+
+
+The `DatabaseInit` class handles:
+
+- Creating `.swisskit` directory if not exists
+
+- Creating database tables if not exist
+
+- Initializing MyBatis SqlSessionFactory
+
+
+
+```java
+
+// Initialize database
+
+DatabaseInit.init();
+
+
+
+// Get SqlSession for CRUD operations
+
+try (SqlSession session = DatabaseInit.getSqlSession()) {
+
+    MyMapper mapper = session.getMapper(MyMapper.class);
+
+    // perform operations
+
+    session.commit();
+
+}
+
+```
+
+
+
+### Database Tables
+
+
+
+| Table Name | Purpose |
+
+|------------|---------|
+
+| `swiss_kit_setting_email` | Email configuration storage |
+
+| `complex_split_config` | Excel complex split configuration |
+
+
+
+### MyBatis Configuration
+
+
+
+Database configuration is in `src/main/resources/mybatis-config.xml`:
+
+
+
+```xml
+
+<environment id="swisskit">
+
+    <transactionManager type="JDBC"/>
+
+    <dataSource type="org.apache.ibatis.datasource.unpooled.UnpooledDataSourceFactory">
+
+        <property name="driver" value="org.sqlite.JDBC"/>
+
+        <property name="url" value="jdbc:sqlite:.swisskit/swisskit.db"/>
+
+    </dataSource>
+
+</environment>
+
+```
+
+
 
 ## UI Components
 
@@ -360,6 +523,7 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Obje
 - **Build Tool**: Maven 3.6+
 - **UI Framework**: Swing
 - **UI Theme**: FlatLaf 3.5
+- **Database**: SQLite 3.51.2.0 + MyBatis 3.5.19
 
 ### Dependencies
 
@@ -370,6 +534,8 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Obje
 | log4j-core | 2.25.3 | Logging |
 | lombok | 1.18.42 | Code simplification |
 | fastjson2 | 2.0.59 | JSON processing |
+| sqlite-jdbc | 3.51.2.0 | SQLite JDBC driver |
+| mybatis | 3.5.19 | MyBatis ORM |
 
 ### Build Plugins
 

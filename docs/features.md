@@ -158,7 +158,7 @@ Dynamic side menu component with modern styling.
 
 ## Plugin System
 
-SwissKit's modular architecture allows easy extension of functionality.
+SwissKit's modular architecture allows easy extension of functionality using SPI (Service Provider Interface).
 
 ### Adding New Tools
 
@@ -167,7 +167,8 @@ To add a new tool:
 1. Create a package under `fan.summer.kitpage`
 2. Implement the `KitPage` interface
 3. Add `@SwissKitPage` annotation for menu configuration
-4. The tool will be automatically discovered and sorted by order
+4. Register in SPI service file (`META-INF/services/fan.summer.api.KitPage`)
+5. The tool will be automatically discovered and sorted by order
 
 **Example**:
 
@@ -195,7 +196,28 @@ public class MyToolPage implements KitPage {
 }
 ```
 
-See [Development Guide](development.md) for more details.
+## Database Layer
+
+SwissKit includes a built-in database layer using SQLite and MyBatis for persistent storage.
+
+### Features
+
+- **Embedded Database** - No external server required
+- **Automatic Initialization** - Database created on first run
+- **MyBatis Integration** - Clean DAO layer with XML mappers
+- **Multiple Tables** - Support for email settings, Excel config, and more
+
+### Database Location
+
+- **Path**: `.swisskit/swisskit.db`
+- **Auto-created**: On first application run
+
+### Current Tables
+
+| Table | Purpose |
+|-------|---------|
+| `swiss_kit_setting_email` | Email SMTP configuration |
+| `complex_split_config` | Excel complex split settings |
 
 ## Performance Features
 

@@ -48,13 +48,15 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 
 ## Features
 
-- **📦 Modular Architecture** - Plugin-based design with automatic page discovery
+- **📦 Modular Architecture** - Plugin-based design with SPI auto-discovery
 - **🎨 Modern UI** - Built with Swing and FlatLaf theme framework
 - **⚡ High Performance** - Uses Apache FESOD for efficient Excel processing
 - **🔄 Async Processing** - Background tasks with SwingWorker for non-blocking UI
+- **💾 Database Support** - SQLite + MyBatis for persistent storage
 - **🌐 Multi-format Support** - Excel, email, and extensible for other formats
 - **🛠️ Easy Extension** - Add new tools by implementing the `KitPage` interface
 - **📊 Custom UI Components** - Gradient progress bar, fixed-width combo box
+- **🚀 Splash Screen** - Professional startup experience with loading indicator
 
 ### Current Tools
 
@@ -84,40 +86,61 @@ SwissKit/
 ├── Main.java                        # Application entry point
 ├── annoattion/                      # Annotations
 │   └── SwissKitPage.java           # Page annotation
-├── kitpage/                         # Tool page modules
-│   ├── KitPage.java                # Page interface definition
-│   ├── KitPageScanner.java         # Auto-discovery scanner
-│   ├── WelcomePage.java            # Welcome page
+├── api/                            # API interfaces
+│   └── KitPage.java                # Plugin interface
+├── scaner/                         # SPI-based scanner
+│   └── SwissKitPageScaner.java    # Auto-discovery scanner
+├── database/                       # Database layer (SQLite + MyBatis)
+│   ├── DatabaseInit.java           # Database initialization
+│   ├── SwissKitDBTable.java       # Table marker interface
+│   ├── entity/                     # Entity classes
+│   │   ├── email/
+│   │   │   └── SwissKitSettingEmailEntity.java
+│   │   └── excel/
+│   │       └── ComplexSplitConfigEntity.java
+│   └── mapper/                     # MyBatis mappers
+│       ├── email/
+│       │   └── SwissKitSettingEmailMapper.java
+│       └── excel/
+│           └── ComplexSplitConfigMapper.java
+├── kitpage/                        # Tool page modules
+│   ├── welcome/                    # Welcome page
+│   │   ├── WelcomePage.java
+│   │   └── WelcomePage.jfd
 │   ├── email/                      # Email tool
 │   │   ├── EmailKitPage.java
-│   │   └── EmailKitPage.form
-│   └── excel/                      # Excel tool
+│   │   └── EmailKitPage.jfd
+│   └── excel/                     # Excel tool
 │       ├── ExcelKitPage.java
-│       ├── ExcelKitPage.form
-│       ├── listener/               # Event listeners
-│       │   ├── HeaderListener.java     # Header extraction
-│       │   └── NoModelDataListener.java # Data streaming
-│       └── worker/                 # Background workers
-│           ├── ExcelAnalysisWorker.java   # File analysis
-│           ├── ExcelAnalysisCallback.java # Analysis callback
-│           └── ExcelSplitWorker.java      # File splitting
-├── ui/                             # Custom UI components
+│       ├── ExcelKitPage.jfd
+│       ├── listener/              # Event listeners
+│       │   ├── HeaderListener.java
+│       │   └── NoModelDataListener.java
+│       └── worker/                # Background workers
+│           ├── ExcelAnalysisWorker.java
+│           ├── ExcelAnalysisCallback.java
+│           └── ExcelSplitWorker.java
+├── ui/                            # UI components
+│   ├── StartLoadingPage.java      # Splash screen
+│   ├── home/
+│   │   └── HomePage.java          # Main window
+│   ├── sidebar/
+│   │   └── SideMenuBar.java       # Side menu component
 │   └── components/
-│       ├── GradientProgressBar.java  # Animated progress bar
-│       └── FixedWidthComboBox.java    # Fixed-width combo box
-└── utils/                          # Utility classes
-    ├── SideMenuBar.java           # Side menu component
+│       ├── GradientProgressBar.java
+│       └── FixedWidthComboBox.java
+└── utils/
     └── UIUtils.java               # UI utilities
 ```
 
 ### Plugin System
 
-SwissKit uses an automatic discovery mechanism with annotations for tool pages:
+SwissKit uses an automatic discovery mechanism with annotations and SPI (Service Provider Interface) for tool pages:
 
 1. **Interface**: Implement the `KitPage` interface
 2. **Annotation**: Add `@SwissKitPage` annotation to configure menu properties
-3. **Auto-discovery**: Pages are automatically discovered at runtime using `KitPageScanner`
-4. **No Registration**: No manual registration required
+3. **SPI Registration**: Add class name to `META-INF/services/fan.summer.api.KitPage`
+4. **Auto-discovery**: Pages are automatically discovered at runtime using `SwissKitPageScaner`
 5. **Sorting**: Pages are sorted by `order()` value in annotation
 
 Example:
@@ -179,6 +202,7 @@ public class MyToolPage implements KitPage {
 - **Logging**: Log4j 2.25.3 + SLF4J 2.20.0
 - **JSON Processing**: FastJSON2 2.0.59
 - **Code Simplification**: Lombok 1.18.42
+- **Database**: SQLite 3.51.2.0 + MyBatis 3.5.19
 
 ---
 
@@ -351,6 +375,8 @@ public class MyWorker extends SwingWorker<Result, Integer> {
 | log4j-slf4j-impl | 2.20.0 | SLF4J binding |
 | lombok | 1.18.42 | Code simplification |
 | fastjson2 | 2.0.59 | JSON processing |
+| sqlite-jdbc | 3.51.2.0 | SQLite JDBC driver |
+| mybatis | 3.5.19 | MyBatis ORM |
 
 ### Build Plugins
 
@@ -530,10 +556,16 @@ For detailed technical documentation, see [AGENTS.md](AGENTS.md).
 ### Version 1.0-SNAPSHOT
 
 #### Recent Changes
+- ✨ Add SQLite + MyBatis database layer for persistent storage
+- ✨ Add splash screen (StartLoadingPage) with gradient progress
+- ✨ Add database initialization on startup with SwingWorker
+- ✨ Move KitPage to api package and add SPI support
+- ✨ Migrate all layouts to MigLayout
+- ✨ Add ComplexSplit tab to Excel tool UI
 - ✨ Add Excel split functionality with progress tracking
 - ✨ Add NoModelDataListener for streaming Excel data reading
 - ✨ Update HeaderListener to return Map<Integer, String>
-- ✨ Add progress bar updates during split operations
+- �✨ Add progress bar updates during split operations
 - 🌐 Replace all Chinese text with English translations
 - 📦 Add Lombok and FastJSON2 dependencies
 - 🔧 Add Maven Shade plugin for building executable JAR
