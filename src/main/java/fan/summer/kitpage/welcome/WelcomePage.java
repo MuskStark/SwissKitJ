@@ -1,4 +1,4 @@
-package fan.summer.kitpage;
+package fan.summer.kitpage.welcome;
 
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
