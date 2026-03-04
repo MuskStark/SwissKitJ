@@ -6,11 +6,8 @@
 <configuration>
 
     <settings>
-        <!-- Enable camel case mapping, e.g., user_name -> userName -->
         <setting name="mapUnderscoreToCamelCase" value="true"/>
-        <!-- Enable lazy loading -->
         <setting name="lazyLoadingEnabled" value="true"/>
-        <!-- Print SQL logs to console -->
         <setting name="logImpl" value="STDOUT_LOGGING"/>
         <setting name="localCacheScope" value="STATEMENT"/>
         <setting name="cacheEnabled" value="false"/>
@@ -19,18 +16,13 @@
     <environments default="swisskit">
         <environment id="swisskit">
             <transactionManager type="JDBC"/>
-            <dataSource type="org.apache.ibatis.datasource.unpooled.UnpooledDataSourceFactory">
-                <property name="driver" value="org.sqlite.JDBC"/>
-                <!-- Database stored in .swisskit folder under running root directory -->
-                <property name="url" value="jdbc:sqlite:.swisskit/swisskit.db"/>
+            <dataSource type="UNPOOLED">
+                <property name="driver" value="org.h2.Driver"/>
+                <property name="url" value="${db.url}"/>
             </dataSource>
         </environment>
     </environments>
 
-
-
-
-    <!-- Register all Mappers -->
     <mappers>
         <mapper resource="mapper/SwissKitSettingEmailMapper.xml"/>
         <mapper resource="mapper/excel/ComplexSplitConfigMapper.xml"/>

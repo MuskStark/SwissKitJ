@@ -9,78 +9,76 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.Properties;
 
-/**
- * Database initialization utility class.
- * Handles SQLite database creation, table setup, and MyBatis SqlSessionFactory initialization.
- *
- * @author summer
- * @version 1.00
- * @date 2026/3/1
- */
 public class DatabaseInit {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseInit.class);
 
+    private static final String DB_URL;
+
+    static {
+        String dbPath = Path.of(System.getProperty("user.dir"))
+                .resolve(".swisskit")
+                .resolve("swisskit")
+                .toAbsolutePath()
+                .toString()
+                .replace("\\", "/");
+        DB_URL = "jdbc:h2:file:" + dbPath + ";MODE=MySQL;DATABASE_TO_LOWER=TRUE";
+    }
+
     private static SqlSessionFactory sqlSessionFactory;
 
-    /**
-     * Initializes the database: creates directories, tables, and MyBatis session factory.
-     *
-     * @throws RuntimeException if initialization fails
-     */
     public static void init() {
         try {
-            Path dbDir = Paths.get(".swisskit");
+            // 确保数据库目录存在
+            Path dbDir = Path.of(System.getProperty("user.dir")).resolve(".swisskit");
             if (!Files.exists(dbDir)) {
                 Files.createDirectories(dbDir);
                 logger.info("Created database directory: {}", dbDir.toAbsolutePath());
             }
 
             createTables();
-
             initMyBatis();
 
-            logger.info("Database initialization completed");
+            logger.info("Database initialization completed, url={}", DB_URL);
         } catch (Exception e) {
             logger.error("Failed to initialize database", e);
             throw new RuntimeException("Database initialization failed", e);
         }
     }
 
-    /**
-     * Creates database tables if they don't exist.
-     * Creates swiss_kit_setting_email and complex_split_config tables.
-     */
     private static void createTables() {
-        String dbPath = ".swisskit/swisskit.db?sqlite.purejava=true";
-        String url = "jdbc:sqlite:" + dbPath;
+        try {
+            Class.forName("org.h2.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("H2 driver not found", e);
+        }
 
         String createEmailTable =
                 "CREATE TABLE IF NOT EXISTS swiss_kit_setting_email (" +
-                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                        "email TEXT NOT NULL," +
-                        "password TEXT NOT NULL," +
-                        "smtp_address TEXT NOT NULL," +
+                        "id INTEGER PRIMARY KEY AUTO_INCREMENT," +
+                        "email VARCHAR(255) NOT NULL," +
+                        "password VARCHAR(255) NOT NULL," +
+                        "smtp_address VARCHAR(255) NOT NULL," +
                         "smtp_port INTEGER NOT NULL," +
                         "need_tls INTEGER NOT NULL DEFAULT 0," +
                         "need_ssl INTEGER NOT NULL DEFAULT 0" +
                         ")";
         String createExcelTable =
                 "CREATE TABLE IF NOT EXISTS complex_split_config (" +
-                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                        "task_id TEXT NOT NULL," +
-                        "field_name TEXT NOT NULL," +
-                        "sheet_name TEXT NOT NULL," +
+                        "id INTEGER PRIMARY KEY AUTO_INCREMENT," +
+                        "task_id VARCHAR(255) NOT NULL," +
+                        "field_name VARCHAR(255) NOT NULL," +
+                        "sheet_name VARCHAR(255) NOT NULL," +
                         "header_index INTEGER NOT NULL," +
                         "column_index INTEGER NOT NULL" +
                         ")";
 
-        try (Connection conn = DriverManager.getConnection(url);
+        try (Connection conn = DriverManager.getConnection(DB_URL);
              Statement stmt = conn.createStatement()) {
 
             stmt.execute(createEmailTable);
@@ -93,11 +91,6 @@ public class DatabaseInit {
         }
     }
 
-    /**
-     * Initializes MyBatis SqlSessionFactory from configuration file.
-     *
-     * @throws RuntimeException if MyBatis initialization fails
-     */
     private static void initMyBatis() {
         try (InputStream configStream = DatabaseInit.class.getClassLoader()
                 .getResourceAsStream("mybatis-config.xml")) {
@@ -106,8 +99,12 @@ public class DatabaseInit {
                 throw new RuntimeException("Cannot find mybatis-config.xml");
             }
 
+            // 通过 Properties 将动态 URL 注入 mybatis-config.xml 的 ${db.url} 占位符
+            Properties props = new Properties();
+            props.setProperty("db.url", DB_URL);
+
             sqlSessionFactory = new SqlSessionFactoryBuilder()
-                    .build(configStream);
+                    .build(configStream, props);
 
             logger.info("MyBatis SqlSessionFactory initialized");
 
@@ -117,12 +114,6 @@ public class DatabaseInit {
         }
     }
 
-    /**
-     * Gets a new SqlSession from the MyBatis SqlSessionFactory.
-     *
-     * @return new SqlSession instance
-     * @throws IllegalStateException if database not initialized
-     */
     public static SqlSession getSqlSession() {
         if (sqlSessionFactory == null) {
             throw new IllegalStateException("Database not initialized. Call init() first.");
@@ -130,12 +121,6 @@ public class DatabaseInit {
         return sqlSessionFactory.openSession();
     }
 
-    /**
-     * Gets the MyBatis SqlSessionFactory instance.
-     *
-     * @return SqlSessionFactory instance
-     * @throws IllegalStateException if database not initialized
-     */
     public static SqlSessionFactory getSqlSessionFactory() {
         if (sqlSessionFactory == null) {
             throw new IllegalStateException("Database not initialized. Call init() first.");
