@@ -146,9 +146,10 @@ new FormModel {
 					} ) {
 						name: "panel3"
 						add( new FormComponent( "javax.swing.JButton" ) {
-							name: "button1"
+							name: "clearConfigBt"
 							"text": "ClearConfig"
 							"foreground": new java.awt.Color( 255, 23, 68, 255 )
+							addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "deleteComplexSplitConfigBtAction", true ) )
 						}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 							"value": "cell 0 1,growx"
 						} )

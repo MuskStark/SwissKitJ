@@ -16,7 +16,7 @@ import java.util.List;
  * @version 1.00
  * @Date 2026/3/3
  */
-public class SetComplexSplitWorker extends SwingWorker<Void, Integer> {
+public class SetComplexSplitConfigWorker extends SwingWorker<Void, Integer> {
     private final JPanel fatherPanel;
     private final JProgressBar progressBar;
     private final JButton startBtn;
@@ -27,7 +27,7 @@ public class SetComplexSplitWorker extends SwingWorker<Void, Integer> {
     private final JTextField columnRowIndex;
     private boolean isError;
 
-    public SetComplexSplitWorker(JPanel fatherPanel, JProgressBar progressBar, JButton startBtn, Path excelFilePath, String splitTaskId, JComboBox comboBox, JTextField headerRowIndex, JTextField columnRowIndex) {
+    public SetComplexSplitConfigWorker(JPanel fatherPanel, JProgressBar progressBar, JButton startBtn, Path excelFilePath, String splitTaskId, JComboBox comboBox, JTextField headerRowIndex, JTextField columnRowIndex) {
         this.fatherPanel = fatherPanel;
         this.progressBar = progressBar;
         this.startBtn = startBtn;

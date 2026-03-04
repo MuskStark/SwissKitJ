@@ -14,6 +14,11 @@
         VALUES
             (#{taskId}, #{fieldName}, #{sheetName}, #{headerIndex}, #{columnIndex})
     </insert>
+    <delete id="deleteAllByTaskId"
+            parameterType="string"
+    >
+        delete from complex_split_config where task_id = #{taskId}
+    </delete>
 
 
 </mapper>

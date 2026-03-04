@@ -2,10 +2,7 @@ package fan.summer.kitpage.excel;
 
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
-import fan.summer.kitpage.excel.worker.ExcelAnalysisCallback;
-import fan.summer.kitpage.excel.worker.ExcelAnalysisWorker;
-import fan.summer.kitpage.excel.worker.ExcelSplitWorker;
-import fan.summer.kitpage.excel.worker.SetComplexSplitWorker;
+import fan.summer.kitpage.excel.worker.*;
 import fan.summer.ui.components.FixedWidthComboBox;
 import fan.summer.ui.components.GradientProgressBar;
 import net.miginfocom.swing.MigLayout;
@@ -230,12 +227,21 @@ public class ExcelKitPage implements KitPage {
 
     private void setConfigBtActionListener(ActionEvent e) {
         // TODO add your code here
-        new SetComplexSplitWorker(
+        new SetComplexSplitConfigWorker(
                 excelKitPage, progressBar1, setConfigBt,
                 excelFilePath, splitTaskId,
                 complexSheetChoiceBox, complexHRowIndex, complexColIndex
         ).execute();
     }
+
+    private void deleteComplexSplitConfigBtAction(ActionEvent e) {
+        // TODO add your code here
+        new ClearComplexSplitConfigWorker(
+                excelKitPage,splitTaskId,clearConfigBt,progressBar1
+        ).execute();
+    }
+
+
 
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
@@ -260,7 +266,7 @@ public class ExcelKitPage implements KitPage {
         label5 = new JLabel();
         complexColIndex = new JTextField();
         panel3 = new JPanel();
-        button1 = new JButton();
+        clearConfigBt = new JButton();
         button2 = new JButton();
         setConfigBt = new JButton();
         var panel2 = new JPanel();
@@ -386,10 +392,11 @@ public class ExcelKitPage implements KitPage {
                             "[]" +
                             "[]"));
 
-                        //---- button1 ----
-                        button1.setText("ClearConfig");
-                        button1.setForeground(new Color(0xff1744));
-                        panel3.add(button1, "cell 0 1,growx");
+                        //---- clearConfigBt ----
+                        clearConfigBt.setText("ClearConfig");
+                        clearConfigBt.setForeground(new Color(0xff1744));
+                        clearConfigBt.addActionListener(e -> deleteComplexSplitConfigBtAction(e));
+                        panel3.add(clearConfigBt, "cell 0 1,growx");
 
                         //---- button2 ----
                         button2.setText("ViewConfig");
@@ -456,7 +463,7 @@ public class ExcelKitPage implements KitPage {
     private JLabel label5;
     private JTextField complexColIndex;
     private JPanel panel3;
-    private JButton button1;
+    private JButton clearConfigBt;
     private JButton button2;
     private JButton setConfigBt;
     private JButton excelSplitBt;
