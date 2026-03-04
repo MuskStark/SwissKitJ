@@ -9,6 +9,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Apache FESOD event listener for extracting column headers from Excel files.
+ * Stops reading after the header row is processed.
+ *
+ * @author summer
+ * @version 1.00
+ * @date 2026/3/1
+ */
 public class HeaderListener extends AnalysisEventListener<Map<Integer, String>> {
         private Map<Integer, String> headers = new HashMap<>();
         private boolean headRead = false;

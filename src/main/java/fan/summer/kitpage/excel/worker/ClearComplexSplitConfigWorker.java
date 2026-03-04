@@ -9,11 +9,11 @@ import javax.swing.*;
 import java.util.List;
 
 /**
- * 类的详细说明
+ * Worker for clearing complex split configuration from database.
  *
  * @author summer
  * @version 1.00
- * @Date 2026/3/4
+ * @date 2026/3/4
  */
 public class ClearComplexSplitConfigWorker extends SwingWorker<Void, Integer> {
     private final JPanel fatherPanel;

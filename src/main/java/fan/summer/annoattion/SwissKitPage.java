@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  *
  * @author phoebej
  * @version 1.00
- * @Date 2026/3/1
+ * @date 2026/3/1
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

@@ -12,6 +12,14 @@ import java.util.Map;
 
 
 
+/**
+ * Apache FESOD event listener for batch reading Excel data without model mapping.
+ * Caches data in memory and logs progress during parsing.
+ *
+ * @author summer
+ * @version 1.00
+ * @date 2026/3/1
+ */
 @Slf4j
 public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Object>> {
 

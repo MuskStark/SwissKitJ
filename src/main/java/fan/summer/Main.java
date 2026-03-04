@@ -6,6 +6,14 @@ import fan.summer.ui.home.HomePage;
 
 import javax.swing.*;
 
+/**
+ * Application entry point.
+ * Initializes the database and displays the splash screen before loading the main application.
+ *
+ * @author summer
+ * @version 1.00
+ * @date 2026/3/1
+ */
 public class Main {
 
     public static void main(String[] args) {

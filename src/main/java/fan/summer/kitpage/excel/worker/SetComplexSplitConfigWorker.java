@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author phoebej
  * @version 1.00
- * @Date 2026/3/3
+ * @date 2026/3/3
  */
 public class SetComplexSplitConfigWorker extends SwingWorker<Void, Integer> {
     private final JPanel fatherPanel;

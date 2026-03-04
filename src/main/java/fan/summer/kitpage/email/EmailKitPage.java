@@ -12,7 +12,7 @@ import javax.swing.*;
  *
  * @author summer
  * @version 1.00
- * @Date 2026/2/26
+ * @date 2026/2/26
  */
 @SwissKitPage(menuName = "Email", menuTooltip = "Email", order = 2, visible = false)
 public class EmailKitPage implements KitPage {

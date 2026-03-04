@@ -17,7 +17,7 @@ import java.net.URI;
  *
  * @author phoebej
  * @version 1.00
- * @Date 2026/3/1
+ * @date 2026/3/1
  */
 @SwissKitPage(order = 0)
 public class WelcomePage implements KitPage {

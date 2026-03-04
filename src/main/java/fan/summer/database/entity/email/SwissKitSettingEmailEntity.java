@@ -7,7 +7,7 @@ import lombok.Data;
  *
  * @author summer
  * @version 1.00
- * @Date 2026/3/3
+ * @date 2026/3/3
  */
 @Data
 public class SwissKitSettingEmailEntity {

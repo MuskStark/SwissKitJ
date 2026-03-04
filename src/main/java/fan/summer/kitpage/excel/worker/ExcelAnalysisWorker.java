@@ -9,6 +9,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * SwingWorker for analyzing Excel files in background thread.
+ * Extracts sheet names and column headers from Excel files using Apache POI.
+ *
+ * @author summer
+ * @version 1.00
+ * @date 2026/3/1
+ */
 public class ExcelAnalysisWorker extends SwingWorker<Map<String, Map<Integer, String>>, Integer> {
 
     private final ExcelAnalysisCallback callback;

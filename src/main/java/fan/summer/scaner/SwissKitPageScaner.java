@@ -15,7 +15,7 @@ import java.util.ServiceLoader;
  *
  * @author summer
  * @version 1.00
- * @Date 2026/3/2
+ * @date 2026/3/2
  */
 public class SwissKitPageScaner {
     private static final Logger logger = LoggerFactory.getLogger(SwissKitPageScaner.class);

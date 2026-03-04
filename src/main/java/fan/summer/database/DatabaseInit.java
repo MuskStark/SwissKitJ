@@ -14,12 +14,25 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 
+/**
+ * Database initialization utility class.
+ * Handles SQLite database creation, table setup, and MyBatis SqlSessionFactory initialization.
+ *
+ * @author summer
+ * @version 1.00
+ * @date 2026/3/1
+ */
 public class DatabaseInit {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseInit.class);
 
     private static SqlSessionFactory sqlSessionFactory;
 
+    /**
+     * Initializes the database: creates directories, tables, and MyBatis session factory.
+     *
+     * @throws RuntimeException if initialization fails
+     */
     public static void init() {
         try {
             Path dbDir = Paths.get(".swisskit");
@@ -39,6 +52,10 @@ public class DatabaseInit {
         }
     }
 
+    /**
+     * Creates database tables if they don't exist.
+     * Creates swiss_kit_setting_email and complex_split_config tables.
+     */
     private static void createTables() {
         String dbPath = ".swisskit/swisskit.db";
         String url = "jdbc:sqlite:" + dbPath;
@@ -76,6 +93,11 @@ public class DatabaseInit {
         }
     }
 
+    /**
+     * Initializes MyBatis SqlSessionFactory from configuration file.
+     *
+     * @throws RuntimeException if MyBatis initialization fails
+     */
     private static void initMyBatis() {
         try (InputStream configStream = DatabaseInit.class.getClassLoader()
                 .getResourceAsStream("mybatis-config.xml")) {
@@ -95,6 +117,12 @@ public class DatabaseInit {
         }
     }
 
+    /**
+     * Gets a new SqlSession from the MyBatis SqlSessionFactory.
+     *
+     * @return new SqlSession instance
+     * @throws IllegalStateException if database not initialized
+     */
     public static SqlSession getSqlSession() {
         if (sqlSessionFactory == null) {
             throw new IllegalStateException("Database not initialized. Call init() first.");
@@ -102,6 +130,12 @@ public class DatabaseInit {
         return sqlSessionFactory.openSession();
     }
 
+    /**
+     * Gets the MyBatis SqlSessionFactory instance.
+     *
+     * @return SqlSessionFactory instance
+     * @throws IllegalStateException if database not initialized
+     */
     public static SqlSessionFactory getSqlSessionFactory() {
         if (sqlSessionFactory == null) {
             throw new IllegalStateException("Database not initialized. Call init() first.");

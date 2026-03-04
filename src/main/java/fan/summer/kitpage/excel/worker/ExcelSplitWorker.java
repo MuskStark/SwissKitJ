@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  *
  * @author phoebej
  * @version 1.00
- * @Date 2026/2/27
+ * @date 2026/2/27
  */
 public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
     private static final Logger logger = LoggerFactory.getLogger(ExcelSplitWorker.class);
