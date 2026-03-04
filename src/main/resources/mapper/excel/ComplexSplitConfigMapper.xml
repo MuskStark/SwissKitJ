@@ -11,14 +11,23 @@
             keyProperty="id">
         INSERT INTO complex_split_config
             (task_id, field_name, sheet_name, header_index, column_index)
-        VALUES
-            (#{taskId}, #{fieldName}, #{sheetName}, #{headerIndex}, #{columnIndex})
+        VALUES (#{taskId}, #{fieldName}, #{sheetName}, #{headerIndex}, #{columnIndex})
     </insert>
     <delete id="deleteAllByTaskId"
             parameterType="string"
     >
-        delete from complex_split_config where task_id = #{taskId}
+        delete
+        from complex_split_config
+        where task_id = #{taskId}
     </delete>
+    <select id="selectAllByTaskId"
+            parameterType="string"
+            resultType="fan.summer.database.entity.excel.ComplexSplitConfigEntity">
+        select *
+        from complex_split_config
+        where task_id = #{taskId}
+
+    </select>
 
 
 </mapper>

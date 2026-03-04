@@ -100,10 +100,19 @@ public class ExcelKitPage implements KitPage {
         // ActionListener for split button - executes file splitting logic (to be implemented)
         excelSplitBt.addActionListener(e -> {
             ExcelSplitWorker excelSplitWorker = new ExcelSplitWorker(Path.of(outputPath.getText()), excelFilePath, progressBar1, excelSplitBt);
-            if (splitBySheetCheckBox.isSelected()) {
-                excelSplitWorker.setSplitSheetModel(excelFileAnalysisResultMap.keySet()).setExcelFileAnalysisResultMap(excelFileAnalysisResultMap).execute();
-            } else if (splitByColumnCheckBox.isSelected()) {
-                excelSplitWorker.setSplitColumnModel((String) choiceSheetBox.getSelectedItem(), (String) choiceColumnBox.getSelectedItem()).setExcelFileAnalysisResultMap(excelFileAnalysisResultMap).execute();
+            if(splitWayPane.getSelectedIndex() == 0) {
+                if (splitBySheetCheckBox.isSelected()) {
+                    excelSplitWorker.setSplitSheetModel(excelFileAnalysisResultMap.keySet()).setExcelFileAnalysisResultMap(excelFileAnalysisResultMap).execute();
+                } else if (splitByColumnCheckBox.isSelected()) {
+                    excelSplitWorker.setSplitColumnModel((String) choiceSheetBox.getSelectedItem(), (String) choiceColumnBox.getSelectedItem()).setExcelFileAnalysisResultMap(excelFileAnalysisResultMap).execute();
+                } else {
+                    JOptionPane.showMessageDialog(excelKitPage,
+                            "Please select a split mode first!",
+                            "Warning",
+                            JOptionPane.WARNING_MESSAGE);
+                }
+            }else if(splitWayPane.getSelectedIndex() == 1) {
+                excelSplitWorker.setComplexSplitModel(splitTaskId).execute();
             } else {
                 JOptionPane.showMessageDialog(excelKitPage,
                         "Please select a split mode first!",

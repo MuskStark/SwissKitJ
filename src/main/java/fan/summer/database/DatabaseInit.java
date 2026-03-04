@@ -57,7 +57,7 @@ public class DatabaseInit {
      * Creates swiss_kit_setting_email and complex_split_config tables.
      */
     private static void createTables() {
-        String dbPath = ".swisskit/swisskit.db";
+        String dbPath = ".swisskit/swisskit.db?sqlite.purejava=true";
         String url = "jdbc:sqlite:" + dbPath;
 
         String createEmailTable =

@@ -1,13 +1,23 @@
 package fan.summer.kitpage.excel.worker;
 
+import fan.summer.database.DatabaseInit;
+import fan.summer.database.entity.excel.ComplexSplitConfigEntity;
+import fan.summer.database.mapper.excel.ComplexSplitConfigMapper;
 import fan.summer.kitpage.excel.listener.NoModelDataListener;
+import fan.summer.utils.ExcelUtil;
+import fan.summer.utils.FileNameUtil;
+import org.apache.fesod.sheet.EasyExcel;
 import org.apache.fesod.sheet.ExcelReader;
+import org.apache.fesod.sheet.ExcelWriter;
 import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.read.metadata.ReadSheet;
+import org.apache.fesod.sheet.write.metadata.WriteSheet;
+import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -75,6 +85,13 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
         return this;
     }
 
+    public ExcelSplitWorker setComplexSplitModel(String taskId) {
+        config.clear();
+        config.put("model", "SCPM");
+        config.put("taskId", taskId);
+        return this;
+    }
+
     /**
      * Sets the Excel file analysis result map containing sheet names and column headers.
      *
@@ -112,6 +129,9 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
                 case "SCM":
                     doSplitByColumn((String) config.get("sheetName"), (String) config.get("columnName"));
                     return null;
+                case "SCPM":
+                    doComplexSplit();
+                    return null;
                 default:
                     return null;
             }
@@ -129,6 +149,7 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
             button.setEnabled(true);
         } catch (Exception e) {
             progressBar.setString("Splitting failed: " + e.getMessage());
+            button.setEnabled(true);
             // Button will be enabled in doInBackground when error occurs
         }
     }
@@ -215,7 +236,7 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
             AtomicInteger current = new AtomicInteger(0);
             group.forEach((k, v) -> {
                 List<List<Object>> rows = buildRows(headers, v);
-                Path resolve = outputPath.resolve(orgFilePath.getFileName() + "_" + k.toString() + ".xlsx");
+                Path resolve = outputPath.resolve(FileNameUtil.getFileName(orgFilePath.getFileName().toString()) + "_" + k.toString() + ".xlsx");
                 FesodSheet.write(resolve.toFile())
                         .sheet(sheetName)
                         .head(buildHeaders(headers))
@@ -224,6 +245,38 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
                 publish(current.get() * 100 / total);
             });
             noModelDataListener.clear();
+        }
+    }
+
+    private void doComplexSplit(){
+        try(SqlSession sqlSession = DatabaseInit.getSqlSession()){
+            ComplexSplitConfigMapper mapper = sqlSession.getMapper(ComplexSplitConfigMapper.class);
+            List<ComplexSplitConfigEntity> splitConfigs = mapper.selectAllByTaskId((String) config.get("taskId"));
+            if(splitConfigs == null || splitConfigs.isEmpty()){
+                throw new RuntimeException("Empty Config");
+            }else {
+                for (ComplexSplitConfigEntity splitConfig : splitConfigs) {
+                    NoModelDataListener noModelDataListener = new NoModelDataListener();
+                    try (ExcelReader excelReader = FesodSheet.read(orgFilePath.toFile()).build()) {
+                        ReadSheet sheet = FesodSheet.readSheet(splitConfig.getSheetName()).headRowNumber(splitConfig.getHeaderIndex()).registerReadListener(noModelDataListener).build();
+                        excelReader.read(sheet);
+                        List<Map<Integer, Object>> cachedDataList = noModelDataListener.getCachedDataList();
+                        // GroupBy target index by value
+                        Map<Object, List<Map<Integer, Object>>> group = cachedDataList.stream().collect(Collectors.groupingBy(row -> row.getOrDefault(splitConfig.getColumnIndex()-1, 0)));
+                        // write to file
+                        group.forEach((k, v) -> {
+                            String splitFileName = FileNameUtil.getFileName(orgFilePath.getFileName().toString()) + "_" + k.toString() + ".xlsx";
+                            try {
+                                ExcelUtil.appendSheet(orgFilePath.toString(),outputPath.resolve(splitFileName).toString(),splitConfig.getSheetName(),splitConfig.getHeaderIndex()-1);
+                                ExcelUtil.appendDataRowsByPoi(orgFilePath.toString(),outputPath.resolve(splitFileName).toString(),splitConfig.getSheetName(),splitConfig.getHeaderIndex(),v);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                        noModelDataListener.clear();
+                    }
+                }
+            }
         }
     }
 
@@ -262,6 +315,23 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
             rows.add(row);
         }
         return rows;
+    }
+
+    private static List<List<Object>> buildRows(List<Map<Integer, Object>> dataList) {
+        List<List<Object>> result = new ArrayList<>(dataList.size());
+        for (Map<Integer, Object> rowMap : dataList) {
+            if (rowMap == null || rowMap.isEmpty()) {
+                result.add(new ArrayList<>());
+                continue;
+            }
+            int maxCol = rowMap.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
+            List<Object> row = new ArrayList<>(maxCol + 1);
+            for (int col = 0; col <= maxCol; col++) {
+                row.add(rowMap.get(col));
+            }
+            result.add(row);
+        }
+        return result;
     }
 
     /**

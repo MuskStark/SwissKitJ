@@ -2,6 +2,8 @@ package fan.summer.database.mapper.excel;
 
 import fan.summer.database.entity.excel.ComplexSplitConfigEntity;
 
+import java.util.List;
+
 /**
  * Mapper interface for ComplexSplitConfigEntity CRUD operations.
  *
@@ -24,4 +26,6 @@ public interface ComplexSplitConfigMapper {
      * @param taskId the task ID to delete records for
      */
     void deleteAllByTaskId(String taskId);
+
+    List<ComplexSplitConfigEntity> selectAllByTaskId(String taskId);
 }
