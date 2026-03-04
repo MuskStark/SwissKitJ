@@ -56,13 +56,19 @@ SwissKit/
 │   │   └── excel/                       # Excel tool
 │   │       ├── ExcelKitPage.java
 │   │       ├── ExcelKitPage.jfd
+│   │       ├── second/                  # Config view
+│   │       │   ├── ConfigView.java
+│   │       │   └── ConfigView.jfd
 │   │       ├── listener/                # Event listeners
 │   │       │   ├── HeaderListener.java
 │   │       │   └── NoModelDataListener.java
 │   │       └── worker/                  # Background workers
 │   │           ├── ExcelAnalysisWorker.java
 │   │           ├── ExcelAnalysisCallback.java
-│   │           └── ExcelSplitWorker.java
+│   │           ├── ExcelSplitWorker.java
+│   │           ├── SetComplexSplitConfigWorker.java
+│   │           ├── ClearComplexSplitConfigWorker.java
+│   │           └── ShowConfigViewWorker.java
 │   ├── ui/                              # UI components
 │   │   ├── StartLoadingPage.java        # Splash screen
 │   │   ├── home/
@@ -213,7 +219,23 @@ private void initPages() {
 
 
 
-SwissKit uses SQLite as embedded database with MyBatis for data access.
+
+
+
+
+SwissKit uses H2 as embedded database with MyBatis for data access.
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -221,9 +243,27 @@ SwissKit uses SQLite as embedded database with MyBatis for data access.
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 - **Path**: `.swisskit/swisskit.db` (relative to application runtime directory)
 
-- **Type**: SQLite (embedded, no external server required)
+
+
+
+
+
+
+- **Type**: H2 (embedded, no external server required)
 
 
 
@@ -295,9 +335,9 @@ Database configuration is in `src/main/resources/mybatis-config.xml`:
 
     <dataSource type="org.apache.ibatis.datasource.unpooled.UnpooledDataSourceFactory">
 
-        <property name="driver" value="org.sqlite.JDBC"/>
+        <property name="driver" value="org.h2.Driver"/>
 
-        <property name="url" value="jdbc:sqlite:.swisskit/swisskit.db"/>
+        <property name="url" value="jdbc:h2:file:.swisskit/swisskit"/>
 
     </dataSource>
 
@@ -523,7 +563,7 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Obje
 - **Build Tool**: Maven 3.6+
 - **UI Framework**: Swing
 - **UI Theme**: FlatLaf 3.5
-- **Database**: SQLite 3.51.2.0 + MyBatis 3.5.19
+- **Database**: H2 2.4.240 + MyBatis 3.5.19
 
 ### Dependencies
 
@@ -534,7 +574,7 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Obje
 | log4j-core | 2.25.3 | Logging |
 | lombok | 1.18.42 | Code simplification |
 | fastjson2 | 2.0.59 | JSON processing |
-| sqlite-jdbc | 3.51.2.0 | SQLite JDBC driver |
+| h2 | 2.4.240 | H2 Database |
 | mybatis | 3.5.19 | MyBatis ORM |
 
 ### Build Plugins

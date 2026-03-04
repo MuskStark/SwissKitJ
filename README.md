@@ -25,7 +25,7 @@ cd SwissKit
 mvn clean package
 
 # Run the application (executable JAR)
-java -jar target/SwissKit-1.0-SNAPSHOT.jar
+java -jar target/SwissKit-1.0-Alphaa.jar
 ```
 
 Or using Maven exec plugin:
@@ -52,7 +52,7 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 - **🎨 Modern UI** - Built with Swing and FlatLaf theme framework
 - **⚡ High Performance** - Uses Apache FESOD for efficient Excel processing
 - **🔄 Async Processing** - Background tasks with SwingWorker for non-blocking UI
-- **💾 Database Support** - SQLite + MyBatis for persistent storage
+- **💾 Database Support** - H2 + MyBatis for persistent storage
 - **🌐 Multi-format Support** - Excel, email, and extensible for other formats
 - **🛠️ Easy Extension** - Add new tools by implementing the `KitPage` interface
 - **📊 Custom UI Components** - Gradient progress bar, fixed-width combo box
@@ -62,7 +62,8 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 
 #### 📊 Excel Tool
 - **File Analysis** - Read Excel file structure and extract headers
-- **File Splitting** - Split Excel files by sheets
+- **File Splitting** - Split Excel files by sheets or column values
+- **Complex Split Mode** - Advanced splitting with custom configuration
 - **Progress Tracking** - Real-time progress updates with percentage display
 - **Multi-Sheet Support** - Handle multiple sheets in a single file
 - **Streaming Data Processing** - Efficient memory usage with Apache FESOD
@@ -113,13 +114,19 @@ SwissKit/
 │   └── excel/                     # Excel tool
 │       ├── ExcelKitPage.java
 │       ├── ExcelKitPage.jfd
+│       ├── second/                 # Config view
+│       │   ├── ConfigView.java
+│       │   └── ConfigView.jfd
 │       ├── listener/              # Event listeners
 │       │   ├── HeaderListener.java
 │       │   └── NoModelDataListener.java
 │       └── worker/                # Background workers
 │           ├── ExcelAnalysisWorker.java
 │           ├── ExcelAnalysisCallback.java
-│           └── ExcelSplitWorker.java
+│           ├── ExcelSplitWorker.java
+│           ├── SetComplexSplitConfigWorker.java
+│           ├── ClearComplexSplitConfigWorker.java
+│           └── ShowConfigViewWorker.java
 ├── ui/                            # UI components
 │   ├── StartLoadingPage.java      # Splash screen
 │   ├── home/
@@ -130,7 +137,9 @@ SwissKit/
 │       ├── GradientProgressBar.java
 │       └── FixedWidthComboBox.java
 └── utils/
-    └── UIUtils.java               # UI utilities
+    ├── UIUtils.java               # UI utilities
+    ├── ExcelUtil.java             # Excel utilities
+    └── FileNameUtil.java          # File name utilities
 ```
 
 ### Plugin System
@@ -202,7 +211,7 @@ public class MyToolPage implements KitPage {
 - **Logging**: Log4j 2.25.3 + SLF4J 2.20.0
 - **JSON Processing**: FastJSON2 2.0.59
 - **Code Simplification**: Lombok 1.18.42
-- **Database**: SQLite 3.51.2.0 + MyBatis 3.5.19
+- **Database**: H2 2.4.240 + MyBatis 3.5.19
 
 ---
 
@@ -279,7 +288,7 @@ mvn clean package
 mvn clean package -DskipTests
 
 # Run executable JAR
-java -jar target/SwissKit-1.0-SNAPSHOT.jar
+java -jar target/SwissKit-1.0-Alpha.jar
 ```
 
 ---
@@ -376,6 +385,7 @@ public class MyWorker extends SwingWorker<Result, Integer> {
 | lombok | 1.18.42 | Code simplification |
 | fastjson2 | 2.0.59 | JSON processing |
 | sqlite-jdbc | 3.51.2.0 | SQLite JDBC driver |
+| h2 | 2.4.240 | H2 Database |
 | mybatis | 3.5.19 | MyBatis ORM |
 
 ### Build Plugins
@@ -460,7 +470,7 @@ Common UI utilities:
 Enable verbose logging (requires log4j2.xml):
 
 ```bash
-java -Dlog4j.configurationFile=path/to/log4j2.xml -jar target/SwissKit-1.0-SNAPSHOT.jar
+java -Dlog4j.configurationFile=path/to/log4j2.xml -jar target/SwissKit-1.0-Alpha.jar
 ```
 
 ---
@@ -469,10 +479,12 @@ java -Dlog4j.configurationFile=path/to/log4j2.xml -jar target/SwissKit-1.0-SNAPS
 
 - [x] Excel file analysis functionality
 - [x] Excel file split by sheet functionality
+- [x] Excel file split by column functionality
+- [x] Excel complex split mode with configuration
 - [x] Progress bar with percentage display
 - [x] Gradient progress bar component
 - [x] Warning dialogs for user feedback
-- [ ] Excel file split by column functionality
+- [x] Config view window for viewing split configurations
 - [ ] Implement email sending with SMTP support
 - [ ] Add PDF processing tool
 - [ ] Add image processing tool
@@ -553,9 +565,19 @@ For detailed technical documentation, see [AGENTS.md](AGENTS.md).
 
 ## Changelog
 
-### Version 1.0-SNAPSHOT
+### Version 1.0-Alpha
 
 #### Recent Changes
+- ✨ Add ViewConfig functionality for Excel complex split
+- ♻️ Refactor: Replace SQLite with H2 database
+- ✨ Add complex split mode for Excel splitting
+- ✨ Add ClearComplexSplitConfigWorker for deleting split configurations
+- ✨ Add ConfigView window for viewing split configurations
+- ✨ Add SetComplexSplitConfigWorker for setting split configurations
+- 📝 Replace Chinese with English in utility classes
+- 📝 Add Javadoc comments to all classes and methods
+
+#### Previous Features (1.0-SNAPSHOT)
 - ✨ Add SQLite + MyBatis database layer for persistent storage
 - ✨ Add splash screen (StartLoadingPage) with gradient progress
 - ✨ Add database initialization on startup with SwingWorker
@@ -565,7 +587,7 @@ For detailed technical documentation, see [AGENTS.md](AGENTS.md).
 - ✨ Add Excel split functionality with progress tracking
 - ✨ Add NoModelDataListener for streaming Excel data reading
 - ✨ Update HeaderListener to return Map<Integer, String>
-- �✨ Add progress bar updates during split operations
+- ✨ Add progress bar updates during split operations
 - 🌐 Replace all Chinese text with English translations
 - 📦 Add Lombok and FastJSON2 dependencies
 - 🔧 Add Maven Shade plugin for building executable JAR
@@ -573,8 +595,6 @@ For detailed technical documentation, see [AGENTS.md](AGENTS.md).
 - ⬇️ Update Java version from 17 to 11
 - ⚠️ Add warning dialog when split mode is not selected
 - 📝 Improve logging throughout the application
-
-#### Previous Features
 - ✨ Excel file analysis with header extraction
 - ✨ Gradient progress bar component with smooth animation
 - ✨ Fixed-width combo box component

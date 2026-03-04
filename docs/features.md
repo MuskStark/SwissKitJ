@@ -198,7 +198,7 @@ public class MyToolPage implements KitPage {
 
 ## Database Layer
 
-SwissKit includes a built-in database layer using SQLite and MyBatis for persistent storage.
+SwissKit includes a built-in database layer using H2 and MyBatis for persistent storage.
 
 ### Features
 

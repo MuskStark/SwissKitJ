@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0-Alpha] - 2026-03-04
+
+### Added
+- Excel complex split mode with custom configuration
+- ConfigView window for viewing split configurations
+- SetComplexSplitConfigWorker for setting split configurations
+- ClearComplexSplitConfigWorker for deleting split configurations
+- ShowConfigViewWorker for viewing configurations
+- ConfigView.jfd JFormDesigner layout file
+- Replace SQLite with H2 database
+- H2 database version 2.4.240
+- ExcelUtil.java utility class
+- FileNameUtil.java utility class
+
+### Changed
+- Updated H2 database version from 2.2.224 to 2.4.240
+- Updated version to 1.0-Alpha
+- Renamed button2 to viewConfigBt in ExcelKitPage
+
+### Fixed
+- Fixed H2 schema initialization in DatabaseInit
+
+## [1.0-SNAPSHOT] - 2026-03-02
+
 ### Added
 - Excel file split by sheet functionality
 - Real-time progress tracking with percentage display

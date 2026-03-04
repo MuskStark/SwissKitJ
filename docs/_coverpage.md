@@ -1,4 +1,4 @@
-# SwissKitJ <small>1.0-SNAPSHOT</small>
+# SwissKitJ <small>1.0-Alpha</small>
 
 > A Swiss Army Knife of Productivity Tools
 
