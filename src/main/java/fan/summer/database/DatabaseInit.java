@@ -27,7 +27,8 @@ public class DatabaseInit {
                 .toAbsolutePath()
                 .toString()
                 .replace("\\", "/");
-        DB_URL = "jdbc:h2:file:" + dbPath + ";MODE=MySQL;DATABASE_TO_LOWER=TRUE";
+        DB_URL = "jdbc:h2:file:" + dbPath
+                + ";INIT=CREATE SCHEMA IF NOT EXISTS PUBLIC\\;SET SCHEMA PUBLIC";
     }
 
     private static SqlSessionFactory sqlSessionFactory;

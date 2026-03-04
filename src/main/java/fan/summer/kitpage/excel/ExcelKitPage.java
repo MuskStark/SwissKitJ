@@ -100,7 +100,7 @@ public class ExcelKitPage implements KitPage {
         // ActionListener for split button - executes file splitting logic (to be implemented)
         excelSplitBt.addActionListener(e -> {
             ExcelSplitWorker excelSplitWorker = new ExcelSplitWorker(Path.of(outputPath.getText()), excelFilePath, progressBar1, excelSplitBt);
-            if(splitWayPane.getSelectedIndex() == 0) {
+            if (splitWayPane.getSelectedIndex() == 0) {
                 if (splitBySheetCheckBox.isSelected()) {
                     excelSplitWorker.setSplitSheetModel(excelFileAnalysisResultMap.keySet()).setExcelFileAnalysisResultMap(excelFileAnalysisResultMap).execute();
                 } else if (splitByColumnCheckBox.isSelected()) {
@@ -111,7 +111,7 @@ public class ExcelKitPage implements KitPage {
                             "Warning",
                             JOptionPane.WARNING_MESSAGE);
                 }
-            }else if(splitWayPane.getSelectedIndex() == 1) {
+            } else if (splitWayPane.getSelectedIndex() == 1) {
                 excelSplitWorker.setComplexSplitModel(splitTaskId).execute();
             } else {
                 JOptionPane.showMessageDialog(excelKitPage,
@@ -246,10 +246,14 @@ public class ExcelKitPage implements KitPage {
     private void deleteComplexSplitConfigBtAction(ActionEvent e) {
         // TODO add your code here
         new ClearComplexSplitConfigWorker(
-                excelKitPage,splitTaskId,clearConfigBt,progressBar1
+                excelKitPage, splitTaskId, clearConfigBt, progressBar1
         ).execute();
     }
 
+    private void viewConfigBtAction(ActionEvent e) {
+        // TODO add your code here
+        new ShowConfigViewWorker(excelKitPage, splitTaskId).execute();
+    }
 
 
     private void initComponents() {
@@ -276,7 +280,7 @@ public class ExcelKitPage implements KitPage {
         complexColIndex = new JTextField();
         panel3 = new JPanel();
         clearConfigBt = new JButton();
-        button2 = new JButton();
+        viewConfigBt = new JButton();
         setConfigBt = new JButton();
         var panel2 = new JPanel();
         excelSplitBt = new JButton();
@@ -407,10 +411,11 @@ public class ExcelKitPage implements KitPage {
                         clearConfigBt.addActionListener(e -> deleteComplexSplitConfigBtAction(e));
                         panel3.add(clearConfigBt, "cell 0 1,growx");
 
-                        //---- button2 ----
-                        button2.setText("ViewConfig");
-                        button2.setForeground(Color.cyan);
-                        panel3.add(button2, "cell 1 1,growx");
+                        //---- viewConfigBt ----
+                        viewConfigBt.setText("ViewConfig");
+                        viewConfigBt.setForeground(Color.cyan);
+                        viewConfigBt.addActionListener(e -> viewConfigBtAction(e));
+                        panel3.add(viewConfigBt, "cell 1 1,growx");
 
                         //---- setConfigBt ----
                         setConfigBt.setText("SetConfig");
@@ -473,7 +478,7 @@ public class ExcelKitPage implements KitPage {
     private JTextField complexColIndex;
     private JPanel panel3;
     private JButton clearConfigBt;
-    private JButton button2;
+    private JButton viewConfigBt;
     private JButton setConfigBt;
     private JButton excelSplitBt;
     private JButton excelFileAnalysisBt;
