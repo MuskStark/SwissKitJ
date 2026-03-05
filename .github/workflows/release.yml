@@ -3,7 +3,12 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      # Stable releases: v1.0.0, v1.2.3
+      - 'v[0-9]+.[0-9]+.[0-9]'
+      # Pre-release: v1.0.0-alpha.1, v1.0.0-beta.1, v1.0.0-rc.1
+      - 'v[0-9]+.[0-9]+.[0-9]-alpha.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]-beta.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]-rc.[0-9]+'
 
 permissions:
   contents: write
@@ -119,6 +124,18 @@ jobs:
           version="${GITHUB_REF#refs/tags/v}"
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
+      - name: Check if pre-release
+        id: prerelease
+        run: |
+          version="${GITHUB_REF#refs/tags/v}"
+          # Check if version contains alpha, beta, or rc
+          if [[ "$version" == *"-alpha."* ]] || [[ "$version" == *"-beta."* ]] || [[ "$version" == *"-rc."* ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Version: $version, Pre-release: ${{ steps.prerelease.outputs.is_prerelease }}"
+
       - name: Generate checksums
         run: |
           {
@@ -133,19 +150,22 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: SwissKit ${{ steps.get_version.outputs.version }}
+          name: SwissKit ${{ steps.get_version.outputs.version }}${{ steps.prerelease.outputs.is_prerelease == 'true' && ' (Pre-release)' || '' }}
           body: |
-            ## SwissKit ${{ steps.get_version.outputs.version }}
+            ## SwissKit ${{ steps.get_version.outputs.version }}${{ steps.prerelease.outputs.is_prerelease == 'true' && ' (Pre-release)' || '' }}
 
             ### What's New
             - See the [CHANGELOG](https://github.com/MuskStark/SwissKitJ/blob/main/CHANGELOG.md) for details.
 
+            ### ⚠️ Pre-release Warning
+            ${{ steps.prerelease.outputs.is_prerelease == 'true' && 'This is a pre-release version. Use with caution and report any bugs you find!' || '' }}
+
             ### Installation Options
 
             #### Cross-platform JAR
-            - Download: `SwissKit-1.0-SNAPSHOT.jar`
+            - Download: `SwissKit-${{ steps.get_version.outputs.version }}.jar`
             - Requires Java 11 or higher
-            - Run: `java -jar SwissKit-1.0-SNAPSHOT.jar`
+            - Run: `java -jar SwissKit-${{ steps.get_version.outputs.version }}.jar`
 
             #### Windows Portable (ZIP)
             - Download: `SwissKit-portable-windows.zip`
@@ -183,7 +203,7 @@ jobs:
 
             # Build and run
             mvn clean package
-            java -jar target/SwissKit-1.0-SNAPSHOT.jar
+            java -jar target/SwissKit-${{ steps.get_version.outputs.version }}.jar
             ```
 
             ---
@@ -197,7 +217,7 @@ jobs:
             artifacts/*.zip
             artifacts/checksums.txt
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.prerelease.outputs.is_prerelease == 'true' }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
