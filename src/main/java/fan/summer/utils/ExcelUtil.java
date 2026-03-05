@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Utility class for Excel file operations.
@@ -21,6 +22,12 @@ import java.util.Map;
  * @date 2026/3/4
  */
 public class ExcelUtil {
+
+    private static final Set<String> INVALID_VALUES = Set.of(
+            "NA", "N/A", "NULL", "NIL", "NONE", "NAN",
+            "#N/A", "#NULL!", "#REF!", "#DIV/0!", "#VALUE!", "#NAME?", "#NUM!", "#ERROR!",
+            "-", "--", "—", "N.A.", "N.A"
+    );
 
     /**
      * Appends rows from 0 to endRowIndex of the specified sheet (by name) in source file to target file.
@@ -161,6 +168,22 @@ public class ExcelUtil {
             workbook.write(fos);
         }
         workbook.close();
+    }
+
+    /**
+     * Normalizes the input value by trimming whitespace, or returns "INVALID" if the value
+     * is null, empty, or matches a known invalid data marker.
+     *
+     * @param val the input value to validate
+     * @return the trimmed string if valid, or "INVALID" if null/empty/invalid marker
+     */
+    public static String normalizeOrInvalid(Object val){
+        if (val == null) return "INVALID";
+        String str = val.toString().trim();
+        if (str.isEmpty() || INVALID_VALUES.contains(str.toUpperCase())) {
+            return "INVALID";
+        }
+        return str;
     }
 
     // ==================== Private Helper Methods ====================
