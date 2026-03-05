@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 jobs:
-  # Windows EXE build
+  # Windows EXE + bundled JRE
   build-windows:
     runs-on: windows-latest
     steps:
@@ -33,7 +33,18 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Create Windows packages
+      - name: Download JRE 11
+        shell: pwsh
+        run: |
+          # Download Adoptium JRE (portable, no installer)
+          $jreUrl = "https://github.com/adoptium/temurin11-jre/releases/download/jdk-11.0.25%2B9/OpenJDK11U-jre_x64_windows_hotspot_11.0.25_9.zip"
+          Invoke-WebRequest -Uri $jreUrl -OutFile jre.zip -UseBasicParsing
+          Expand-Archive -Path jre.zip -DestinationPath jre -Force
+          
+          # Rename jre folder
+          Get-ChildItem -Path jre -Directory | Select-Object -First 1 | Rename-Item -NewName "jre"
+
+      - name: Create Windows package with bundled JRE
         shell: pwsh
         run: |
           $jarFile = Get-ChildItem target/SwissKit-*.jar | Select-Object -First 1
@@ -42,74 +53,43 @@ jobs:
             exit 1
           }
           
-          # Create output directories
-          New-Item -ItemType Directory -Force -Path release/windows/portable | Out-Null
-          New-Item -ItemType Directory -Force -Path release/windows/installer | Out-Null
+          # Create output directory
+          New-Item -ItemType Directory -Force -Path release/windows | Out-Null
           
-          # ===== Create portable package (ZIP) =====
-          Copy-Item $jarFile.FullName release/windows/portable/SwissKit.jar
-          "@echo off" | Out-File -FilePath release/windows/portable/run.bat -Encoding ASCII
-          "java -jar SwissKit.jar" | Out-File -FilePath release/windows/portable/run.bat -Append -Encoding ASCII
-          "#!/bin/bash" | Out-File -FilePath release/windows/portable/run.sh -Encoding ASCII
-          "java -jar SwissKit.jar" | Out-File -FilePath release/windows/portable/run.sh -Append -Encoding ASCII
-          Copy-Item README.md release/windows/portable/
-          Compress-Archive -Path release/windows/portable/* -DestinationPath release/SwissKit-portable-windows.zip -Force
+          # ===== Create package with bundled JRE =====
+          # Directory structure:
+          # SwissKit/
+          # ├── jre/
+          # │   └── bin/java.exe
+          # ├── SwissKit.jar
+          # └── run.bat
+          New-Item -ItemType Directory -Force -Path release/windows/SwissKit/jre | Out-Null
+          Copy-Item -Path jre/* -Destination release/windows/SwissKit/jre/ -Recurse -Force
+          Copy-Item $jarFile.FullName release/windows/SwissKit/SwissKit.jar
           
-          # ===== Create EXE with Launch4j =====
-          # Download Launch4j
-          $launch4jUrl = "https://sourceforge.net/projects/launch4j/files/launch4j-3.50/launch4j-3.50-windows.exe/download"
-          $launch4jZip = "launch4j.zip"
-          Invoke-WebRequest -Uri "https://sourceforge.net/projects/launch4j/files/launch4j-3.50/launch4j-3.50.zip/download" -OutFile $launch4jZip -UseBasicParsing
-          Expand-Archive -Path $launch4jZip -DestinationPath launch4j -Force
+          # Create run.bat
+          "@echo off" | Out-File -FilePath release/windows/SwissKit/run.bat -Encoding ASCII
+          "cd /d %%~dp0" | Out-File -FilePath release/windows/SwissKit/run.bat -Append -Encoding ASCII
+          "start jre\\bin\\javaw -jar SwissKit.jar" | Out-File -FilePath release/windows/SwissKit/run.bat -Append -Encoding ASCII
           
-          # Create Launch4j config
-          $config = @"
-<?xml version="1.0" encoding="UTF-8"?>
-<launch4jConfig>
-  <dontUsePrivateJre>false</dontUsePrivateJre>
-  <headerType>gui</headerType>
-  <jar>SwissKit.jar</jar>
-  <outfile>release/windows/installer/SwissKit.exe</outfile>
-  <errTitle>SwissKit</errTitle>
-  <cmdLine></cmdLine>
-  <chdir>.</chdir>
-  <priority>normal</priority>
-  <downloadUrl>https://www.oracle.com/java/technologies/downloads/</downloadUrl>
-  <supportUrl></supportUrl>
-  <stayAlive>false</stayAlive>
-  <restartOnCrash>false</restartOnCrash>
-  <branding>
-    <text>SwissKit</text>
-  </branding>
-  <icon></icon>
-  <singleInstance>
-    <dp>55531</dp>
-  </singleInstance>
-</launch4jConfig>
-"@
-          $config | Out-File -FilePath launch4j/config.xml -Encoding UTF8
+          # Create run.sh for reference
+          "#!/bin/bash" | Out-File -FilePath release/windows/SwissKit/run.sh -Encoding ASCII
+          "cd \"$(dirname "$0\")\"" | Out-File -FilePath release/windows/SwissKit/run.sh -Append -Encoding ASCII
+          "./jre/bin/java -jar SwissKit.jar" | Out-File -FilePath release/windows/SwissKit/run.sh -Append -Encoding ASCII
           
-          # Copy JAR to release folder
-          Copy-Item $jarFile.FullName release/windows/installer/SwissKit.jar
+          Copy-Item README.md release/windows/SwissKit/
           
-          # Run Launch4j
-          $launch4jExe = Get-ChildItem -Path launch4j -Recurse -Filter "*.exe" | Select-Object -First 1
-          & $launch4jExe.FullName launch4j/config.xml
-          
-          # Create installer ZIP (without launcher for now, just portable)
-          Compress-Archive -Path release/windows/portable/* -DestinationPath release/SwissKit-windows.zip -Force
+          # Create ZIP (no EXE wrapper, direct bundled JRE)
+          Compress-Archive -Path release/windows/SwissKit/* -DestinationPath release/SwissKit-windows.zip -Force
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: swisskit-windows
-          path: |
-            release/*.zip
-            release/**/*.jar
-            release/**/*.exe
+          path: release/*.zip
           retention-days: 30
 
-  # Linux JAR build
+  # Linux JAR + bundled JRE
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -128,22 +108,41 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Create Linux packages
+      - name: Download JRE 11 (Linux)
         run: |
-          mkdir -p release/linux/portable
-          cp target/SwissKit-*.jar release/linux/portable/SwissKit.jar
+          # Download Adoptium JRE
+          wget -q https://github.com/adoptium/temurin11-jre/releases/download/jdk-11.0.25%2B9/OpenJDK11U-jre_x64_linux_hotspot_11.0.25_9.tar.gz -O jre.tar.gz
+          mkdir -p jre
+          tar -xzf jre.tar.gz -C jre --strip-components=1
+
+      - name: Create Linux package with bundled JRE
+        run: |
+          JAR_FILE=$(find target -maxdepth 1 -name "SwissKit-*.jar" -type f | head -1)
+          
+          # Create directory structure
+          mkdir -p release/linux/SwissKit/jre/bin
+          mkdir -p release/linux/SwissKit/lib
+          
+          # Copy JRE
+          cp -r jre/* release/linux/SwissKit/jre/
+          
+          # Copy JAR
+          cp "$JAR_FILE" release/linux/SwissKit/SwissKit.jar
           
           # Create launcher script
-          cat > release/linux/portable/run.sh << 'EOF'
+          cat > release/linux/SwissKit/run.sh << 'EOF'
 #!/bin/bash
-java -jar SwissKit.jar "$@"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+./jre/bin/java -jar SwissKit.jar "$@"
 EOF
-          chmod +x release/linux/portable/run.sh
-          cp README.md release/linux/portable/
+          chmod +x release/linux/SwissKit/run.sh
+          
+          cp README.md release/linux/SwissKit/
           
           # Create ZIP
-          cd release/linux/portable
-          zip -r ../../SwissKit-linux.zip .
+          cd release/linux
+          zip -r ../SwissKit-linux.zip SwissKit/
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
@@ -152,24 +151,24 @@ EOF
           path: release/*.zip
           retention-days: 30
 
-  # macOS JAR + ARM64 build
+  # macOS JAR + bundled JRE (Intel + ARM64)
   build-macos:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            arch: x64
+            jre-arch: x64
+          - os: macos-latest
+            arch: arm64
+            jre-arch: aarch64
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Detect architecture
-        run: |
-          ARCH=$(uname -m)
-          echo "Running on $ARCH"
-          if [ "$ARCH" = "arm64" ]; then
-            echo "IS_ARM64=true" >> $GITHUB_OUTPUT
-          else
-            echo "IS_ARM64=false" >> $GITHUB_OUTPUT
-          fi
 
       - name: Set up JDK 11
         uses: actions/setup-java@v4
@@ -181,27 +180,57 @@ EOF
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Create macOS packages
+      - name: Download JRE 11 (macOS ${{ matrix.arch }})
         run: |
-          mkdir -p release/macos/portable
-          cp target/SwissKit-*.jar release/macos/portable/SwissKit.jar
+          # Download Adoptium JRE for ${{ matrix.jre-arch }}
+          if [ "${{ matrix.jre-arch }}" = "x64" ]; then
+            JRE_URL="https://github.com/adoptium/temurin11-jre/releases/download/jdk-11.0.25%2B9/OpenJDK11U-jre_x64_mac_hotspot_11.0.25_9.tar.gz"
+          else
+            JRE_URL="https://github.com/adoptium/temurin11-jre/releases/download/jdk-11.0.25%2B9/OpenJDK11U-jre_aarch64_mac_hotspot_11.0.25_9.tar.gz"
+          fi
+          wget -q "$JRE_URL" -O jre.tar.gz
+          mkdir -p jre
+          tar -xzf jre.tar.gz -C jre --strip-components=1
+
+      - name: Create macOS package with bundled JRE
+        run: |
+          JAR_FILE=$(find target -maxdepth 1 -name "SwissKit-*.jar" -type f | head -1)
           
-          # Create launcher script
-          cat > release/macos/portable/run.sh << 'EOF'
+          # Create directory structure
+          mkdir -p release/macos/SwissKit/Contents/Home/jre/bin
+          
+          # Copy JRE (with macOS special structure for JRE)
+          cp -r jre/* release/macos/SwissKit/Contents/Home/jre/
+          
+          # Copy JAR
+          cp "$JAR_FILE" release/macos/SwissKit/
+          
+          # Create launcher script (for command line use)
+          cat > release/macos/SwissKit/run.sh << 'EOF'
 #!/bin/bash
-java -jar SwissKit.jar "$@"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+./Contents/Home/jre/bin/java -jar SwissKit.jar "$@"
 EOF
-          chmod +x release/macos/portable/run.sh
-          cp README.md release/macos/portable/
+          chmod +x release/macos/SwissKit/run.sh
+          
+          cp README.md release/macos/SwissKit/
+          
+          # Determine filename suffix
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            SUFFIX="-apple-silicon"
+          else
+            SUFFIX="-intel"
+          fi
           
           # Create ZIP
-          cd release/macos/portable
-          zip -r ../../SwissKit-macos.zip .
+          cd release/macos
+          zip -r ../SwissKit-macos${SUFFIX}.zip SwissKit/
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: swisskit-macos
+          name: swisskit-macos-${{ matrix.arch }}
           path: release/*.zip
           retention-days: 30
 
@@ -228,7 +257,6 @@ EOF
         id: prerelease
         run: |
           version="${GITHUB_REF#refs/tags/v}"
-          # Check if version contains alpha, beta, or rc
           if [[ "$version" == *"-alpha."* ]] || [[ "$version" == *"-beta."* ]] || [[ "$version" == *"-rc."* ]]; then
             echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
           else
@@ -240,9 +268,9 @@ EOF
           {
             echo "### SHA-256 Checksums"
             echo ""
-            echo "\`\`\`"
-            find artifacts -type f \( -name "*.jar" -o -name "*.zip" -o -name "*.exe" \) -exec sh -c 'printf "%s:" "$1"; sha256sum -- "$1" | cut -d" " -f1' _ {} \;
-            echo "\`\`\`"
+            echo "`...`"
+            find artifacts -type f -name "*.zip" -exec sh -c 'printf "%s:" "$1"; sha256sum -- "$1" | cut -d" " -f1' _ {} \;
+            echo "`...`"
           } > artifacts/checksums.txt
 
       - name: List artifacts
@@ -257,51 +285,45 @@ EOF
           body: |
             ## SwissKit ${{ steps.get_version.outputs.version }}${{ steps.prerelease.outputs.is_prerelease == 'true' && ' (Pre-release)' || '' }}
 
-            ### What's New
-            - See the [CHANGELOG](https://github.com/MuskStark/SwissKitJ/blob/main/CHANGELOG.md) for details.
-
             ### ⚠️ Pre-release Warning
             ${{ steps.prerelease.outputs.is_prerelease == 'true' && 'This is a pre-release version. Use with caution and report any bugs you find!' || '' }}
 
+            ### 🎉 No Java Required!
+            All packages include bundled JRE - just download, extract, and run!
+
             ### Installation Options
 
-            #### Windows (.exe)
+            #### Windows
             - Download: `SwissKit-windows.zip`
-            - Extract and run `SwissKit.exe` directly
-            - Or use portable version with `run.bat`
-            - Requires Java 11 or higher
+            - Extract and double-click `run.bat` to start
+            - **No Java installation required**
 
-            #### Linux (.jar)
+            #### Linux
             - Download: `SwissKit-linux.zip`
-            - Extract and run: `./run.sh` or `java -jar SwissKit.jar`
-            - Requires Java 11 or higher
+            - Extract and run: `./run.sh`
+            - **No Java installation required**
 
-            #### macOS (.jar)
-            - Download: `SwissKit-macos.zip`
-            - Extract and run: `./run.sh` or `java -jar SwissKit.jar`
-            - Supports both Intel and Apple Silicon (M1/M2/M3)
-            - Requires Java 11 or higher
+            #### macOS (Intel)
+            - Download: `SwissKit-macos-intel.zip`
+            - Extract and run: `./run.sh`
+            - **No Java installation required**
 
-            ### Requirements
-            - **Java 11 or higher** (for all versions)
-            - **Windows 10/11**
-            - **Linux** (Ubuntu 20.04+, or similar)
-            - **macOS 10.13+** (Intel or Apple Silicon)
+            #### macOS (Apple Silicon - M1/M2/M3)
+            - Download: `SwissKit-macos-apple-silicon.zip`
+            - Extract and run: `./run.sh`
+            - **No Java installation required**
+
+            ### What's New
+            - See the [CHANGELOG](https://github.com/MuskStark/SwissKitJ/blob/main/CHANGELOG.md) for details.
+
+            ### System Requirements
+            - **Windows**: Windows 10/11 (64-bit)
+            - **Linux**: Ubuntu 20.04+ or similar Linux (64-bit)
+            - **macOS**: macOS 10.13+ (Intel or Apple Silicon)
 
             ### Documentation
             - [README](https://github.com/MuskStark/SwissKitJ#readme)
             - [AGENTS.md](https://github.com/MuskStark/SwissKitJ/blob/main/AGENTS.md) (Technical Documentation)
-
-            ### Quick Start
-            ```bash
-            # Clone the repository
-            git clone https://github.com/MuskStark/SwissKitJ.git
-            cd SwissKit
-
-            # Build and run
-            mvn clean package
-            java -jar target/SwissKit-${{ steps.get_version.outputs.version }}.jar
-            ```
 
             ---
 
@@ -311,7 +333,6 @@ EOF
             See the `checksums.txt` file for SHA-256 checksums of all artifacts.
           files: |
             artifacts/*.zip
-            artifacts/*.exe
             artifacts/checksums.txt
           draft: false
           prerelease: ${{ steps.prerelease.outputs.is_prerelease == 'true' }}
