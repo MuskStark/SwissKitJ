@@ -12,7 +12,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
- * 类的详细说明
+ * SwingWorker that loads and displays the complex split configuration for a given task.
+ * Executes database query on background thread and updates UI on Event Dispatch Thread.
  *
  * @author phoebej
  * @version 1.00
@@ -22,11 +23,24 @@ public class ShowConfigViewWorker extends SwingWorker<List<Object[]>, Void> {
     private final JPanel jpanel;
     private final String taskId;
 
+    /**
+     * Constructs a new ShowConfigViewWorker.
+     *
+     * @param jpanel the parent JPanel for displaying the configuration view
+     * @param taskId the unique identifier of the task whose config to display
+     */
     public ShowConfigViewWorker(JPanel jpanel, String taskId) {
         this.jpanel = jpanel;
         this.taskId = taskId;
     }
 
+    /**
+     * Background task that queries the database for configuration records.
+     * Runs on a background thread to avoid blocking the UI.
+     *
+     * @return list of Object arrays containing [fieldName, sheetName, headerIndex, columnIndex], or null if empty/error
+     * @throws Exception if database access fails
+     */
     @Override
     protected List<Object[]> doInBackground() throws Exception {
         List<Object[]> rowDatas = new ArrayList<>();
@@ -38,7 +52,6 @@ public class ShowConfigViewWorker extends SwingWorker<List<Object[]>, Void> {
             } else {
                 for (ComplexSplitConfigEntity entity : complexSplitConfigEntities) {
                     rowDatas.add(new Object[]{entity.getFieldName(), entity.getSheetName(), entity.getHeaderIndex(), entity.getColumnIndex()});
-                    return rowDatas;
                 }
             }
 
@@ -48,6 +61,10 @@ public class ShowConfigViewWorker extends SwingWorker<List<Object[]>, Void> {
         return rowDatas;
     }
 
+    /**
+     * Called on the Event Dispatch Thread after background processing completes.
+     * Displays the configuration view or an error/info message.
+     */
     @Override
     protected void done() {
         try {

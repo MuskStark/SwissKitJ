@@ -231,7 +231,10 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
             excelReader.read(sheet);
             List<Map<Integer, Object>> cachedDataList = noModelDataListener.getCachedDataList();
             // GroupBy target index by value
-            Map<Object, List<Map<Integer, Object>>> group = cachedDataList.stream().collect(Collectors.groupingBy(row -> row.getOrDefault(targetColumnIndex.get(), 0)));
+            Map<Object, List<Map<Integer, Object>>> group = cachedDataList.stream().collect(Collectors.groupingBy(row -> {
+                Object val = row.getOrDefault(targetColumnIndex.get(), null);
+                return ExcelUtil.normalizeOrInvalid(val);
+            }));
             int total = group.keySet().size();
             AtomicInteger current = new AtomicInteger(0);
             group.forEach((k, v) -> {
@@ -262,7 +265,10 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
                         excelReader.read(sheet);
                         List<Map<Integer, Object>> cachedDataList = noModelDataListener.getCachedDataList();
                         // GroupBy target index by value
-                        Map<Object, List<Map<Integer, Object>>> group = cachedDataList.stream().collect(Collectors.groupingBy(row -> row.getOrDefault(splitConfig.getColumnIndex()-1, 0)));
+                        Map<Object, List<Map<Integer, Object>>> group = cachedDataList.stream().collect(Collectors.groupingBy(row -> {
+                            Object val = row.getOrDefault(splitConfig.getColumnIndex() - 1, null);
+                            return ExcelUtil.normalizeOrInvalid(val);
+                        }));
                         // write to file
                         group.forEach((k, v) -> {
                             String splitFileName = FileNameUtil.getFileName(orgFilePath.getFileName().toString()) + "_" + k.toString() + ".xlsx";
