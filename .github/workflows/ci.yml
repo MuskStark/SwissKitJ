@@ -34,6 +34,7 @@ jobs:
         run: mvn package -DskipTests
 
       - name: Verify JAR exists
+        shell: bash
         run: |
           jar_file=$(find target -maxdepth 1 -name "SwissKit-*.jar" -type f | head -1)
           if [ -n "$jar_file" ]; then
