@@ -39,19 +39,25 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          mkdir -p release/windows/jar
-          cp target/SwissKit-*.jar release/windows/jar/SwissKit.jar
-          cp README.md release/windows/jar/
+          $jarFile = Get-ChildItem target/SwissKit-*.jar | Select-Object -First 1
+          if ($null -eq $jarFile) {
+            Write-Error "JAR file not found"
+            exit 1
+          }
+          
+          New-Item -ItemType Directory -Force -Path release/windows/jar | Out-Null
+          Copy-Item $jarFile.FullName release/windows/jar/SwissKit.jar
+          Copy-Item README.md release/windows/jar/
 
           # Create portable package
-          mkdir -p release/windows/portable
-          cp target/SwissKit-*.jar release/windows/portable/SwissKit.jar
-          "@echo off" > release/windows/portable/run.bat
-          "start javaw -jar SwissKit.jar" >> release/windows/portable/run.bat
-          "#!/bin/bash" > release/windows/portable/run.sh
-          "java -jar SwissKit.jar" >> release/windows/portable/run.sh
-          cp README.md release/windows/portable/
-          Compress-Archive -Path * -DestinationPath ../../SwissKit-portable-windows.zip
+          New-Item -ItemType Directory -Force -Path release/windows/portable | Out-Null
+          Copy-Item $jarFile.FullName release/windows/portable/SwissKit.jar
+          "@echo off" | Out-File -FilePath release/windows/portable/run.bat -Encoding ASCII
+          "start javaw -jar SwissKit.jar" | Out-File -FilePath release/windows/portable/run.bat -Append -Encoding ASCII
+          "#!/bin/bash" | Out-File -FilePath release/windows/portable/run.sh -Encoding ASCII
+          "java -jar SwissKit.jar" | Out-File -FilePath release/windows/portable/run.sh -Append -Encoding ASCII
+          Copy-Item README.md release/windows/portable/
+          Compress-Archive -Path release/windows/portable/* -DestinationPath release/SwissKit-portable-windows.zip -Force
 
       - name: Create Linux packages
         if: matrix.os == 'ubuntu-latest'
