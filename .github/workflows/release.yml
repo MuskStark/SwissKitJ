@@ -14,12 +14,9 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    
+  # Windows EXE build
+  build-windows:
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,12 +33,7 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      - name: Create platform-specific packages
-        run: |
-          mkdir -p release/${{ matrix.os }}
-
       - name: Create Windows packages
-        if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
           $jarFile = Get-ChildItem target/SwissKit-*.jar | Select-Object -First 1
@@ -50,63 +42,171 @@ jobs:
             exit 1
           }
           
-          New-Item -ItemType Directory -Force -Path release/windows/jar | Out-Null
-          Copy-Item $jarFile.FullName release/windows/jar/SwissKit.jar
-          Copy-Item README.md release/windows/jar/
-
-          # Create portable package
+          # Create output directories
           New-Item -ItemType Directory -Force -Path release/windows/portable | Out-Null
+          New-Item -ItemType Directory -Force -Path release/windows/installer | Out-Null
+          
+          # ===== Create portable package (ZIP) =====
           Copy-Item $jarFile.FullName release/windows/portable/SwissKit.jar
           "@echo off" | Out-File -FilePath release/windows/portable/run.bat -Encoding ASCII
-          "start javaw -jar SwissKit.jar" | Out-File -FilePath release/windows/portable/run.bat -Append -Encoding ASCII
+          "java -jar SwissKit.jar" | Out-File -FilePath release/windows/portable/run.bat -Append -Encoding ASCII
           "#!/bin/bash" | Out-File -FilePath release/windows/portable/run.sh -Encoding ASCII
           "java -jar SwissKit.jar" | Out-File -FilePath release/windows/portable/run.sh -Append -Encoding ASCII
           Copy-Item README.md release/windows/portable/
           Compress-Archive -Path release/windows/portable/* -DestinationPath release/SwissKit-portable-windows.zip -Force
+          
+          # ===== Create EXE with Launch4j =====
+          # Download Launch4j
+          $launch4jUrl = "https://sourceforge.net/projects/launch4j/files/launch4j-3.50/launch4j-3.50-windows.exe/download"
+          $launch4jZip = "launch4j.zip"
+          Invoke-WebRequest -Uri "https://sourceforge.net/projects/launch4j/files/launch4j-3.50/launch4j-3.50.zip/download" -OutFile $launch4jZip -UseBasicParsing
+          Expand-Archive -Path $launch4jZip -DestinationPath launch4j -Force
+          
+          # Create Launch4j config
+          $config = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontUsePrivateJre>false</dontUsePrivateJre>
+  <headerType>gui</headerType>
+  <jar>SwissKit.jar</jar>
+  <outfile>release/windows/installer/SwissKit.exe</outfile>
+  <errTitle>SwissKit</errTitle>
+  <cmdLine></cmdLine>
+  <chdir>.</chdir>
+  <priority>normal</priority>
+  <downloadUrl>https://www.oracle.com/java/technologies/downloads/</downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <branding>
+    <text>SwissKit</text>
+  </branding>
+  <icon></icon>
+  <singleInstance>
+    <dp>55531</dp>
+  </singleInstance>
+</launch4jConfig>
+"@
+          $config | Out-File -FilePath launch4j/config.xml -Encoding UTF8
+          
+          # Copy JAR to release folder
+          Copy-Item $jarFile.FullName release/windows/installer/SwissKit.jar
+          
+          # Run Launch4j
+          $launch4jExe = Get-ChildItem -Path launch4j -Recurse -Filter "*.exe" | Select-Object -First 1
+          & $launch4jExe.FullName launch4j/config.xml
+          
+          # Create installer ZIP (without launcher for now, just portable)
+          Compress-Archive -Path release/windows/portable/* -DestinationPath release/SwissKit-windows.zip -Force
 
-      - name: Create Linux packages
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          mkdir -p release/linux
-          cp target/SwissKit-*.jar release/linux/SwissKit.jar
-          cp README.md release/linux/
-          # Create portable package
-          mkdir -p release/linux/portable
-          cp target/SwissKit-*.jar release/linux/portable/SwissKit.jar
-          echo "#!/bin/bash" > release/linux/portable/run.sh
-          echo "java -jar SwissKit.jar" >> release/linux/portable/run.sh
-          chmod +x release/linux/portable/run.sh
-          cp README.md release/linux/portable/
-          cd release/linux/portable
-          zip -r ../../SwissKit-portable-linux.zip .
-
-      - name: Create macOS packages
-        if: matrix.os == 'macos-latest'
-        run: |
-          mkdir -p release/macos
-          cp target/SwissKit-*.jar release/macos/SwissKit.jar
-          cp README.md release/macos/
-          # Create portable package
-          mkdir -p release/macos/portable
-          cp target/SwissKit-*.jar release/macos/portable/SwissKit.jar
-          echo "#!/bin/bash" > release/macos/portable/run.sh
-          echo "java -jar SwissKit.jar" >> release/macos/portable/run.sh
-          chmod +x release/macos/portable/run.sh
-          cp README.md release/macos/portable/
-          cd release/macos/portable
-          zip -r ../../SwissKit-portable-macos.zip .
-
-      - name: Upload artifacts
+      - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: swisskit-${{ matrix.os }}
+          name: swisskit-windows
           path: |
-            release/**/*.jar
             release/*.zip
+            release/**/*.jar
+            release/**/*.exe
+          retention-days: 30
+
+  # Linux JAR build
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Create Linux packages
+        run: |
+          mkdir -p release/linux/portable
+          cp target/SwissKit-*.jar release/linux/portable/SwissKit.jar
+          
+          # Create launcher script
+          cat > release/linux/portable/run.sh << 'EOF'
+#!/bin/bash
+java -jar SwissKit.jar "$@"
+EOF
+          chmod +x release/linux/portable/run.sh
+          cp README.md release/linux/portable/
+          
+          # Create ZIP
+          cd release/linux/portable
+          zip -r ../../SwissKit-linux.zip .
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: swisskit-linux
+          path: release/*.zip
+          retention-days: 30
+
+  # macOS JAR + ARM64 build
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect architecture
+        run: |
+          ARCH=$(uname -m)
+          echo "Running on $ARCH"
+          if [ "$ARCH" = "arm64" ]; then
+            echo "IS_ARM64=true" >> $GITHUB_OUTPUT
+          else
+            echo "IS_ARM64=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Create macOS packages
+        run: |
+          mkdir -p release/macos/portable
+          cp target/SwissKit-*.jar release/macos/portable/SwissKit.jar
+          
+          # Create launcher script
+          cat > release/macos/portable/run.sh << 'EOF'
+#!/bin/bash
+java -jar SwissKit.jar "$@"
+EOF
+          chmod +x release/macos/portable/run.sh
+          cp README.md release/macos/portable/
+          
+          # Create ZIP
+          cd release/macos/portable
+          zip -r ../../SwissKit-macos.zip .
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: swisskit-macos
+          path: release/*.zip
           retention-days: 30
 
   create-release:
-    needs: build
+    needs: [build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -134,7 +234,6 @@ jobs:
           else
             echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "Version: $version, Pre-release: ${{ steps.prerelease.outputs.is_prerelease }}"
 
       - name: Generate checksums
         run: |
@@ -142,9 +241,13 @@ jobs:
             echo "### SHA-256 Checksums"
             echo ""
             echo "\`\`\`"
-            find artifacts -type f \( -name "*.jar" -o -name "*.zip" \) -exec sh -c 'printf "%s:" "$1"; sha256sum -- "$1" | cut -d" " -f1' _ {} \;
+            find artifacts -type f \( -name "*.jar" -o -name "*.zip" -o -name "*.exe" \) -exec sh -c 'printf "%s:" "$1"; sha256sum -- "$1" | cut -d" " -f1' _ {} \;
             echo "\`\`\`"
           } > artifacts/checksums.txt
+
+      - name: List artifacts
+        run: |
+          ls -la artifacts/
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -162,34 +265,28 @@ jobs:
 
             ### Installation Options
 
-            #### Cross-platform JAR
-            - Download: `SwissKit-${{ steps.get_version.outputs.version }}.jar`
-            - Requires Java 11 or higher
-            - Run: `java -jar SwissKit-${{ steps.get_version.outputs.version }}.jar`
-
-            #### Windows Portable (ZIP)
-            - Download: `SwissKit-portable-windows.zip`
-            - Extract to any folder
-            - Run `run.bat` to start the application
+            #### Windows (.exe)
+            - Download: `SwissKit-windows.zip`
+            - Extract and run `SwissKit.exe` directly
+            - Or use portable version with `run.bat`
             - Requires Java 11 or higher
 
-            #### Linux Portable (ZIP)
-            - Download: `SwissKit-portable-linux.zip`
-            - Extract to any folder
-            - Run `./run.sh` to start the application
+            #### Linux (.jar)
+            - Download: `SwissKit-linux.zip`
+            - Extract and run: `./run.sh` or `java -jar SwissKit.jar`
             - Requires Java 11 or higher
 
-            #### macOS Portable (ZIP)
-            - Download: `SwissKit-portable-macos.zip`
-            - Extract to any folder
-            - Run `./run.sh` to start the application
+            #### macOS (.jar)
+            - Download: `SwissKit-macos.zip`
+            - Extract and run: `./run.sh` or `java -jar SwissKit.jar`
+            - Supports both Intel and Apple Silicon (M1/M2/M3)
             - Requires Java 11 or higher
 
             ### Requirements
             - **Java 11 or higher** (for all versions)
-            - **Windows 10/11** (for Windows portable)
-            - **Linux** (for Linux portable)
-            - **macOS 10.13+** (for macOS portable)
+            - **Windows 10/11**
+            - **Linux** (Ubuntu 20.04+, or similar)
+            - **macOS 10.13+** (Intel or Apple Silicon)
 
             ### Documentation
             - [README](https://github.com/MuskStark/SwissKitJ#readme)
@@ -213,8 +310,8 @@ jobs:
             **Checksums**:
             See the `checksums.txt` file for SHA-256 checksums of all artifacts.
           files: |
-            artifacts/*.jar
             artifacts/*.zip
+            artifacts/*.exe
             artifacts/checksums.txt
           draft: false
           prerelease: ${{ steps.prerelease.outputs.is_prerelease == 'true' }}
