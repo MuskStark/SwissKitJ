@@ -5,6 +5,7 @@ import fan.summer.api.KitPage;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
 
 /**
  * Email Tool Page
@@ -14,7 +15,7 @@ import javax.swing.*;
  * @version 1.00
  * @date 2026/2/26
  */
-@SwissKitPage(menuName = "Email", menuTooltip = "Email", order = 2, visible = false)
+@SwissKitPage(menuName = "Email", menuTooltip = "Email", order = 2)
 public class EmailKitPage implements KitPage {
 
     public EmailKitPage() {
@@ -26,6 +27,25 @@ public class EmailKitPage implements KitPage {
         return emailPanel;
     }
 
+    private void massSentCheckBoxActionListener(ActionEvent e) {
+        // TODO add your code here
+        if (massSentCheckBox.isSelected()) {
+            setMassSentConfigBt.setEnabled(true);
+            viewSentConfigBt.setEnabled(true);
+            toText.setText("");
+            toText.setEnabled(false);
+            ccText.setText("");
+            ccText.setEnabled(false);
+        } else {
+            toText.setText("");
+            toText.setEnabled(true);
+            ccText.setText("");
+            ccText.setEnabled(true);
+            setMassSentConfigBt.setEnabled(false);
+            viewSentConfigBt.setEnabled(false);
+        }
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
         emailPanel = new JPanel();
@@ -33,8 +53,14 @@ public class EmailKitPage implements KitPage {
         subject = new JTextField();
         to = new JLabel();
         toText = new JTextField();
+        label1 = new JLabel();
+        ccText = new JTextField();
         body = new JTextArea();
+        massSentCheckBox = new JCheckBox();
+        setMassSentConfigBt = new JButton();
+        viewSentConfigBt = new JButton();
         sentButton = new JButton();
+        progressBar1 = new JProgressBar();
 
         //======== emailPanel ========
         {
@@ -43,32 +69,57 @@ public class EmailKitPage implements KitPage {
                 // columns
                 "[fill]" +
                 "[grow,fill]" +
-                "[grow,fill]",
+                "[grow,fill]" +
+                "[fill]",
                 // rows
                 "[fill]" +
                 "[fill]" +
+                "[]" +
                 "[grow,fill]" +
+                "[]" +
+                "[]" +
                 "[]" +
                 "[fill]"));
 
             //---- emailTitle ----
             emailTitle.setText("Subject:");
             emailPanel.add(emailTitle, "cell 0 0,align left center,grow 0 0");
-            emailPanel.add(subject, "cell 1 0 2 1,aligny center,grow 100 0");
+            emailPanel.add(subject, "cell 1 0 3 1,aligny center,grow 100 0");
 
             //---- to ----
             to.setText("To:");
             emailPanel.add(to, "cell 0 1,align left center,grow 0 0");
-            emailPanel.add(toText, "cell 1 1 2 1,aligny center,grow 100 0");
+            emailPanel.add(toText, "cell 1 1 3 1,aligny center,grow 100 0");
+
+            //---- label1 ----
+            label1.setText("Cc:");
+            emailPanel.add(label1, "cell 0 2");
+            emailPanel.add(ccText, "cell 1 2 3 1");
 
             //---- body ----
             body.setLineWrap(false);
             body.setText("");
-            emailPanel.add(body, "cell 0 2 3 1,grow");
+            emailPanel.add(body, "cell 0 3 4 1,grow");
+
+            //---- massSentCheckBox ----
+            massSentCheckBox.setText("MassSent");
+            massSentCheckBox.addActionListener(e -> massSentCheckBoxActionListener(e));
+            emailPanel.add(massSentCheckBox, "cell 0 4");
+
+            //---- setMassSentConfigBt ----
+            setMassSentConfigBt.setText("MassSendConfig");
+            setMassSentConfigBt.setEnabled(false);
+            emailPanel.add(setMassSentConfigBt, "cell 1 4");
+
+            //---- viewSentConfigBt ----
+            viewSentConfigBt.setText("ViewSentConfig");
+            viewSentConfigBt.setEnabled(false);
+            emailPanel.add(viewSentConfigBt, "cell 2 4");
 
             //---- sentButton ----
             sentButton.setText("Sent");
-            emailPanel.add(sentButton, "cell 0 3 3 1");
+            emailPanel.add(sentButton, "cell 0 5 4 1");
+            emailPanel.add(progressBar1, "cell 0 6 4 1");
         }
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
     }
@@ -79,7 +130,13 @@ public class EmailKitPage implements KitPage {
     private JTextField subject;
     private JLabel to;
     private JTextField toText;
+    private JLabel label1;
+    private JTextField ccText;
     private JTextArea body;
+    private JCheckBox massSentCheckBox;
+    private JButton setMassSentConfigBt;
+    private JButton viewSentConfigBt;
     private JButton sentButton;
+    private JProgressBar progressBar1;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }
