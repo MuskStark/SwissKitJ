@@ -6,6 +6,7 @@ SwissKit provides a variety of tools for everyday tasks. This section covers all
 
 - [Excel Tool](#excel-tool)
 - [Email Tool](#email-tool)
+- [Settings](#settings)
 - [Welcome Page](#welcome-page)
 - [Custom UI Components](#custom-ui-components)
 
@@ -73,6 +74,24 @@ All Excel operations include real-time progress tracking:
 - Status messages
 - Completion notifications
 
+### CSV to Excel Conversion
+
+Convert CSV files to Excel format with customizable options.
+
+**Features**:
+- Support for UTF-8 and other encodings
+- Header row detection
+- Automatic column type detection
+- Progress tracking during conversion
+
+**How to Use**:
+
+1. Click the "Select CSV File" button
+2. Choose a CSV file
+3. Configure delimiter and encoding options
+4. Click "Convert" button
+5. Save the resulting Excel file
+
 ## Email Tool
 
 The email tool allows you to compose and send emails (in development).
@@ -85,6 +104,21 @@ The email tool allows you to compose and send emails (in development).
 - Email templates
 
 **Status**: 🚧 In Development
+
+## Settings
+
+The settings page provides application configuration options.
+
+**Features**:
+- Application preferences configuration
+- Database management
+- View stored configurations
+
+**How to Use**:
+
+1. Click "Settings" in the sidebar
+2. Configure desired options
+3. Changes are saved automatically
 
 ## Welcome Page
 

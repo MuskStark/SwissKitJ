@@ -64,15 +64,21 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 - **File Analysis** - Read Excel file structure and extract headers
 - **File Splitting** - Split Excel files by sheets or column values
 - **Complex Split Mode** - Advanced splitting with custom configuration
+- **Config View** - View and edit split configurations
 - **Progress Tracking** - Real-time progress updates with percentage display
 - **Multi-Sheet Support** - Handle multiple sheets in a single file
 - **Streaming Data Processing** - Efficient memory usage with Apache FESOD
 - **Warning Dialogs** - User-friendly error messages
+- **CSV to Excel** - Convert CSV files to Excel format
 
 #### 📧 Email Tool
 - **Email Composition** - Compose emails with subject and body
 - **Recipient Management** - Add multiple recipients
 - **Sending Functionality** - Send emails (in development)
+
+#### ⚙️ Settings
+- **Application Settings** - Configure application preferences
+- **Database Management** - View and manage stored configurations
 
 #### 🏠 Welcome Page
 - Application overview and guidance
@@ -111,35 +117,41 @@ SwissKit/
 │   ├── email/                      # Email tool
 │   │   ├── EmailKitPage.java
 │   │   └── EmailKitPage.jfd
-│   └── excel/                     # Excel tool
-│       ├── ExcelKitPage.java
-│       ├── ExcelKitPage.jfd
-│       ├── second/                 # Config view
-│       │   ├── ConfigView.java
-│       │   └── ConfigView.jfd
-│       ├── listener/              # Event listeners
-│       │   ├── HeaderListener.java
-│       │   └── NoModelDataListener.java
-│       └── worker/                # Background workers
-│           ├── ExcelAnalysisWorker.java
-│           ├── ExcelAnalysisCallback.java
-│           ├── ExcelSplitWorker.java
-│           ├── SetComplexSplitConfigWorker.java
-│           ├── ClearComplexSplitConfigWorker.java
-│           └── ShowConfigViewWorker.java
-├── ui/                            # UI components
-│   ├── StartLoadingPage.java      # Splash screen
+│   ├── excel/                      # Excel tool
+│   │   ├── ExcelKitPage.java
+│   │   ├── ExcelKitPage.jfd
+│   │   ├── second/                 # Config view
+│   │   │   ├── ConfigView.java
+│   │   │   ├── ConfigView.jfd
+│   │   │   ├── ConfigEditorView.java
+│   │   │   └── ConfigEditorView.jfd
+│   │   ├── listener/              # Event listeners
+│   │   │   ├── HeaderListener.java
+│   │   │   └── NoModelDataListener.java
+│   │   └── worker/                # Background workers
+│   │       ├── ExcelAnalysisWorker.java
+│   │       ├── ExcelAnalysisCallback.java
+│   │       ├── ExcelSplitWorker.java
+│   │       ├── SetComplexSplitConfigWorker.java
+│   │       ├── ClearComplexSplitConfigWorker.java
+│   │       └── ShowConfigViewWorker.java
+│   └── setting/                    # Settings page
+│       ├── SettingKitPage.java
+│       └── SettingKitPage.jfd
+├── ui/                              # UI components
+│   ├── StartLoadingPage.java        # Splash screen
 │   ├── home/
-│   │   └── HomePage.java          # Main window
+│   │   └── HomePage.java           # Main window
 │   ├── sidebar/
-│   │   └── SideMenuBar.java       # Side menu component
+│   │   └── SideMenuBar.java        # Side menu
 │   └── components/
 │       ├── GradientProgressBar.java
 │       └── FixedWidthComboBox.java
 └── utils/
-    ├── UIUtils.java               # UI utilities
-    ├── ExcelUtil.java             # Excel utilities
-    └── FileNameUtil.java          # File name utilities
+    ├── UIUtils.java                # UI utilities
+    ├── ExcelUtil.java              # Excel utilities
+    ├── FileNameUtil.java           # File name utilities
+    └── CsvToExcelProcessor.java   # CSV to Excel converter
 ```
 
 ### Plugin System
@@ -481,10 +493,13 @@ java -Dlog4j.configurationFile=path/to/log4j2.xml -jar target/SwissKit-1.0-Alpha
 - [x] Excel file split by sheet functionality
 - [x] Excel file split by column functionality
 - [x] Excel complex split mode with configuration
+- [x] Config view window for viewing split configurations
+- [x] Config editor for editing split configurations
 - [x] Progress bar with percentage display
 - [x] Gradient progress bar component
 - [x] Warning dialogs for user feedback
-- [x] Config view window for viewing split configurations
+- [x] CSV to Excel conversion
+- [x] Settings page
 - [ ] Implement email sending with SMTP support
 - [ ] Add PDF processing tool
 - [ ] Add image processing tool
@@ -568,6 +583,9 @@ For detailed technical documentation, see [AGENTS.md](AGENTS.md).
 ### Version 1.0-Alpha
 
 #### Recent Changes
+- ✨ Add ConfigEditorView for editing complex split configurations
+- ✨ Add SettingKitPage for application settings
+- ✨ Add CSV to Excel conversion functionality
 - ✨ Add ViewConfig functionality for Excel complex split
 - ♻️ Refactor: Replace SQLite with H2 database
 - ✨ Add complex split mode for Excel splitting

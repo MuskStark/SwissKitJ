@@ -7,7 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0-Alpha] - 2026-03-04
+## [1.0-Alpha] - 2026-03-06
+
+### Added
+- ConfigEditorView for editing complex split configurations
+- ConfigEditorView.jfd JFormDesigner layout file
+- Update method in ComplexSplitConfigMapper
+- Update SQL in ComplexSplitConfigMapper.xml
+- SettingKitPage for application settings
+- SettingKitPage.jfd JFormDesigner layout file
+- CsvToExcelProcessor for CSV to Excel conversion
+- English comments to ConfigEditorView
+
+### Changed
+- ConfigView now accepts taskId parameter
+- UpdateButton renamed in ConfigEditorView
+- Removed TODO comments from ExcelKitPage and EmailKitPage
 
 ### Added
 - Excel complex split mode with custom configuration

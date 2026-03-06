@@ -53,22 +53,27 @@ SwissKit/
 │   │   ├── email/                        # Email tool
 │   │   │   ├── EmailKitPage.java
 │   │   │   └── EmailKitPage.jfd
-│   │   └── excel/                       # Excel tool
-│   │       ├── ExcelKitPage.java
-│   │       ├── ExcelKitPage.jfd
-│   │       ├── second/                  # Config view
-│   │       │   ├── ConfigView.java
-│   │       │   └── ConfigView.jfd
-│   │       ├── listener/                # Event listeners
-│   │       │   ├── HeaderListener.java
-│   │       │   └── NoModelDataListener.java
-│   │       └── worker/                  # Background workers
-│   │           ├── ExcelAnalysisWorker.java
-│   │           ├── ExcelAnalysisCallback.java
-│   │           ├── ExcelSplitWorker.java
-│   │           ├── SetComplexSplitConfigWorker.java
-│   │           ├── ClearComplexSplitConfigWorker.java
-│   │           └── ShowConfigViewWorker.java
+│   │   ├── excel/                       # Excel tool
+│   │   │   ├── ExcelKitPage.java
+│   │   │   ├── ExcelKitPage.jfd
+│   │   │   ├── second/                  # Config view
+│   │   │   │   ├── ConfigView.java
+│   │   │   │   ├── ConfigView.jfd
+│   │   │   │   ├── ConfigEditorView.java
+│   │   │   │   └── ConfigEditorView.jfd
+│   │   │   ├── listener/                # Event listeners
+│   │   │   │   ├── HeaderListener.java
+│   │   │   │   └── NoModelDataListener.java
+│   │   │   └── worker/                  # Background workers
+│   │   │       ├── ExcelAnalysisWorker.java
+│   │   │       ├── ExcelAnalysisCallback.java
+│   │   │       ├── ExcelSplitWorker.java
+│   │   │       ├── SetComplexSplitConfigWorker.java
+│   │   │       ├── ClearComplexSplitConfigWorker.java
+│   │   │       └── ShowConfigViewWorker.java
+│   │   └── setting/                     # Settings page
+│   │       ├── SettingKitPage.java
+│   │       └── SettingKitPage.jfd
 │   ├── ui/                              # UI components
 │   │   ├── StartLoadingPage.java        # Splash screen
 │   │   ├── home/
@@ -79,7 +84,10 @@ SwissKit/
 │   │       ├── GradientProgressBar.java
 │   │       └── FixedWidthComboBox.java
 │   └── utils/
-│       └── UIUtils.java                 # UI utilities
+│       ├── UIUtils.java                 # UI utilities
+│       ├── ExcelUtil.java               # Excel utilities
+│       ├── FileNameUtil.java            # File name utilities
+│       └── CsvToExcelProcessor.java     # CSV to Excel converter
 └── docs/                                # Documentation
 ```
 
