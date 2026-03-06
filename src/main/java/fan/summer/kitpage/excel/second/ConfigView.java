@@ -4,6 +4,7 @@
 
 package fan.summer.kitpage.excel.second;
 
+import java.awt.event.*;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -14,17 +15,42 @@ import java.util.List;
 
 
 /**
+ * Configuration View Dialog
+ * Displays saved complex split configurations in a table format
+ * Allows users to view and edit configurations by double-clicking rows
+ *
  * @author phoebej
  */
 public class ConfigView extends JDialog {
+
+    /**
+     * Constructor - Creates the configuration view dialog
+     *
+     * @param panel Parent panel for dialog positioning
+     */
     public ConfigView(JPanel panel) {
         super(SwingUtilities.getWindowAncestor(panel));
         initComponents();
     }
 
+    /**
+     * Sets the table model with configuration data
+     * Columns: FileName, SheetName, HeaderIndex, SplitBYColumnIndex
+     * Only columns with index > 4 are editable
+     *
+     * @param rowDatas List of row data arrays containing configuration values
+     * @return This ConfigView instance for method chaining
+     */
     public ConfigView setTableModel(List<Object[]> rowDatas) {
         String[] columns = {"FileName", "SheetName", "HeaderIndex", "SplitBYColumnIndex"};
-        DefaultTableModel defaultTableModel = new DefaultTableModel(columns, 0);
+        // Override isCellEditable to make columns beyond index 4 editable
+        // First few columns (file info) remain non-editable for data integrity
+        DefaultTableModel defaultTableModel = new DefaultTableModel(columns, 0){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column > 4;
+            }
+        };
         for (Object[] row : rowDatas) {
             defaultTableModel.addRow(row);
         }
@@ -32,9 +58,33 @@ public class ConfigView extends JDialog {
         return this;
     }
 
+    /**
+     * Handles OK button action - closes the dialog
+     *
+     * @param e ActionEvent triggered by button click
+     */
     private void okBtAction(ActionEvent e) {
-        // TODO add your code here
         this.setVisible(false);
+    }
+
+    /**
+     * Handles mouse click events on the configuration table
+     * Opens editor dialog when user double-clicks on a row
+     *
+     * @param e MouseEvent containing click coordinates and information
+     */
+    private void configInfoMouseClicked(MouseEvent e) {
+        // Check for double-click (>=2 to handle any multi-click scenario)
+        if(e.getClickCount() >= 2){
+            // Convert click point to row index
+            int row = configInfo.rowAtPoint(e.getPoint());
+            if (row >= 0) {
+                // Select the clicked row for visual feedback
+                configInfo.setRowSelectionInterval(row, row);
+                // Open editor dialog for this row, passing table reference and row index
+                new ConfigEditorView(contentPanel, configInfo, row).setVisible(true);
+            }
+        }
     }
 
     private void initComponents() {
@@ -68,9 +118,17 @@ public class ConfigView extends JDialog {
 
                 //======== scrollPane1 ========
                 {
+
+                    //---- configInfo ----
+                    configInfo.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            configInfoMouseClicked(e);
+                        }
+                    });
                     scrollPane1.setViewportView(configInfo);
                 }
-                contentPanel.add(scrollPane1, "cell 0 0,alignx left,growx 0");
+                contentPanel.add(scrollPane1, "cell 0 0");
             }
             dialogPane.add(contentPanel, BorderLayout.CENTER);
 
