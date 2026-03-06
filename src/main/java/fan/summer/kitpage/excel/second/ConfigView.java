@@ -4,13 +4,14 @@
 
 package fan.summer.kitpage.excel.second;
 
-import java.awt.event.*;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 
@@ -22,15 +23,17 @@ import java.util.List;
  * @author phoebej
  */
 public class ConfigView extends JDialog {
+    private String taskId;
 
     /**
      * Constructor - Creates the configuration view dialog
      *
      * @param panel Parent panel for dialog positioning
      */
-    public ConfigView(JPanel panel) {
+    public ConfigView(JPanel panel, String taskId) {
         super(SwingUtilities.getWindowAncestor(panel));
         initComponents();
+        this.taskId = taskId;
     }
 
     /**
@@ -45,7 +48,7 @@ public class ConfigView extends JDialog {
         String[] columns = {"FileName", "SheetName", "HeaderIndex", "SplitBYColumnIndex"};
         // Override isCellEditable to make columns beyond index 4 editable
         // First few columns (file info) remain non-editable for data integrity
-        DefaultTableModel defaultTableModel = new DefaultTableModel(columns, 0){
+        DefaultTableModel defaultTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column > 4;
@@ -75,14 +78,14 @@ public class ConfigView extends JDialog {
      */
     private void configInfoMouseClicked(MouseEvent e) {
         // Check for double-click (>=2 to handle any multi-click scenario)
-        if(e.getClickCount() >= 2){
+        if (e.getClickCount() >= 2) {
             // Convert click point to row index
             int row = configInfo.rowAtPoint(e.getPoint());
             if (row >= 0) {
                 // Select the clicked row for visual feedback
                 configInfo.setRowSelectionInterval(row, row);
                 // Open editor dialog for this row, passing table reference and row index
-                new ConfigEditorView(contentPanel, configInfo, row).setVisible(true);
+                new ConfigEditorView(contentPanel, this, configInfo, row, taskId).setVisible(true);
             }
         }
     }

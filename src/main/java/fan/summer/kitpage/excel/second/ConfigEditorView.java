@@ -4,25 +4,74 @@
 
 package fan.summer.kitpage.excel.second;
 
-import java.awt.*;
+import fan.summer.database.DatabaseInit;
+import fan.summer.database.entity.excel.ComplexSplitConfigEntity;
+import fan.summer.database.mapper.excel.ComplexSplitConfigMapper;
+import net.miginfocom.swing.MigLayout;
+import org.apache.ibatis.session.SqlSession;
+
 import javax.swing.*;
-import net.miginfocom.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
+ * Dialog for editing complex split configuration details.
+ * Allows users to modify header index and column index for Excel file splitting.
+ * 
  * @author summer
  */
 public class ConfigEditorView extends JDialog {
+    private String taskId;
     private JTable table;
-    private int row;
-    public ConfigEditorView(JPanel panel, JTable table, int row) {
+    private ConfigView configView;
+
+    /**
+     * Creates a new ConfigEditorView dialog.
+     * 
+     * @param panel the parent panel to determine the window ancestor
+     * @param configView the parent config view to update after save
+     * @param table the table containing the configuration data
+     * @param row the row index in the table to edit
+     * @param taskId the task ID for the configuration
+     */
+    public ConfigEditorView(JPanel panel, ConfigView configView, JTable table, int row, String taskId) {
         super(SwingUtilities.getWindowAncestor(panel));
-        this.table = table;
-        this.row = row;
         initComponents();
+        this.taskId = taskId;
+        this.table = table;
+        this.configView = configView;
         fileNameText.setText(table.getValueAt(row, 0).toString());
         sheetNameText.setText(table.getValueAt(row, 1).toString());
         headerIndexText.setText(table.getValueAt(row, 2).toString());
         columnIndex.setText(table.getValueAt(row, 3).toString());
+    }
+
+    /**
+     * Handles the update button action.
+     * Saves the modified configuration to database and refreshes the table view.
+     */
+    private void updateBtActionListener(ActionEvent e) {
+        try (SqlSession session = DatabaseInit.getSqlSession()) {
+            ComplexSplitConfigMapper mapper = session.getMapper(ComplexSplitConfigMapper.class);
+            ComplexSplitConfigEntity complexSplitConfigEntity = new ComplexSplitConfigEntity();
+            complexSplitConfigEntity.setTaskId(taskId);
+            complexSplitConfigEntity.setFieldName(fileNameText.getText());
+            complexSplitConfigEntity.setSheetName(sheetNameText.getText());
+            complexSplitConfigEntity.setHeaderIndex(Integer.parseInt(headerIndexText.getText()));
+            complexSplitConfigEntity.setColumnIndex(Integer.parseInt(columnIndex.getText()));
+            mapper.update(complexSplitConfigEntity);
+            session.commit();
+            // update table
+            List<ComplexSplitConfigEntity> complexSplitConfigEntities = mapper.selectAllByTaskId(taskId);
+            List<Object[]> rowDatas = new ArrayList<>();
+            for (ComplexSplitConfigEntity entity : complexSplitConfigEntities) {
+                rowDatas.add(new Object[]{entity.getFieldName(), entity.getSheetName(), entity.getHeaderIndex(), entity.getColumnIndex()});
+            }
+            configView.setTableModel(rowDatas);
+            this.setVisible(false);
+        }
     }
 
     private void initComponents() {
@@ -38,7 +87,7 @@ public class ConfigEditorView extends JDialog {
         label4 = new JLabel();
         columnIndex = new JTextField();
         buttonBar = new JPanel();
-        okButton = new JButton();
+        updateButton = new JButton();
 
         //======== this ========
         var contentPane = getContentPane();
@@ -100,9 +149,10 @@ public class ConfigEditorView extends JDialog {
                     // rows
                     null));
 
-                //---- okButton ----
-                okButton.setText("Update");
-                buttonBar.add(okButton, "cell 0 0");
+                //---- updateButton ----
+                updateButton.setText("Update");
+                updateButton.addActionListener(e -> updateBtActionListener(e));
+                buttonBar.add(updateButton, "cell 0 0");
             }
             dialogPane.add(buttonBar, BorderLayout.SOUTH);
         }
@@ -124,6 +174,6 @@ public class ConfigEditorView extends JDialog {
     private JLabel label4;
     private JTextField columnIndex;
     private JPanel buttonBar;
-    private JButton okButton;
+    private JButton updateButton;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }

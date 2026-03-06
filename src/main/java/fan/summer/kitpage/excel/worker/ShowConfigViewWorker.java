@@ -70,7 +70,7 @@ public class ShowConfigViewWorker extends SwingWorker<List<Object[]>, Void> {
         try {
             List<Object[]> objects = get();
             if (objects != null && !objects.isEmpty()) {
-                new ConfigView(jpanel).setTableModel(objects).setVisible(true);
+                new ConfigView(jpanel, taskId).setTableModel(objects).setVisible(true);
             } else {
                 JOptionPane.showConfirmDialog(
                         jpanel,

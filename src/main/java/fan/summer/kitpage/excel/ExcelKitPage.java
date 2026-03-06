@@ -217,7 +217,6 @@ public class ExcelKitPage implements KitPage {
      */
 
     private void splitWayPaneStateChanged(ChangeEvent e) {
-        // TODO add your code here
         int selectedIndex = splitWayPane.getSelectedIndex();
         if (selectedIndex == -1) return;
         if (selectedIndex == 1) {
@@ -235,7 +234,6 @@ public class ExcelKitPage implements KitPage {
     }
 
     private void setConfigBtActionListener(ActionEvent e) {
-        // TODO add your code here
         new SetComplexSplitConfigWorker(
                 excelKitPage, progressBar1, setConfigBt,
                 excelFilePath, splitTaskId,
@@ -244,14 +242,12 @@ public class ExcelKitPage implements KitPage {
     }
 
     private void deleteComplexSplitConfigBtAction(ActionEvent e) {
-        // TODO add your code here
         new ClearComplexSplitConfigWorker(
                 excelKitPage, splitTaskId, clearConfigBt, progressBar1
         ).execute();
     }
 
     private void viewConfigBtAction(ActionEvent e) {
-        // TODO add your code here
         new ShowConfigViewWorker(excelKitPage, splitTaskId).execute();
     }
 

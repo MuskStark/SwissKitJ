@@ -28,7 +28,6 @@ public class EmailKitPage implements KitPage {
     }
 
     private void massSentCheckBoxActionListener(ActionEvent e) {
-        // TODO add your code here
         if (massSentCheckBox.isSelected()) {
             setMassSentConfigBt.setEnabled(true);
             viewSentConfigBt.setEnabled(true);

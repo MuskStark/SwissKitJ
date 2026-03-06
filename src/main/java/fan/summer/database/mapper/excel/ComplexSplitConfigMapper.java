@@ -20,6 +20,8 @@ public interface ComplexSplitConfigMapper {
      */
     void insert(ComplexSplitConfigEntity complexSplitConfigEntity);
 
+    void update(ComplexSplitConfigEntity complexSplitConfigEntity);
+
     /**
      * Deletes all configuration records for a given task ID.
      *

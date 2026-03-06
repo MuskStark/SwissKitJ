@@ -69,8 +69,9 @@ new FormModel {
 				} ) {
 					name: "buttonBar"
 					add( new FormComponent( "javax.swing.JButton" ) {
-						name: "okButton"
+						name: "updateButton"
 						"text": "Update"
+						addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "updateBtActionListener", true ) )
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 						"value": "cell 0 0"
 					} )
