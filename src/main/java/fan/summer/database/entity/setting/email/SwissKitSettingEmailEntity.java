@@ -1,4 +1,4 @@
-package fan.summer.database.entity.email;
+package fan.summer.database.entity.setting.email;
 
 import lombok.Data;
 

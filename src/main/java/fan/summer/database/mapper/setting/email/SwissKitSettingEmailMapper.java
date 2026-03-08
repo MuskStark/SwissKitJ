@@ -1,6 +1,6 @@
-package fan.summer.database.mapper.email;
+package fan.summer.database.mapper.setting.email;
 
-import fan.summer.database.entity.email.SwissKitSettingEmailEntity;
+import fan.summer.database.entity.setting.email.SwissKitSettingEmailEntity;
 
 /**
  * Mapper interface for SwissKitSettingEmailEntity CRUD operations.

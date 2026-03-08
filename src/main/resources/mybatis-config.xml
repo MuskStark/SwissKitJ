@@ -24,8 +24,9 @@
     </environments>
 
     <mappers>
-        <mapper resource="mapper/SwissKitSettingEmailMapper.xml"/>
+        <mapper resource="mapper/setting/email/SwissKitSettingEmailMapper.xml"/>
         <mapper resource="mapper/excel/ComplexSplitConfigMapper.xml"/>
+        <mapper resource="mapper/setting/email/EmailAddressBookMapper.xml"/>
     </mappers>
 
 </configuration>

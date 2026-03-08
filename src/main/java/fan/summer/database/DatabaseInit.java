@@ -28,6 +28,7 @@ public class DatabaseInit {
                 .toString()
                 .replace("\\", "/");
         DB_URL = "jdbc:h2:file:" + dbPath
+                + ";AUTO_SERVER=TRUE"
                 + ";INIT=CREATE SCHEMA IF NOT EXISTS PUBLIC\\;SET SCHEMA PUBLIC";
     }
 
@@ -78,12 +79,21 @@ public class DatabaseInit {
                         "header_index INTEGER NOT NULL," +
                         "column_index INTEGER NOT NULL" +
                         ")";
+        String createAddressBookTable =
+                "CREATE TABLE IF NOT EXISTS email_address_book (" +
+                        "id INTEGER PRIMARY KEY AUTO_INCREMENT," +
+                        "email_address VARCHAR(255) NOT NULL," +
+                        "nickname VARCHAR(255)," +
+                        "tags JSON" +
+                        ")";
+
 
         try (Connection conn = DriverManager.getConnection(DB_URL);
              Statement stmt = conn.createStatement()) {
 
             stmt.execute(createEmailTable);
             stmt.execute(createExcelTable);
+            stmt.execute(createAddressBookTable);
             logger.info("Database tables verified/created successfully");
 
         } catch (Exception e) {

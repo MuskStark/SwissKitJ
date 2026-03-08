@@ -6,23 +6,72 @@ package fan.summer.kitpage.setting;
 
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
+import fan.summer.database.entity.setting.email.EmailAddressBookEntity;
+import fan.summer.kitpage.setting.second.EmailAddressBookView;
+import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoCallBack;
+import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoWorker;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
+ * Settings page for application configuration.
+ * Includes email server settings and address book management.
+ *
  * @author phoebej
  */
 @SwissKitPage(menuName = "Setting", menuTooltip = "Setting", order = 99999)
 public class SettingKitPage implements KitPage {
+    /** Cached email address book data */
+    private List<EmailAddressBookEntity> dataBaseInfo;
+
     public SettingKitPage() {
         initComponents();
     }
 
-
+    /**
+     * Returns the main panel for this settings page.
+     *
+     * @return the settings JPanel
+     */
     public JPanel getPanel() {
         return settingPanle;
+    }
+
+    /**
+     * Opens the email address book view dialog.
+     * Queries all email addresses from database and displays them in a table.
+     */
+    private void openAddressBookBtActionListener(ActionEvent e) {
+        new QueryAllEmailInfoWorker(new QueryAllEmailInfoCallBack() {
+            @Override
+            public void onSuccess(List<EmailAddressBookEntity> emailAddressBookEntities) {
+                dataBaseInfo = emailAddressBookEntities;
+                if (dataBaseInfo != null && !dataBaseInfo.isEmpty()) {
+                    List<Object[]> rowData = new ArrayList<>();
+                    for (EmailAddressBookEntity info : dataBaseInfo) {
+                        rowData.add(new Object[]{info.getEmailAddress(), info.getNickname(), info.getTags()});
+                    }
+                    new EmailAddressBookView(settingPanle).initTable(rowData).setVisible(true);
+                } else {
+                    new EmailAddressBookView(settingPanle).setVisible(true);
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                JOptionPane.showMessageDialog(settingTable,
+                        "Can Not Find Any Email Address!",
+                        "Warning",
+                        JOptionPane.WARNING_MESSAGE);
+            }
+        }).execute();
+
+
     }
 
     private void initComponents() {
@@ -36,10 +85,15 @@ public class SettingKitPage implements KitPage {
         textField1 = new JTextField();
         label3 = new JLabel();
         textField2 = new JTextField();
+        label4 = new JLabel();
+        textField3 = new JTextField();
+        label5 = new JLabel();
+        textField4 = new JTextField();
         checkBox1 = new JCheckBox();
         checkBox2 = new JCheckBox();
         button2 = new JButton();
         button1 = new JButton();
+        button3 = new JButton();
 
         //======== settingPanle ========
         {
@@ -48,7 +102,7 @@ public class SettingKitPage implements KitPage {
                 "hidemode 3",
                 // columns
                 "[fill]" +
-                "[517,fill]",
+                "[592,fill]",
                 // rows
                 "[]" +
                 "[]" +
@@ -64,8 +118,12 @@ public class SettingKitPage implements KitPage {
                         // columns
                         "[78,fill]" +
                         "[fill]" +
-                        "[100,fill]",
+                        "[431,fill]",
                         // rows
+                        "[]" +
+                        "[]" +
+                        "[]" +
+                        "[]" +
                         "[]" +
                         "[]" +
                         "[]" +
@@ -92,21 +150,36 @@ public class SettingKitPage implements KitPage {
                     panel1.add(label3, "cell 0 2");
                     panel1.add(textField2, "cell 1 2 2 1");
 
+                    //---- label4 ----
+                    label4.setText("UserName");
+                    panel1.add(label4, "cell 0 3");
+                    panel1.add(textField3, "cell 1 3 2 1");
+
+                    //---- label5 ----
+                    label5.setText("PassWord");
+                    panel1.add(label5, "cell 0 4");
+                    panel1.add(textField4, "cell 1 4 2 1");
+
                     //---- checkBox1 ----
                     checkBox1.setText("TSL");
-                    panel1.add(checkBox1, "cell 0 3");
+                    panel1.add(checkBox1, "cell 0 5");
 
                     //---- checkBox2 ----
                     checkBox2.setText("SSL");
-                    panel1.add(checkBox2, "cell 1 3");
+                    panel1.add(checkBox2, "cell 1 5");
 
                     //---- button2 ----
                     button2.setText("SentTestEmail");
-                    panel1.add(button2, "cell 0 5 3 1");
+                    panel1.add(button2, "cell 0 7 3 1");
 
                     //---- button1 ----
                     button1.setText("Save");
-                    panel1.add(button1, "cell 0 6 3 1");
+                    panel1.add(button1, "cell 0 8 3 1");
+
+                    //---- button3 ----
+                    button3.setText("OpenAddressBook");
+                    button3.addActionListener(e -> openAddressBookBtActionListener(e));
+                    panel1.add(button3, "cell 0 11 3 1");
                 }
                 settingTable.addTab("Email", panel1);
             }
@@ -125,9 +198,14 @@ public class SettingKitPage implements KitPage {
     private JTextField textField1;
     private JLabel label3;
     private JTextField textField2;
+    private JLabel label4;
+    private JTextField textField3;
+    private JLabel label5;
+    private JTextField textField4;
     private JCheckBox checkBox1;
     private JCheckBox checkBox2;
     private JButton button2;
     private JButton button1;
+    private JButton button3;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }
