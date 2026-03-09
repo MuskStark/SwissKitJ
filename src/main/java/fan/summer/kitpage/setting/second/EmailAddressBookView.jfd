@@ -33,6 +33,7 @@ new FormModel {
 				add( new FormComponent( "javax.swing.JButton" ) {
 					name: "modifyTagsBt"
 					"text": "ModifyTags"
+					addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "modifyTagsBtAction", true ) )
 				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 					"value": "cell 0 1 2 1"
 				} )

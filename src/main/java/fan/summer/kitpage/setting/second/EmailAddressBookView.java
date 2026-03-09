@@ -51,6 +51,10 @@ public class EmailAddressBookView extends JDialog {
         this.setVisible(false);
     }
 
+    private void modifyTagsBtAction(ActionEvent e) {
+        new EmailTagsView(pannel).setVisible(true);
+    }
+
 
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
@@ -100,6 +104,7 @@ public class EmailAddressBookView extends JDialog {
 
             //---- modifyTagsBt ----
             modifyTagsBt.setText("ModifyTags");
+            modifyTagsBt.addActionListener(e -> modifyTagsBtAction(e));
             panel1.add(modifyTagsBt, "cell 0 1 2 1");
 
             //---- closeBt ----

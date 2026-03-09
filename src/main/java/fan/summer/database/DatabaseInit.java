@@ -60,41 +60,16 @@ public class DatabaseInit {
             throw new RuntimeException("H2 driver not found", e);
         }
 
-        String createEmailTable =
-                "CREATE TABLE IF NOT EXISTS swiss_kit_setting_email (" +
-                        "id INTEGER PRIMARY KEY AUTO_INCREMENT," +
-                        "email VARCHAR(255) NOT NULL," +
-                        "password VARCHAR(255) NOT NULL," +
-                        "smtp_address VARCHAR(255) NOT NULL," +
-                        "smtp_port INTEGER NOT NULL," +
-                        "need_tls INTEGER NOT NULL DEFAULT 0," +
-                        "need_ssl INTEGER NOT NULL DEFAULT 0" +
-                        ")";
-        String createExcelTable =
-                "CREATE TABLE IF NOT EXISTS complex_split_config (" +
-                        "id INTEGER PRIMARY KEY AUTO_INCREMENT," +
-                        "task_id VARCHAR(255) NOT NULL," +
-                        "field_name VARCHAR(255) NOT NULL," +
-                        "sheet_name VARCHAR(255) NOT NULL," +
-                        "header_index INTEGER NOT NULL," +
-                        "column_index INTEGER NOT NULL" +
-                        ")";
-        String createAddressBookTable =
-                "CREATE TABLE IF NOT EXISTS email_address_book (" +
-                        "id INTEGER PRIMARY KEY AUTO_INCREMENT," +
-                        "email_address VARCHAR(255) NOT NULL," +
-                        "nickname VARCHAR(255)," +
-                        "tags JSON" +
-                        ")";
-
+        // Get the path to init.sql
+        String initSqlPath = DatabaseInit.class.getClassLoader()
+                .getResource("init.sql").getPath();
 
         try (Connection conn = DriverManager.getConnection(DB_URL);
              Statement stmt = conn.createStatement()) {
 
-            stmt.execute(createEmailTable);
-            stmt.execute(createExcelTable);
-            stmt.execute(createAddressBookTable);
-            logger.info("Database tables verified/created successfully");
+            // Use H2 RUNSCRIPT command to execute SQL file
+            stmt.execute("RUNSCRIPT FROM '" + initSqlPath + "'");
+            logger.info("Database tables verified/created successfully from init.sql");
 
         } catch (Exception e) {
             logger.error("Failed to create database tables", e);
