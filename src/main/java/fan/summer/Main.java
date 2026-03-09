@@ -4,6 +4,8 @@ import fan.summer.database.DatabaseInit;
 import fan.summer.plugin.PluginDiagnostic;
 import fan.summer.ui.StartLoadingPage;
 import fan.summer.ui.home.HomePage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 
@@ -17,8 +19,15 @@ import javax.swing.*;
  */
 public class Main {
 
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) {
+        // Initialize Log4j first by accessing logger
+        logger.info("SwissKitJ starting...");
+
+        // Run plugin diagnostic for debugging
         PluginDiagnostic.run();
+
         SwingUtilities.invokeLater(() -> {
             JWindow splash = new StartLoadingPage().getWindow();
             splash.setVisible(true);
