@@ -1,6 +1,7 @@
 package fan.summer;
 
 import fan.summer.database.DatabaseInit;
+import fan.summer.plugin.PluginDiagnostic;
 import fan.summer.ui.StartLoadingPage;
 import fan.summer.ui.home.HomePage;
 
@@ -17,6 +18,7 @@ import javax.swing.*;
 public class Main {
 
     public static void main(String[] args) {
+        PluginDiagnostic.run();
         SwingUtilities.invokeLater(() -> {
             JWindow splash = new StartLoadingPage().getWindow();
             splash.setVisible(true);

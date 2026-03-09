@@ -2,6 +2,7 @@ package fan.summer.scaner;
 
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
+import fan.summer.plugin.PluginLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +47,9 @@ public class SwissKitPageScaner {
             logger.info("Registered KitPage: {} (order: {})",
                     annotation.menuName(), annotation.order());
         }
+        // Load plugin
+        List<KitPage> pluginPages = PluginLoader.loadFromPluginDir();
+        pages.addAll(pluginPages);
 
         // Sort by order
         pages.sort(Comparator.comparingInt(

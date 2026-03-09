@@ -10,11 +10,17 @@ import fan.summer.database.entity.setting.email.EmailAddressBookEntity;
 import fan.summer.kitpage.setting.second.EmailAddressBookView;
 import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoCallBack;
 import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoWorker;
+import fan.summer.plugin.PluginLoader;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,11 +80,51 @@ public class SettingKitPage implements KitPage {
 
     }
 
+    private void choicePluginBtAction(ActionEvent e) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setDialogTitle("Select Plugin Jar");
+        int result = fileChooser.showOpenDialog(settingTable);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            String fileName = selectedFile.getName().toLowerCase();
+
+            if (!fileName.endsWith(".jar")) {
+                JOptionPane.showMessageDialog(settingTable,
+                        "Please select a valid JAR file!",
+                        "Invalid File Type",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            pluginPath.setText(selectedFile.getAbsolutePath());
+        }
+    }
+
+    private void pluginUploadBtAction(ActionEvent e) {
+        File pluginDir = Path.of(PluginLoader.PLUGIN_DIR).toFile();
+        pluginDir.mkdirs();
+        try {
+            Path target = pluginDir.toPath().resolve(Path.of(pluginPath.getText()).toFile().getName());
+            Files.copy(Path.of(pluginPath.getText()), target, StandardCopyOption.REPLACE_EXISTING);
+            JOptionPane.showMessageDialog(settingTable,
+                    "✅ Installed:" + Path.of(pluginPath.getText()).toFile().getName() + "（Need ReOpen SwissKitJ）",
+                    "Plugin Install Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(settingTable,
+                    "Error:" + ex.getMessage(),
+                    "Plugin Install Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
         settingPanle = new JPanel();
         settingTable = new JTabbedPane();
-        panel1 = new JPanel();
+        email = new JPanel();
         label1 = new JLabel();
         comboBox1 = new JComboBox();
         label2 = new JLabel();
@@ -94,6 +140,10 @@ public class SettingKitPage implements KitPage {
         button2 = new JButton();
         button1 = new JButton();
         button3 = new JButton();
+        plugin = new JPanel();
+        choicePluginBt = new JButton();
+        pluginPath = new JTextField();
+        pluginUploadBt = new JButton();
 
         //======== settingPanle ========
         {
@@ -111,9 +161,9 @@ public class SettingKitPage implements KitPage {
             //======== settingTable ========
             {
 
-                //======== panel1 ========
+                //======== email ========
                 {
-                    panel1.setLayout(new MigLayout(
+                    email.setLayout(new MigLayout(
                         "hidemode 3",
                         // columns
                         "[78,fill]" +
@@ -137,51 +187,79 @@ public class SettingKitPage implements KitPage {
 
                     //---- label1 ----
                     label1.setText("Protocol");
-                    panel1.add(label1, "cell 0 0");
-                    panel1.add(comboBox1, "cell 1 0");
+                    email.add(label1, "cell 0 0");
+                    email.add(comboBox1, "cell 1 0");
 
                     //---- label2 ----
                     label2.setText("ServerUrl");
-                    panel1.add(label2, "cell 0 1");
-                    panel1.add(textField1, "cell 1 1 2 1");
+                    email.add(label2, "cell 0 1");
+                    email.add(textField1, "cell 1 1 2 1");
 
                     //---- label3 ----
                     label3.setText("ServerPort");
-                    panel1.add(label3, "cell 0 2");
-                    panel1.add(textField2, "cell 1 2 2 1");
+                    email.add(label3, "cell 0 2");
+                    email.add(textField2, "cell 1 2 2 1");
 
                     //---- label4 ----
                     label4.setText("UserName");
-                    panel1.add(label4, "cell 0 3");
-                    panel1.add(textField3, "cell 1 3 2 1");
+                    email.add(label4, "cell 0 3");
+                    email.add(textField3, "cell 1 3 2 1");
 
                     //---- label5 ----
                     label5.setText("PassWord");
-                    panel1.add(label5, "cell 0 4");
-                    panel1.add(textField4, "cell 1 4 2 1");
+                    email.add(label5, "cell 0 4");
+                    email.add(textField4, "cell 1 4 2 1");
 
                     //---- checkBox1 ----
                     checkBox1.setText("TSL");
-                    panel1.add(checkBox1, "cell 0 5");
+                    email.add(checkBox1, "cell 0 5");
 
                     //---- checkBox2 ----
                     checkBox2.setText("SSL");
-                    panel1.add(checkBox2, "cell 1 5");
+                    email.add(checkBox2, "cell 1 5");
 
                     //---- button2 ----
                     button2.setText("SentTestEmail");
-                    panel1.add(button2, "cell 0 7 3 1");
+                    email.add(button2, "cell 0 7 3 1");
 
                     //---- button1 ----
                     button1.setText("Save");
-                    panel1.add(button1, "cell 0 8 3 1");
+                    email.add(button1, "cell 0 8 3 1");
 
                     //---- button3 ----
                     button3.setText("OpenAddressBook");
                     button3.addActionListener(e -> openAddressBookBtActionListener(e));
-                    panel1.add(button3, "cell 0 11 3 1");
+                    email.add(button3, "cell 0 11 3 1");
                 }
-                settingTable.addTab("Email", panel1);
+                settingTable.addTab("Email", email);
+
+                //======== plugin ========
+                {
+                    plugin.setLayout(new MigLayout(
+                        "hidemode 3",
+                        // columns
+                        "[fill]" +
+                        "[465,fill]",
+                        // rows
+                        "[]" +
+                        "[]" +
+                        "[]"));
+
+                    //---- choicePluginBt ----
+                    choicePluginBt.setText("ChoicePlugin");
+                    choicePluginBt.addActionListener(e -> choicePluginBtAction(e));
+                    plugin.add(choicePluginBt, "cell 0 0");
+
+                    //---- pluginPath ----
+                    pluginPath.setEditable(false);
+                    plugin.add(pluginPath, "cell 1 0");
+
+                    //---- pluginUploadBt ----
+                    pluginUploadBt.setText("Upload");
+                    pluginUploadBt.addActionListener(e -> pluginUploadBtAction(e));
+                    plugin.add(pluginUploadBt, "cell 0 2 2 1");
+                }
+                settingTable.addTab("Plugin", plugin);
             }
             settingPanle.add(settingTable, "cell 0 0 2 3,aligny top,growy 0");
         }
@@ -191,7 +269,7 @@ public class SettingKitPage implements KitPage {
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     private JPanel settingPanle;
     private JTabbedPane settingTable;
-    private JPanel panel1;
+    private JPanel email;
     private JLabel label1;
     private JComboBox comboBox1;
     private JLabel label2;
@@ -207,5 +285,9 @@ public class SettingKitPage implements KitPage {
     private JButton button2;
     private JButton button1;
     private JButton button3;
+    private JPanel plugin;
+    private JButton choicePluginBt;
+    private JTextField pluginPath;
+    private JButton pluginUploadBt;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }

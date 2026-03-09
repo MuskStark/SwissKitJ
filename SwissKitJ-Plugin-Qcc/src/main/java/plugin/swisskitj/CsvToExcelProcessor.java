@@ -1,12 +1,12 @@
-package fan.summer.utils;
+package plugin.swisskitj;
+
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.List;
 /**
  * Qichacha "Actual Controller" batch query CSV to Excel processor.
  *
@@ -15,27 +15,18 @@ import java.util.*;
  */
 public class CsvToExcelProcessor {
 
-    // ── Output Headers ──────────────────────────────────────────────────────────
+    // ── 输出表头 ──────────────────────────────────────────────────────────
     private static final String[] HEADERS = {
-            "Company Name", "Control Type", "Sequence",
-            "Controller Name/Organization",
-            "Direct Shareholding Ratio", "Total Shareholding Ratio", "Voting Rights Ratio",
-            "Control Chain", "Judgment Basis"
+            "公司名称", "控制类型", "序号",
+            "控制人姓名/机构",
+            "直接持股比例", "总持股比例", "表决权比例",
+            "控制链", "判定依据"
     };
 
-    // ── Control Type Constants ──────────────────────────────────────────────────────
-    private static final String TYPE_ACTUAL    = "Actual Controller";
-    private static final String TYPE_SUSPECTED = "Suspected Actual Controller";
-    private static final String TYPE_CONCERT   = "Concert Party";
-
-    // ── Entry Point ──────────────────────────────────────────────────────────────
-    public static void main(String[] args) throws Exception {
-        String inputCsv   = args.length >= 1 ? args[0] : "/Users/summer/Develop/Test/【企查查】批量查询-实际控制人.csv";
-        String outputXlsx = args.length >= 2 ? args[1] : "./output.xlsx";
-
-        process(inputCsv, outputXlsx);
-        System.out.println("Processing complete, output file: " + outputXlsx);
-    }
+    // ── 控制类型常量 ──────────────────────────────────────────────────────
+    private static final String TYPE_ACTUAL    = "实际控制人";
+    private static final String TYPE_SUSPECTED = "疑似实际控制人";
+    private static final String TYPE_CONCERT   = "一致行动人";
 
     // ── Main Process ────────────────────────────────────────────────────────────
     public static void process(String inputCsv, String outputXlsx) throws Exception {
@@ -44,7 +35,7 @@ public class CsvToExcelProcessor {
 
         System.out.printf("Parsed %d records, involving %d companies%n",
                 records.size(),
-                records.stream().map(r -> r.company).distinct().count());
+                records.stream().map(r -> r.getCompany()).distinct().count());
 
         writeExcel(records, outputXlsx);
     }
@@ -173,15 +164,15 @@ public class CsvToExcelProcessor {
             // ④ Data row
             if (isDataRow(row) && currentCompany != null && currentSection != null) {
                 DataRow dr = new DataRow();
-                dr.company      = currentCompany;
-                dr.sectionType  = currentSection;
-                dr.seq          = g(row, 0);
-                dr.name         = g(row, colName);
-                dr.directPct    = g(row, colDirect);
-                dr.totalPct     = g(row, colTotal);
-                dr.votePct      = g(row, colVote);
-                dr.controlChain = g(row, colChain);
-                dr.basis        = g(row, colBasis);
+                dr.setCompany(currentCompany);
+                dr.setSectionType(currentSection);
+                dr.setSeq(g(row, 0));
+                dr.setName(g(row, colName));
+                dr.setDirectPct(g(row, colDirect));
+                dr.setTotalPct(g(row, colTotal));
+                dr.setVotePct(g(row, colVote));
+                dr.setControlChain(g(row, colChain));
+                dr.setBasis(g(row, colBasis));
                 records.add(dr);
             }
         }
@@ -320,8 +311,8 @@ public class CsvToExcelProcessor {
         int ri = 1;
         for (DataRow dr : records) {
             XSSFColor rowColor;
-            if (dr.sectionType.equals(TYPE_SUSPECTED)) rowColor = colorSuspected;
-            else if (dr.sectionType.equals(TYPE_CONCERT)) rowColor = colorConcert;
+            if (dr.getSectionType().equals(TYPE_SUSPECTED)) rowColor = colorSuspected;
+            else if (dr.getSectionType().equals(TYPE_CONCERT)) rowColor = colorConcert;
             else rowColor = colorActual;
 
             // Base style
@@ -345,9 +336,9 @@ public class CsvToExcelProcessor {
             row.setHeightInPoints(18);
 
             String[] vals = {
-                    dr.company, dr.sectionType, dr.seq, dr.name,
-                    dr.directPct, dr.totalPct, dr.votePct,
-                    dr.controlChain, dr.basis
+                    dr.getCompany(), dr.getSectionType(), dr.getSeq(), dr.getName(),
+                    dr.getDirectPct(), dr.getTotalPct(), dr.getVotePct(),
+                    dr.getControlChain(), dr.getBasis()
             };
 
             for (int ci = 0; ci < vals.length; ci++) {
@@ -389,22 +380,5 @@ public class CsvToExcelProcessor {
         style.setBottomBorderColor(gray);
         style.setLeftBorderColor(gray);
         style.setRightBorderColor(gray);
-    }
 
-    // ── Data Model ─────────────────────────────────────────────────────────
-
-    /**
-     * Data model representing a single controller record.
-     */
-    static class DataRow {
-        String company      = "";
-        String sectionType  = "";
-        String seq          = "";
-        String name         = "";   // Controller name/organization
-        String directPct    = "";
-        String totalPct     = "";
-        String votePct      = "";
-        String controlChain = "";
-        String basis        = "";   // Judgment basis (for suspected controller)
-    }
-}
+}}
