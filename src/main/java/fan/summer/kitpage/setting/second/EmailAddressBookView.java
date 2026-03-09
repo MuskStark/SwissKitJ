@@ -47,6 +47,10 @@ public class EmailAddressBookView extends JDialog {
 
     }
 
+    private void closeBtAction(ActionEvent e) {
+        this.setVisible(false);
+    }
+
 
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
@@ -54,7 +58,8 @@ public class EmailAddressBookView extends JDialog {
         addressInfoTable = new JTable();
         panel1 = new JPanel();
         addAddressBt = new JButton();
-        button2 = new JButton();
+        modifyTagsBt = new JButton();
+        closeBt = new JButton();
 
         //======== this ========
         var contentPane = getContentPane();
@@ -85,6 +90,7 @@ public class EmailAddressBookView extends JDialog {
                 "[]" +
                 "[]" +
                 "[]" +
+                "[]" +
                 "[]"));
 
             //---- addAddressBt ----
@@ -92,9 +98,14 @@ public class EmailAddressBookView extends JDialog {
             addAddressBt.addActionListener(e -> addAddressBtAction(e));
             panel1.add(addAddressBt, "cell 0 0 2 1");
 
-            //---- button2 ----
-            button2.setText("Close");
-            panel1.add(button2, "cell 0 1 2 1");
+            //---- modifyTagsBt ----
+            modifyTagsBt.setText("ModifyTags");
+            panel1.add(modifyTagsBt, "cell 0 1 2 1");
+
+            //---- closeBt ----
+            closeBt.setText("Close");
+            closeBt.addActionListener(e -> closeBtAction(e));
+            panel1.add(closeBt, "cell 0 2 2 1");
         }
         contentPane.add(panel1, "cell 0 1 2 2");
         pack();
@@ -107,6 +118,7 @@ public class EmailAddressBookView extends JDialog {
     private JTable addressInfoTable;
     private JPanel panel1;
     private JButton addAddressBt;
-    private JButton button2;
+    private JButton modifyTagsBt;
+    private JButton closeBt;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }

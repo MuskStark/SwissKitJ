@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatIntelliJLaf;
 import fan.summer.api.KitPage;
 import fan.summer.scaner.SwissKitPageScaner;
 import fan.summer.ui.sidebar.SideMenuBar;
+import fan.summer.utils.AppInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ public class HomePage {
         UIManager.put("ProgressBar.selectionForeground", Color.WHITE);
         UIManager.put("ProgressBar.selectionBackground", Color.GRAY);
 
-        JFrame frame = new JFrame("Swiss Kit");
+        JFrame frame = new JFrame(AppInfo.getFullName());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
 
