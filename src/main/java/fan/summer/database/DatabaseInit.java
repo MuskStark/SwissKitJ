@@ -60,17 +60,25 @@ public class DatabaseInit {
             throw new RuntimeException("H2 driver not found", e);
         }
 
-        // Get the path to init.sql
-        String initSqlPath = DatabaseInit.class.getClassLoader()
-                .getResource("init.sql").getPath();
+        // Read init.sql from classpath as stream (works inside JAR)
+        try (InputStream initSqlStream = DatabaseInit.class.getClassLoader()
+                .getResourceAsStream("init.sql")) {
 
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-             Statement stmt = conn.createStatement()) {
+            if (initSqlStream == null) {
+                throw new RuntimeException("Cannot find init.sql in classpath");
+            }
 
-            // Use H2 RUNSCRIPT command to execute SQL file
-            stmt.execute("RUNSCRIPT FROM '" + initSqlPath + "'");
-            logger.info("Database tables verified/created successfully from init.sql");
+            // Read the SQL content
+            String initSqlContent = new String(initSqlStream.readAllBytes());
 
+            try (Connection conn = DriverManager.getConnection(DB_URL);
+                 Statement stmt = conn.createStatement()) {
+
+                // Execute SQL statements directly
+                stmt.execute(initSqlContent);
+                logger.info("Database tables verified/created successfully from init.sql");
+
+            }
         } catch (Exception e) {
             logger.error("Failed to create database tables", e);
             throw new RuntimeException("Failed to create database tables", e);

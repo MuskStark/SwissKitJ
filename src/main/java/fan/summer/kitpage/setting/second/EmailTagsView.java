@@ -4,9 +4,11 @@
 
 package fan.summer.kitpage.setting.second;
 
+import java.awt.event.*;
 import fan.summer.database.DatabaseInit;
 import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.setting.email.EmailTagMapper;
+import fan.summer.kitpage.excel.second.ConfigEditorView;
 import fan.summer.ui.components.GradientProgressBar;
 import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
@@ -23,6 +25,7 @@ import java.util.concurrent.ExecutionException;
  * @author phoebej
  */
 public class EmailTagsView extends JDialog {
+    private Long needUpdateId;
     public EmailTagsView(JPanel panel) {
         super(SwingUtilities.getWindowAncestor(panel));
         ;
@@ -75,51 +78,77 @@ public class EmailTagsView extends JDialog {
     }
 
     private void addTagBtAction(ActionEvent e) {
-        new SwingWorker<Void, Void>() {
-            private Exception error;
+        if(addTagBt.getText().equals("AddNewTag")) {
+            new SwingWorker<Void, Void>() {
+                private Exception error;
 
-            @Override
-            protected Void doInBackground() throws Exception {
-                SwingUtilities.invokeLater(() -> {
-                    progressBar1.setValue(0);
-                    progressBar1.setStringPainted(true);
-                    progressBar1.setString("Please wait...");
-                    progressBar1.setVisible(true);
-                });
-                if (tagField.getText() != null && !tagField.getText().isEmpty()) {
-                    try (SqlSession session = DatabaseInit.getSqlSession()) {
-                        EmailTagMapper mapper = session.getMapper(EmailTagMapper.class);
-                        EmailTagEntity emailTagEntity = new EmailTagEntity();
-                        emailTagEntity.setTag(tagField.getText());
-                        mapper.insert(emailTagEntity);
-                        session.commit();
-                    } catch (Exception ex) {
-                        error = ex;
-                        throw ex;
+                @Override
+                protected Void doInBackground() throws Exception {
+                    SwingUtilities.invokeLater(() -> {
+                        progressBar1.setValue(0);
+                        progressBar1.setStringPainted(true);
+                        progressBar1.setString("Please wait...");
+                        progressBar1.setVisible(true);
+                    });
+                    if (tagField.getText() != null && !tagField.getText().isEmpty()) {
+                        try (SqlSession session = DatabaseInit.getSqlSession()) {
+                            EmailTagMapper mapper = session.getMapper(EmailTagMapper.class);
+                            EmailTagEntity emailTagEntity = new EmailTagEntity();
+                            emailTagEntity.setTag(tagField.getText());
+                            mapper.insert(emailTagEntity);
+                            session.commit();
+                        } catch (Exception ex) {
+                            error = ex;
+                            throw ex;
+                        }
+                    } else {
+                        throw new RuntimeException("Tag field is empty!");
                     }
-                } else {
-                    throw new RuntimeException("Tag field is empty!");
+
+                    return null;
                 }
 
-                return null;
-            }
+                @Override
+                protected void done() {
+                    try {
+                        get();
+                        progressBar1.setValue(100);
+                        progressBar1.setString("Done");
+                        openTagView();
+                    } catch (Exception ex) {
+                        progressBar1.setString("Error: " + ex.getMessage());
+                        JOptionPane.showMessageDialog(EmailTagsView.this,
+                                "Failed to add tag: " + ex.getMessage(),
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }.execute();
+        }else if(addTagBt.getText().equals("Update")){
+            // Update Tags
+            new SwingWorker<Void, Void>() {
+                @Override
+                protected Void doInBackground() throws Exception {
+                   try (SqlSession session = DatabaseInit.getSqlSession()) {
+                       EmailTagMapper mapper = session.getMapper(EmailTagMapper.class);
+                       EmailTagEntity emailTagEntity = new EmailTagEntity();
+                       emailTagEntity.setId(needUpdateId);
+                       emailTagEntity.setTag(tagField.getText());
+                       mapper.update(emailTagEntity);
+                       session.commit();
+                       needUpdateId = null;
+                   }
+                   return null;
+                }
 
-            @Override
-            protected void done() {
-                try {
-                    get();
-                    progressBar1.setValue(100);
-                    progressBar1.setString("Done");
+                @Override
+                protected void done() {
                     openTagView();
-                } catch (Exception ex) {
-                    progressBar1.setString("Error: " + ex.getMessage());
-                    JOptionPane.showMessageDialog(EmailTagsView.this,
-                            "Failed to add tag: " + ex.getMessage(),
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
+                    tagField.setText("");
+                    addTagBt.setText("AddNewTag");
                 }
-            }
-        }.execute();
+            }.execute();
+        }
     }
 
     private void closeBtAction(ActionEvent e) {
@@ -128,6 +157,24 @@ public class EmailTagsView extends JDialog {
 
     private void createUIComponents() {
         progressBar1 = new GradientProgressBar();
+    }
+
+    private void tagTableMouseClicked(MouseEvent e) {
+        if (e.getClickCount() >= 2) {
+            // Convert click point to row index
+            int row = tagTable.rowAtPoint(e.getPoint());
+            if (row >= 0) {
+                // Select the clicked row for visual feedback
+                tagTable.setRowSelectionInterval(row, row);
+                // Open editor dialog for this row, passing table reference and row index
+                needUpdateId = Long.parseLong(tagTable.getValueAt(row, 0).toString());
+                Object tag = tagTable.getValueAt(row, 1);
+                if(needUpdateId != null && tag != null){
+                    addTagBt.setText("Update");
+                    tagField.setText(tag.toString());
+                }
+            }
+        }
     }
 
     private void initComponents() {
@@ -169,6 +216,14 @@ public class EmailTagsView extends JDialog {
 
                 //======== scrollPane1 ========
                 {
+
+                    //---- tagTable ----
+                    tagTable.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            tagTableMouseClicked(e);
+                        }
+                    });
                     scrollPane1.setViewportView(tagTable);
                 }
                 contentPanel.add(scrollPane1, "cell 1 0 3 1");
@@ -179,7 +234,7 @@ public class EmailTagsView extends JDialog {
                 contentPanel.add(tagField, "cell 2 1");
 
                 //---- addTagBt ----
-                addTagBt.setText("AddNewTAg");
+                addTagBt.setText("AddNewTag");
                 addTagBt.addActionListener(e -> addTagBtAction(e));
                 contentPanel.add(addTagBt, "cell 3 1");
                 contentPanel.add(progressBar1, "cell 0 2 4 1");

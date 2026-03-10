@@ -17,6 +17,7 @@ new FormModel {
 						name: "scrollPane1"
 						add( new FormComponent( "javax.swing.JTable" ) {
 							name: "tagTable"
+							addEvent( new FormEvent( "java.awt.event.MouseListener", "mouseClicked", "tagTableMouseClicked", true ) )
 						} )
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 						"value": "cell 1 0 3 1"
@@ -34,7 +35,7 @@ new FormModel {
 					} )
 					add( new FormComponent( "javax.swing.JButton" ) {
 						name: "addTagBt"
-						"text": "AddNewTAg"
+						"text": "AddNewTag"
 						addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "addTagBtAction", true ) )
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 						"value": "cell 3 1"
