@@ -12,24 +12,43 @@ import lombok.Data;
  */
 @Data
 public class SwissKitSettingEmailEntity {
-    /** Unique identifier for the email settings */
+    /**
+     * Unique identifier for the email settings
+     */
     private Integer id;
 
-    /** Email address/username for SMTP authentication */
+    /**
+     * Email address/username for SMTP authentication
+     */
     private String email;
 
-    /** Password for SMTP authentication */
+    /**
+     * Password for SMTP authentication
+     */
     private String password;
 
-    /** SMTP server address */
+    /**
+     * SMTP server address
+     */
     private String smtpAddress;
 
-    /** SMTP server port number */
+    /**
+     * SMTP server port number
+     */
     private Integer smtpPort;
 
-    /** Whether TLS encryption is required */
+    /**
+     * Whether TLS encryption is required
+     */
     private Boolean needTLS;
 
-    /** Whether SSL encryption is required */
+    /**
+     * Whether SSL encryption is required
+     */
     private Boolean needSSL;
+
+    /**
+     * Sender display name/address in sent emails
+     */
+    private String fromAddress;
 }

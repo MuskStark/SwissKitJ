@@ -10,6 +10,8 @@ import fan.summer.database.entity.setting.email.EmailAddressBookEntity;
 import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.setting.email.EmailAddressBookMapper;
 import fan.summer.database.mapper.setting.email.EmailTagMapper;
+import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoCallBack;
+import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoWorker;
 import fan.summer.utils.StringUtil;
 import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
@@ -31,10 +33,13 @@ import java.util.List;
 public class AddAddressView extends JDialog {
     private static final Logger log = LoggerFactory.getLogger(AddAddressView.class);
     private List<String> tags = new ArrayList<>();
+    private List<EmailAddressBookEntity> dataBaseInfo;
+    private EmailAddressBookView emailAddressBookView;
     private boolean comboBoxReady = false;
 
-    public AddAddressView(JPanel panel) {
+    public AddAddressView(JPanel panel, EmailAddressBookView emailAddressBookView) {
         super(SwingUtilities.getWindowAncestor(panel));
+        this.emailAddressBookView = emailAddressBookView;
         initComponents();
     }
 
@@ -80,6 +85,29 @@ public class AddAddressView extends JDialog {
                 mapper.insert(emailAddressBookEntity);
                 session.commit();
                 log.info("Successfully inserted email address: {}", addressField.getText());
+                new QueryAllEmailInfoWorker(new QueryAllEmailInfoCallBack() {
+                    @Override
+                    public void onSuccess(List<EmailAddressBookEntity> emailAddressBookEntities) {
+                        dataBaseInfo = emailAddressBookEntities;
+                        log.debug("Loaded {} email addresses", emailAddressBookEntities.size());
+                        if (dataBaseInfo != null && !dataBaseInfo.isEmpty()) {
+                            List<Object[]> rowData = new ArrayList<>();
+                            for (EmailAddressBookEntity info : dataBaseInfo) {
+                                rowData.add(new Object[]{info.getEmailAddress(), info.getNickname(), info.getTags()});
+                            }
+                            emailAddressBookView.initTable(rowData);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        log.error("Failed to load email addresses", e);
+                        JOptionPane.showMessageDialog(contentPanel,
+                                "Can Not Find Any Email Address!",
+                                "Warning",
+                                JOptionPane.WARNING_MESSAGE);
+                    }
+                }).execute();
                 this.setVisible(false);
             } catch (Exception ex) {
                 log.error("Failed to insert email address: {}", addressField.getText(), ex);
@@ -99,8 +127,19 @@ public class AddAddressView extends JDialog {
                 tags.add(tag);
                 String jsonString = JSON.toJSONString(tags);
                 tagsField.setText(jsonString);
+                comboBox1.removeItem(comboBox1.getSelectedIndex());
             }
         }
+    }
+
+    private void resetBtAction(ActionEvent e) {
+        initComponents();
+        tagsField.setText("");
+        tags.clear();
+    }
+
+    private void closeBtAction(ActionEvent e) {
+        this.setVisible(false);
     }
 
     private void initComponents() {
@@ -118,7 +157,7 @@ public class AddAddressView extends JDialog {
         comboBox1 = new JComboBox();
         buttonBar = new JPanel();
         okButton = new JButton();
-        cancelButton = new JButton();
+        closeButton = new JButton();
 
         //======== this ========
         var contentPane = getContentPane();
@@ -162,6 +201,7 @@ public class AddAddressView extends JDialog {
 
                 //---- button1 ----
                 button1.setText("Reset");
+                button1.addActionListener(e -> resetBtAction(e));
                 contentPanel.add(button1, "cell 2 2");
 
                 //---- label4 ----
@@ -189,9 +229,10 @@ public class AddAddressView extends JDialog {
                 okButton.addActionListener(e -> insertBtAction(e));
                 buttonBar.add(okButton, "cell 0 0");
 
-                //---- cancelButton ----
-                cancelButton.setText("Cancel");
-                buttonBar.add(cancelButton, "cell 1 0");
+                //---- closeButton ----
+                closeButton.setText("Close");
+                closeButton.addActionListener(e -> closeBtAction(e));
+                buttonBar.add(closeButton, "cell 1 0");
             }
             dialogPane.add(buttonBar, BorderLayout.SOUTH);
         }
@@ -215,6 +256,6 @@ public class AddAddressView extends JDialog {
     private JComboBox comboBox1;
     private JPanel buttonBar;
     private JButton okButton;
-    private JButton cancelButton;
+    private JButton closeButton;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }

@@ -60,7 +60,7 @@ public class EmailAddressBookView extends JDialog {
      */
     private void addAddressBtAction(ActionEvent e) {
         log.debug("Opening add address view");
-        new AddAddressView(pannel).initTagsCompBox().setVisible(true);
+        new AddAddressView(pannel, this).initTagsCompBox().setVisible(true);
 
     }
 

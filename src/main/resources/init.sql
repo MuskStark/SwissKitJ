@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS swiss_kit_setting_email
     smtp_address VARCHAR(255) NOT NULL,
     smtp_port    INTEGER      NOT NULL,
     need_tls     INTEGER      NOT NULL DEFAULT 0,
-    need_ssl     INTEGER      NOT NULL DEFAULT 0
+    need_ssl     INTEGER      NOT NULL DEFAULT 0,
+    from_address VARCHAR(255)
 );
 
 -- Excel Complex Split Config Table

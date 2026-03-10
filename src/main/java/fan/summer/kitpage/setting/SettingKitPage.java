@@ -36,7 +36,9 @@ import java.util.List;
 public class SettingKitPage implements KitPage {
     private static final Logger log = LoggerFactory.getLogger(SettingKitPage.class);
 
-    /** Cached email address book data */
+    /**
+     * Cached email address book data
+     */
     private List<EmailAddressBookEntity> dataBaseInfo;
 
     public SettingKitPage() {
@@ -145,13 +147,17 @@ public class SettingKitPage implements KitPage {
 
     }
 
+    private void saveBtAction(ActionEvent e) {
+        
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
         settingPanle = new JPanel();
         settingTable = new JTabbedPane();
         email = new JPanel();
         label1 = new JLabel();
-        comboBox1 = new JComboBox();
+        label6 = new JLabel();
         label2 = new JLabel();
         textField1 = new JTextField();
         label3 = new JLabel();
@@ -160,10 +166,12 @@ public class SettingKitPage implements KitPage {
         textField3 = new JTextField();
         label5 = new JLabel();
         textField4 = new JTextField();
+        label7 = new JLabel();
+        textField5 = new JTextField();
         checkBox1 = new JCheckBox();
         checkBox2 = new JCheckBox();
         button2 = new JButton();
-        button1 = new JButton();
+        saveBtAction = new JButton();
         button3 = new JButton();
         plugin = new JPanel();
         choicePluginBt = new JButton();
@@ -208,12 +216,16 @@ public class SettingKitPage implements KitPage {
                         "[]" +
                         "[]" +
                         "[]" +
+                        "[]" +
                         "[345]"));
 
                     //---- label1 ----
                     label1.setText("Protocol");
                     email.add(label1, "cell 0 0");
-                    email.add(comboBox1, "cell 1 0");
+
+                    //---- label6 ----
+                    label6.setText("SMTP");
+                    email.add(label6, "cell 1 0");
 
                     //---- label2 ----
                     label2.setText("ServerUrl");
@@ -235,26 +247,32 @@ public class SettingKitPage implements KitPage {
                     email.add(label5, "cell 0 4");
                     email.add(textField4, "cell 1 4 2 1");
 
+                    //---- label7 ----
+                    label7.setText("FromAddress");
+                    email.add(label7, "cell 0 5");
+                    email.add(textField5, "cell 1 5 2 1");
+
                     //---- checkBox1 ----
                     checkBox1.setText("TSL");
-                    email.add(checkBox1, "cell 0 5");
+                    email.add(checkBox1, "cell 0 6");
 
                     //---- checkBox2 ----
                     checkBox2.setText("SSL");
-                    email.add(checkBox2, "cell 1 5");
+                    email.add(checkBox2, "cell 1 6");
 
                     //---- button2 ----
                     button2.setText("SentTestEmail");
-                    email.add(button2, "cell 0 7 3 1");
+                    email.add(button2, "cell 0 8 3 1");
 
-                    //---- button1 ----
-                    button1.setText("Save");
-                    email.add(button1, "cell 0 8 3 1");
+                    //---- saveBtAction ----
+                    saveBtAction.setText("Save");
+                    saveBtAction.addActionListener(e -> saveBtAction(e));
+                    email.add(saveBtAction, "cell 0 9 3 1");
 
                     //---- button3 ----
                     button3.setText("OpenAddressBook");
                     button3.addActionListener(e -> openAddressBookBtActionListener(e));
-                    email.add(button3, "cell 0 11 3 1");
+                    email.add(button3, "cell 0 12 3 1");
                 }
                 settingTable.addTab("Email", email);
 
@@ -296,7 +314,7 @@ public class SettingKitPage implements KitPage {
     private JTabbedPane settingTable;
     private JPanel email;
     private JLabel label1;
-    private JComboBox comboBox1;
+    private JLabel label6;
     private JLabel label2;
     private JTextField textField1;
     private JLabel label3;
@@ -305,10 +323,12 @@ public class SettingKitPage implements KitPage {
     private JTextField textField3;
     private JLabel label5;
     private JTextField textField4;
+    private JLabel label7;
+    private JTextField textField5;
     private JCheckBox checkBox1;
     private JCheckBox checkBox2;
     private JButton button2;
-    private JButton button1;
+    private JButton saveBtAction;
     private JButton button3;
     private JPanel plugin;
     private JButton choicePluginBt;

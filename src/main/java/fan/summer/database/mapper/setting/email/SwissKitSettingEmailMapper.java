@@ -17,4 +17,6 @@ public interface SwissKitSettingEmailMapper {
      * @param user the entity to insert
      */
     void insert(SwissKitSettingEmailEntity user);
+
+    SwissKitSettingEmailEntity selectLatest();
 }
