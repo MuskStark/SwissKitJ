@@ -136,13 +136,13 @@ public class EmailTagsView extends JDialog {
                        emailTagEntity.setTag(tagField.getText());
                        mapper.update(emailTagEntity);
                        session.commit();
-                       needUpdateId = null;
                    }
                    return null;
                 }
 
                 @Override
                 protected void done() {
+                    needUpdateId = null;
                     openTagView();
                     tagField.setText("");
                     addTagBt.setText("AddNewTag");
