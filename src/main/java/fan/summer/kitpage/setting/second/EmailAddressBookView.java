@@ -4,20 +4,14 @@
 
 package fan.summer.kitpage.setting.second;
 
-import fan.summer.database.DatabaseInit;
-import fan.summer.database.entity.setting.email.EmailTagEntity;
-import fan.summer.database.mapper.setting.email.EmailTagMapper;
 import net.miginfocom.swing.MigLayout;
-import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Dialog window for displaying and managing email address book entries.
@@ -66,7 +60,7 @@ public class EmailAddressBookView extends JDialog {
      */
     private void addAddressBtAction(ActionEvent e) {
         log.debug("Opening add address view");
-        new AddAddressView(pannel).setVisible(true);
+        new AddAddressView(pannel).initTagsCompBox().setVisible(true);
 
     }
 

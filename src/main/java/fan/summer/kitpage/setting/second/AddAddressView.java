@@ -4,9 +4,12 @@
 
 package fan.summer.kitpage.setting.second;
 
+import com.alibaba.fastjson2.JSON;
 import fan.summer.database.DatabaseInit;
 import fan.summer.database.entity.setting.email.EmailAddressBookEntity;
+import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.setting.email.EmailAddressBookMapper;
+import fan.summer.database.mapper.setting.email.EmailTagMapper;
 import fan.summer.utils.StringUtil;
 import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
@@ -16,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Dialog window for adding a new email address entry.
@@ -25,10 +30,35 @@ import java.awt.event.ActionEvent;
  */
 public class AddAddressView extends JDialog {
     private static final Logger log = LoggerFactory.getLogger(AddAddressView.class);
+    private List<String> tags = new ArrayList<>();
+    private boolean comboBoxReady = false;
 
     public AddAddressView(JPanel panel) {
         super(SwingUtilities.getWindowAncestor(panel));
         initComponents();
+    }
+
+    public AddAddressView initTagsCompBox() {
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                comboBoxReady = false;
+                try (SqlSession session = DatabaseInit.getSqlSession()) {
+                    EmailTagMapper mapper = session.getMapper(EmailTagMapper.class);
+                    List<EmailTagEntity> emailTagEntities = mapper.selectAll();
+                    comboBox1.removeAllItems();
+                    if (emailTagEntities != null && !emailTagEntities.isEmpty()) {
+                        for (EmailTagEntity entity : emailTagEntities) {
+                            comboBox1.addItem(entity.getTag());
+                        }
+                        comboBox1.setSelectedIndex(-1);
+                        comboBoxReady = true;
+                    }
+                }
+                return null;
+            }
+        }.execute();
+        return this;
     }
 
     /**
@@ -58,6 +88,17 @@ public class AddAddressView extends JDialog {
                         "Can Not Insert Email Address :" + ex.getMessage(),
                         "Error",
                         JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void tagChoiceComBoxAction(ActionEvent e) {
+        if (comboBoxReady) {
+            String tag = comboBox1.getSelectedItem().toString();
+            if (tag != null) {
+                tags.add(tag);
+                String jsonString = JSON.toJSONString(tags);
+                tagsField.setText(jsonString);
             }
         }
     }
@@ -126,6 +167,9 @@ public class AddAddressView extends JDialog {
                 //---- label4 ----
                 label4.setText("ChoiceTag");
                 contentPanel.add(label4, "cell 0 3");
+
+                //---- comboBox1 ----
+                comboBox1.addActionListener(e -> tagChoiceComBoxAction(e));
                 contentPanel.add(comboBox1, "cell 1 3");
             }
             dialogPane.add(contentPanel, BorderLayout.CENTER);
