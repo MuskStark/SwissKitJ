@@ -6,11 +6,13 @@ This section provides detailed API documentation for SwissKit's core interfaces 
 
 - [KitPage Interface](#kitpage-interface)
 - [@SwissKitPage Annotation](#swisskitpage-annotation)
-- [KitPageScanner](#kitpagescanner)
+- [SwissKitPageScanner](#swisskitpagescanner)
+- [Database Layer](#database-layer)
 - [UI Components](#ui-components)
 - [Worker Classes](#worker-classes)
 - [Utility Classes](#utility-classes)
 - [Listeners](#listeners)
+- [Entity Classes](#entity-classes)
 
 ## KitPage Interface
 
@@ -19,7 +21,7 @@ The `KitPage` interface is the foundation for all tool pages in SwissKit.
 ### Interface Definition
 
 ```java
-package fan.summer.kitpage;
+package fan.summer.api;
 
 import javax.swing.*;
 
@@ -132,34 +134,121 @@ public @interface SwissKitPage {
 
 ---
 
-## KitPageScanner
+## SwissKitPageScanner
 
-The `KitPageScanner` class automatically discovers and loads all `KitPage` implementations.
+The `SwissKitPageScaner` class automatically discovers and loads all `KitPage` implementations.
 
 ```java
-package fan.summer.kitpage;
+package fan.summer.scaner;
 
-import fan.summer.api.KitPage;
-
-public class KitPageScanner {
-    public static List<KitPage> scan(String packageName) {
-        // Scans package and subpackages for @SwissKitPage annotated classes
-        // Filters by visible=true, sorts by order value
+public class SwissKitPageScaner {
+    /**
+     * Scans for KitPage implementations using SPI ServiceLoader.
+     *
+     * @return list of visible KitPage instances sorted by order
+     */
+    public static List<KitPage> scan() {
+        // Implementation
     }
 }
 ```
 
 ### Key Features
 
-- **Recursive Scanning**: Scans subpackages (e.g., `email/`, `excel/`)
+- **SPI-based**: Uses Java ServiceLoader mechanism
 - **Visibility Filter**: Only includes pages with `visible = true`
 - **Order Sorting**: Sorts by `order()` value in annotation
 - **Auto-Instantiation**: Creates page instances automatically
 
-### Example Usage
+---
+
+## Database Layer
+
+### DatabaseInit
+
+Handles database initialization and MyBatis configuration.
 
 ```java
-List<KitPage> pages = KitPageScanner.scan("fan.summer.kitpage");
+package fan.summer.database;
+
+public class DatabaseInit {
+    private static SqlSessionFactory sqlSessionFactory;
+
+    /**
+     * Initializes database and MyBatis.
+     * Creates tables from init.sql if not exist.
+     */
+    public static void init() { }
+
+    /**
+     * Returns a new SqlSession for database operations.
+     */
+    public static SqlSession getSqlSession() { }
+
+    /**
+     * Returns the SqlSessionFactory.
+     */
+    public static SqlSessionFactory getSqlSessionFactory() { }
+}
+```
+
+### Entity Classes
+
+#### EmailAddressBookEntity
+
+```java
+@Data
+public class EmailAddressBookEntity {
+    private Integer id;
+    private String emailAddress;
+    private String nickname;
+    private String tags;  // JSON array
+}
+```
+
+#### EmailTagEntity
+
+```java
+@Data
+public class EmailTagEntity {
+    private Long id;
+    private String tag;
+}
+```
+
+#### ComplexSplitConfigEntity
+
+```java
+@Data
+public class ComplexSplitConfigEntity {
+    private Long id;
+    private String taskId;
+    private String fieldName;
+    private String sheetName;
+    private Integer headerIndex;
+    private Integer columnIndex;
+}
+```
+
+### Mapper Interfaces
+
+#### EmailAddressBookMapper
+
+```java
+public interface EmailAddressBookMapper {
+    void insert(EmailAddressBookEntity entity);
+    List<EmailAddressBookEntity> selectEmailAddressBook();
+}
+```
+
+#### EmailTagMapper
+
+```java
+public interface EmailTagMapper {
+    void insert(EmailTagEntity entity);
+    void update(EmailTagEntity entity);
+    List<EmailTagEntity> selectAll();
+}
 ```
 
 ---
@@ -205,19 +294,55 @@ A combo box with fixed width.
 public FixedWidthComboBox(int width)
 ```
 
-#### Parameters
+### SideMenuBar
 
-- `width` - The fixed width in pixels
+Dynamic side menu component.
+
+#### Constructor
+
+```java
+public SideMenuBar(List<KitPage> pages, JPanel contentPanel)
+```
+
+#### Methods
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `addPage(KitPage page)` | `void` | Adds a page to the menu |
+| `removePage(int index)` | `void` | Removes a page from the menu |
+| `selectPage(int index)` | `void` | Sets the selected page |
+| `rebuildMenu()` | `void` | Rebuilds menu from pages list |
+| `setPages(List<KitPage> newPages)` | `void` | Sets new page list |
+
+---
+
+## Worker Classes
+
+### QueryAllEmailInfoWorker
+
+Background worker for loading email contacts.
+
+#### Constructor
+
+```java
+public QueryAllEmailInfoWorker(QueryAllEmailInfoCallBack callBack)
+```
 
 #### Example Usage
 
 ```java
-FixedWidthComboBox comboBox = new FixedWidthComboBox(200);
-comboBox.addItem("Option 1");
-comboBox.addItem("Option 2");
-```
+new QueryAllEmailInfoWorker(new QueryAllEmailInfoCallBack() {
+    @Override
+    public void onSuccess(List<EmailAddressBookEntity> result) {
+        // Handle success
+    }
 
-## Worker Classes
+    @Override
+    public void onFailure(Exception e) {
+        // Handle error
+    }
+}).execute();
+```
 
 ### ExcelAnalysisWorker
 
@@ -232,39 +357,6 @@ public ExcelAnalysisWorker(
     JButton startBtn,
     ExcelAnalysisCallback callback
 )
-```
-
-#### Parameters
-
-- `filePath` - Path to the Excel file to analyze
-- `progressBar` - Progress bar for updates
-- `startBtn` - Button to disable during processing
-- `callback` - Callback for results
-
-#### Return Type
-
-`Map<String, Map<Integer, String>>` - Map of sheet names to headers
-
-#### Example Usage
-
-```java
-ExcelAnalysisWorker worker = new ExcelAnalysisWorker(
-    filePath,
-    progressBar,
-    startButton,
-    new ExcelAnalysisCallback() {
-        @Override
-        public void onSuccess(Map<String, Map<Integer, String>> result) {
-            System.out.println("Analysis completed");
-        }
-
-        @Override
-        public void onFailure(Exception e) {
-            System.err.println("Analysis failed: " + e.getMessage());
-        }
-    }
-);
-worker.execute();
 ```
 
 ### ExcelSplitWorker
@@ -283,74 +375,61 @@ public ExcelSplitWorker(
 )
 ```
 
-#### Parameters
-
-- `outputPath` - Directory to save split files
-- `orgFilePath` - Original Excel file path
-- `progressBar` - Progress bar for updates
-- `button` - Button to disable during processing
-- `parentComponent` - Parent component for dialogs
-
-#### Methods
-
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `setSplitSheetModel(Set<String> sheetNames)` | `ExcelSplitWorker` | Configure to split by sheet names |
-| `setExcelFileAnalysisResultMap(Map<String, Map<Integer, String>> map)` | `ExcelSplitWorker` | Set analysis results |
-
-#### Example Usage
-
-```java
-ExcelSplitWorker worker = new ExcelSplitWorker(
-    outputPath,
-    filePath,
-    progressBar,
-    splitButton,
-    panel
-);
-worker.setSplitSheetModel(sheets.keySet())
-       .setExcelFileAnalysisResultMap(analysisResult)
-       .execute();
-```
+---
 
 ## Utility Classes
 
+### AppInfo
+
+Application version and name constants.
+
+```java
+public abstract class AppInfo {
+    public static final String VERSION = resolveVersion();
+    public static final String NAME = loadProperty("app.name", "SwissKit");
+
+    public static String getVersion();
+    public static String getName();
+    public static String getFullName(); // NAME + "-" + VERSION
+}
+```
+
+### StringUtil
+
+String validation utilities.
+
+```java
+public class StringUtil {
+    /**
+     * Validates email address format.
+     *
+     * @param email the email address to validate
+     * @return true if valid email format
+     */
+    public static boolean checkEmail(String email);
+}
+```
+
 ### UIUtils
 
-Provides common UI component creation methods.
-
-#### Static Methods
-
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `createTitleLabel(String text)` | `JLabel` | Creates a title label |
-| `createProgressBar()` | `JProgressBar` | Creates a progress bar |
-| `showFileChooser(Component parent)` | `File` | Shows file chooser dialog |
-
-#### Example Usage
+Common UI component creation methods.
 
 ```java
-JLabel title = UIUtils.createTitleLabel("My Tool");
-JProgressBar progress = UIUtils.createProgressBar();
+public class UIUtils {
+    // Color constants
+    public static final Color PRIMARY_COLOR = new Color(0xBB, 0x86, 0xFC);
+    public static final Color TEXT_COLOR = new Color(0x60, 0x60, 0x60);
+    public static final Color LIGHT_GRAY = new Color(0xF3, 0xF3, 0xF3);
+
+    // Factory methods
+    public static JPanel createSectionPanel(String title, JComponent content);
+    public static JLabel createPageTitle(String title);
+    public static JProgressBar createProgressBar();
+    public static JPanel createCenterButtonPanel(JButton... buttons);
+}
 ```
 
-### SideMenuBar
-
-Dynamic side menu component.
-
-#### Constructor
-
-```java
-public SideMenuBar(List<KitPage> pages)
-```
-
-#### Methods
-
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `addPage(KitPage page)` | `void` | Adds a page to the menu |
-| `removePage(KitPage page)` | `void` | Removes a page from the menu |
-| `setSelectedIndex(int index)` | `void` | Sets the selected page |
+---
 
 ## Listeners
 
@@ -358,65 +437,59 @@ public SideMenuBar(List<KitPage> pages)
 
 Listener for extracting Excel headers.
 
-#### Constructor
-
 ```java
-public HeaderListener()
-```
+public class HeaderListener extends AnalysisEventListener<Map<Integer, String>> {
+    private Map<Integer, String> headers = new HashMap<>();
 
-#### Methods
+    @Override
+    public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context);
 
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `getHeaders()` | `Map<Integer, String>` | Returns the extracted headers |
-| `clear()` | `void` | Clears the headers |
+    @Override
+    public void invoke(Map<Integer, String> data, AnalysisContext context);
 
-#### Example Usage
-
-```java
-HeaderListener listener = new HeaderListener();
-ReadSheet readSheet = FesodSheet.readSheet(sheetName)
-        .registerReadListener(listener)
-        .build();
-excelReader.read(readSheet);
-Map<Integer, String> headers = listener.getHeaders();
+    public Map<Integer, String> getHeaders();
+    public void clear();
+}
 ```
 
 ### NoModelDataListener
 
 Listener for streaming Excel data.
 
-#### Constructor
-
 ```java
-public NoModelDataListener()
+@Slf4j
+public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Object>> {
+    private List<Map<Integer, Object>> cachedDataList;
+
+    @Override
+    public void invoke(Map<Integer, Object> data, AnalysisContext context);
+
+    @Override
+    public void doAfterAllAnalysed(AnalysisContext context);
+
+    public List<Map<Integer, Object>> getCachedDataList();
+    public void clear();
+}
 ```
 
-#### Methods
-
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `getCachedDataList()` | `List<Map<Integer, Object>>` | Returns cached data |
-| `clear()` | `void` | Clears cached data |
-
-#### Example Usage
-
-```java
-NoModelDataListener listener = new NoModelDataListener();
-ReadSheet readSheet = FesodSheet.readSheet(sheetName)
-        .registerReadListener(listener)
-        .build();
-excelReader.read(readSheet);
-List<Map<Integer, Object>> data = listener.getCachedDataList();
-```
+---
 
 ## Callback Interfaces
+
+### QueryAllEmailInfoCallBack
+
+Callback interface for email info queries.
+
+```java
+public interface QueryAllEmailInfoCallBack {
+    void onSuccess(List<EmailAddressBookEntity> emailAddressBookEntities);
+    void onFailure(Exception e);
+}
+```
 
 ### ExcelAnalysisCallback
 
 Callback interface for Excel analysis results.
-
-#### Interface Definition
 
 ```java
 public interface ExcelAnalysisCallback {
@@ -424,13 +497,6 @@ public interface ExcelAnalysisCallback {
     void onFailure(Exception e);
 }
 ```
-
-#### Methods
-
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `onSuccess(Map<String, Map<Integer, String>> result)` | `void` | Called on successful analysis |
-| `onFailure(Exception e)` | `void` | Called on analysis failure |
 
 ---
 

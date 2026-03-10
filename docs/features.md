@@ -8,6 +8,7 @@ SwissKit provides a variety of tools for everyday tasks. This section covers all
 - [Email Tool](#email-tool)
 - [Settings](#settings)
 - [Welcome Page](#welcome-page)
+- [Plugin System](#plugin-system)
 - [Custom UI Components](#custom-ui-components)
 
 ## Excel Tool
@@ -65,6 +66,24 @@ output/
 └── Sheet3.xlsx
 ```
 
+### Complex Split Mode
+
+Advanced splitting with custom configuration stored in database.
+
+**Features**:
+- Custom header row index
+- Custom split column index
+- Configuration persistence
+- Edit saved configurations
+
+**How to Use**:
+
+1. Select an Excel file
+2. Analyze the file first
+3. Configure header and column indices
+4. Save configuration for reuse
+5. View/Edit configurations via "View Config" button
+
 ### Progress Tracking
 
 All Excel operations include real-time progress tracking:
@@ -74,51 +93,83 @@ All Excel operations include real-time progress tracking:
 - Status messages
 - Completion notifications
 
-### CSV to Excel Conversion
-
-Convert CSV files to Excel format with customizable options.
-
-**Features**:
-- Support for UTF-8 and other encodings
-- Header row detection
-- Automatic column type detection
-- Progress tracking during conversion
-
-**How to Use**:
-
-1. Click the "Select CSV File" button
-2. Choose a CSV file
-3. Configure delimiter and encoding options
-4. Click "Convert" button
-5. Save the resulting Excel file
-
 ## Email Tool
 
-The email tool allows you to compose and send emails (in development).
+The email tool allows you to compose and send emails.
 
-**Features** (Planned):
+**Features**:
 - Email composition with subject and body
-- Multiple recipient support
-- SMTP configuration
-- Attachment support
-- Email templates
+- Multiple recipient support (To, Cc)
+- Mass email mode (in development)
+- SMTP configuration integration
 
-**Status**: 🚧 In Development
+**Status**: 🚧 Mass email feature in development
 
 ## Settings
 
-The settings page provides application configuration options.
+The settings page provides application configuration options with multiple tabs.
+
+### Email Settings Tab
+
+Configure SMTP server for email sending.
 
 **Features**:
-- Application preferences configuration
-- Database management
-- View stored configurations
+- Protocol selection (SMTP)
+- Server URL and port configuration
+- Username and password
+- TLS/SSL support
+- Test email sending
+
+### Email Address Book Tab
+
+Manage email contacts with nicknames and tags.
+
+**Features**:
+- Add new email addresses
+- Edit contact nicknames
+- Assign tags to contacts
+- View all contacts in table format
 
 **How to Use**:
 
-1. Click "Settings" in the sidebar
-2. Configure desired options
-3. Changes are saved automatically
+1. Click "Open Address Book" button
+2. View existing contacts in the table
+3. Click "Add New Address" to add a contact
+4. Enter email, nickname, and select tags
+5. Click "Insert" to save
+
+### Tag Management
+
+Create and manage tags for categorizing contacts.
+
+**Features**:
+- Create new tags
+- Edit existing tags
+- Delete tags
+- Tags stored in database
+
+**How to Use**:
+
+1. Open Address Book
+2. Click "Modify Tags" button
+3. Add new tag or double-click to edit
+4. Tags are automatically available in Add Address dialog
+
+### Plugin Tab
+
+Install external JAR plugins to extend functionality.
+
+**Features**:
+- Select JAR file from file system
+- Install plugins to `.swisskit/plugins/` directory
+- Plugins loaded on next startup
+
+**How to Use**:
+
+1. Navigate to Plugin tab
+2. Click "Choice Plugin" to select a JAR file
+3. Click "Upload" to install
+4. Restart application to load the new plugin
 
 ## Welcome Page
 
@@ -129,6 +180,78 @@ The welcome page provides an overview of the application.
 - Quick access to all tools
 - Operation guidance
 - Modern, clean design
+
+## Plugin System
+
+SwissKit's modular architecture allows easy extension of functionality using SPI (Service Provider Interface).
+
+### Adding New Tools
+
+To add a new tool:
+
+1. Create a package under `fan.summer.kitpage`
+2. Implement the `KitPage` interface
+3. Add `@SwissKitPage` annotation for menu configuration
+4. Register in SPI service file (`META-INF/services/fan.summer.api.KitPage`)
+5. The tool will be automatically discovered and sorted by order
+
+**Example**:
+
+```java
+import fan.summer.api.KitPage;
+import fan.summer.annoattion.SwissKitPage;
+
+@SwissKitPage(
+        menuName = "🔧 My Tool",
+        menuTooltip = "Open My Tool",
+        visible = true,
+        order = 10
+)
+public class MyToolPage implements KitPage {
+    private JPanel panel;
+
+    public MyToolPage() {
+        initComponents();
+    }
+
+    @Override
+    public JPanel getPanel() {
+        return panel;
+    }
+}
+```
+
+### Installing External Plugins
+
+1. Build your plugin as a JAR file
+2. Open Settings → Plugin tab
+3. Select and upload the JAR file
+4. Restart SwissKit
+
+## Database Layer
+
+SwissKit includes a built-in database layer using H2 and MyBatis for persistent storage.
+
+### Features
+
+- **Embedded Database** - No external server required
+- **Automatic Initialization** - Database created on first run
+- **MyBatis Integration** - Clean DAO layer with XML mappers
+- **Multiple Tables** - Support for various data types
+
+### Database Location
+
+- **Path**: `.swisskit/swisskit.db`
+- **Auto-created**: On first application run
+
+### Current Tables
+
+| Table | Purpose |
+|-------|---------|
+| `swiss_kit_setting_email` | Email SMTP configuration |
+| `complex_split_config` | Excel complex split settings |
+| `email_address_book` | Email contacts with nicknames and tags |
+| `email_tag` | Tags for categorizing contacts |
 
 ## Custom UI Components
 
@@ -177,7 +300,7 @@ comboBox.addItem("Option 2");
 Dynamic side menu component with modern styling.
 
 **Features**:
-- 220px width
+- 160px width
 - Selected state highlighting
 - Mouse hover effects
 - Custom icons and tooltips
@@ -189,69 +312,6 @@ Dynamic side menu component with modern styling.
 - Selected text: Purple (#BB86FC)
 - Hover background: Light gray (#E8E8E8)
 - Default background: Lighter gray (#F3F3F3)
-
-## Plugin System
-
-SwissKit's modular architecture allows easy extension of functionality using SPI (Service Provider Interface).
-
-### Adding New Tools
-
-To add a new tool:
-
-1. Create a package under `fan.summer.kitpage`
-2. Implement the `KitPage` interface
-3. Add `@SwissKitPage` annotation for menu configuration
-4. Register in SPI service file (`META-INF/services/fan.summer.api.KitPage`)
-5. The tool will be automatically discovered and sorted by order
-
-**Example**:
-
-```java
-import fan.summer.api.KitPage;
-import fan.summer.annoattion.SwissKitPage;
-
-@SwissKitPage(
-        menuName = "🔧 My Tool",
-        menuTooltip = "Open My Tool",
-        visible = true,
-        order = 10
-)
-public class MyToolPage implements KitPage {
-    private JPanel panel;
-
-    public MyToolPage() {
-        initComponents();
-    }
-
-    @Override
-    public JPanel getPanel() {
-        return panel;
-    }
-}
-```
-
-## Database Layer
-
-SwissKit includes a built-in database layer using H2 and MyBatis for persistent storage.
-
-### Features
-
-- **Embedded Database** - No external server required
-- **Automatic Initialization** - Database created on first run
-- **MyBatis Integration** - Clean DAO layer with XML mappers
-- **Multiple Tables** - Support for email settings, Excel config, and more
-
-### Database Location
-
-- **Path**: `.swisskit/swisskit.db`
-- **Auto-created**: On first application run
-
-### Current Tables
-
-| Table | Purpose |
-|-------|---------|
-| `swiss_kit_setting_email` | Email SMTP configuration |
-| `complex_split_config` | Excel complex split settings |
 
 ## Performance Features
 
@@ -279,8 +339,8 @@ Planned enhancements:
 - [ ] Image processing tool
 - [ ] Theme switching
 - [ ] Multi-language support
+- [ ] Email sending functionality
 - [ ] Plugin marketplace
-- [ ] Cloud integration
 
 ---
 

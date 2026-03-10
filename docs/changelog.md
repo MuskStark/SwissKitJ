@@ -7,7 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0-Alpha] - 2026-03-06
+## [1.0-Alpha] - 2026-03-10
+
+### Added
+- Email address book management feature
+  - `EmailAddressBookEntity` - Entity for storing email contacts
+  - `EmailAddressBookMapper` - MyBatis mapper for address book operations
+  - `EmailAddressBookView` - Dialog for viewing and managing contacts
+  - `AddAddressView` - Dialog for adding new email addresses with tag selection
+  - `QueryAllEmailInfoWorker` - Background worker for loading contacts
+  - `QueryAllEmailInfoCallBack` - Callback interface for query results
+- Email tag management feature
+  - `EmailTagEntity` - Entity for email tags
+  - `EmailTagMapper` - MyBatis mapper for tag operations
+  - `EmailTagsView` - Dialog for managing tags with async loading
+- Plugin loading system
+  - `PluginLoader` - Loads JAR plugins from `.swisskit/plugins/` directory
+  - `PluginDiagnostic` - Plugin diagnostics utility
+  - Plugin installation UI in Settings page
+- Application info utility (`AppInfo.java`)
+  - Version reading from MANIFEST.MF or app.properties
+  - Application name and version constants
+- String validation utility (`StringUtil.java`)
+  - Email format validation
+- Database tables
+  - `email_address_book` - Store email contacts with nicknames and tags
+  - `email_tag` - Store tags for categorizing contacts
+- Log4j configuration with file logging
+  - Log files stored in `.swisskit/log/` directory
+
+### Changed
+- Replaced all Chinese comments with English
+- Added Logger to all classes with database/IO operations
+- Added Javadoc comments to Entity classes
+- Added Javadoc comments to Mapper interfaces
+- Updated SLF4J version from 2.20.0 to 2.0.16
+- Added Lombok annotation processor configuration in pom.xml
+- Settings page now includes Email and Plugin tabs
+
+### Fixed
+- Fixed needUpdateId reset timing in email tag update (moved to EDT)
+- Fixed JAR execution issues with slf4j-api dependency
+
+## [0.9.0] - 2026-03-06
 
 ### Added
 - ConfigEditorView for editing complex split configurations
@@ -16,13 +58,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update SQL in ComplexSplitConfigMapper.xml
 - SettingKitPage for application settings
 - SettingKitPage.jfd JFormDesigner layout file
-- CsvToExcelProcessor for CSV to Excel conversion
-- English comments to ConfigEditorView
 
 ### Changed
 - ConfigView now accepts taskId parameter
 - UpdateButton renamed in ConfigEditorView
 - Removed TODO comments from ExcelKitPage and EmailKitPage
+
+## [0.8.0] - 2026-03-04
 
 ### Added
 - Excel complex split mode with custom configuration
@@ -44,7 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed H2 schema initialization in DatabaseInit
 
-## [1.0-SNAPSHOT] - 2026-03-02
+## [0.7.0] - 2026-03-02
 
 ### Added
 - Excel file split by sheet functionality
@@ -103,5 +145,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/MuskStark/SwissKitJ/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/MuskStark/SwissKitJ/compare/v1.0-Alpha...HEAD
+[1.0-Alpha]: https://github.com/MuskStark/SwissKitJ/compare/v0.9.0...v1.0-Alpha
+[0.9.0]: https://github.com/MuskStark/SwissKitJ/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/MuskStark/SwissKitJ/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/MuskStark/SwissKitJ/compare/v0.1.0...v0.7.0
 [0.1.0]: https://github.com/MuskStark/SwissKitJ/releases/tag/v0.1.0
