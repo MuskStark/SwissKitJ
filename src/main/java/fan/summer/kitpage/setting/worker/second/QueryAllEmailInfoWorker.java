@@ -4,6 +4,8 @@ import fan.summer.database.DatabaseInit;
 import fan.summer.database.entity.setting.email.EmailAddressBookEntity;
 import fan.summer.database.mapper.setting.email.EmailAddressBookMapper;
 import org.apache.ibatis.session.SqlSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.util.Collections;
@@ -19,6 +21,8 @@ import java.util.concurrent.ExecutionException;
  * @Date 2026/3/8
  */
 public class QueryAllEmailInfoWorker extends SwingWorker<List<EmailAddressBookEntity>, Void> {
+    private static final Logger log = LoggerFactory.getLogger(QueryAllEmailInfoWorker.class);
+
     private QueryAllEmailInfoCallBack callBack;
 
     public QueryAllEmailInfoWorker(QueryAllEmailInfoCallBack callBack) {
@@ -27,10 +31,14 @@ public class QueryAllEmailInfoWorker extends SwingWorker<List<EmailAddressBookEn
 
     @Override
     protected List<EmailAddressBookEntity> doInBackground() throws Exception {
+        log.debug("Querying all email address book entries");
         try (SqlSession session = DatabaseInit.getSqlSession()) {
             EmailAddressBookMapper mapper = session.getMapper(EmailAddressBookMapper.class);
-            return mapper.selectEmailAddressBook();
+            List<EmailAddressBookEntity> result = mapper.selectEmailAddressBook();
+            log.debug("Found {} email address book entries", result.size());
+            return result;
         } catch (Exception e) {
+            log.error("Failed to query email address book entries", e);
             return Collections.emptyList();
         }
     }
@@ -44,6 +52,7 @@ public class QueryAllEmailInfoWorker extends SwingWorker<List<EmailAddressBookEn
             callBack.onSuccess(emailAddressBookEntities);
 
         } catch (RuntimeException | InterruptedException | ExecutionException e) {
+            log.error("Error in done() callback", e);
             callBack.onFailure(e);
         }
 

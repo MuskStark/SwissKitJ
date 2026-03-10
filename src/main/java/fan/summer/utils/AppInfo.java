@@ -20,9 +20,11 @@ public abstract class AppInfo {
     public static final String NAME    = loadProperty("app.name", "SwissKit");
 
     /**
-     * 版本号读取策略：
-     *  1. 优先从 JAR 的 MANIFEST.MF 读 Implementation-Version（打包后生效）
-     *  2. 读不到则从 app.properties 读（IntelliJ 直接 Run 时的兜底，值为 "dev"）
+     * Resolves the application version using the following strategy:
+     * 1. Read Implementation-Version from JAR's MANIFEST.MF (works after packaging)
+     * 2. Fallback to app.properties if MANIFEST not available (for IDE development, defaults to "dev")
+     *
+     * @return the resolved version string
      */
     private static String resolveVersion() {
 
@@ -49,6 +51,13 @@ public abstract class AppInfo {
         return loadProperty("app.version", "dev");
     }
 
+    /**
+     * Loads a property value from app.properties file in classpath.
+     *
+     * @param key          the property key to look up
+     * @param defaultValue the default value if property is not found
+     * @return the property value or defaultValue if not found
+     */
     private static String loadProperty(String key, String defaultValue) {
         try (InputStream is = AppInfo.class.getResourceAsStream("/app.properties")) {
             if (is == null) return defaultValue;
@@ -61,7 +70,24 @@ public abstract class AppInfo {
         }
     }
 
+    /**
+     * Returns the application version.
+     *
+     * @return the version string
+     */
     public static String getVersion() { return VERSION; }
+
+    /**
+     * Returns the application name.
+     *
+     * @return the application name
+     */
     public static String getName()    { return NAME; }
+
+    /**
+     * Returns the full application name with version (e.g., "SwissKit-1.0").
+     *
+     * @return the full name string
+     */
     public static String getFullName() { return NAME + "-" + VERSION; }
 }

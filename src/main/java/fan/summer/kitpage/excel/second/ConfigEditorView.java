@@ -9,6 +9,8 @@ import fan.summer.database.entity.excel.ComplexSplitConfigEntity;
 import fan.summer.database.mapper.excel.ComplexSplitConfigMapper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,10 +21,12 @@ import java.util.List;
 /**
  * Dialog for editing complex split configuration details.
  * Allows users to modify header index and column index for Excel file splitting.
- * 
+ *
  * @author summer
  */
 public class ConfigEditorView extends JDialog {
+    private static final Logger log = LoggerFactory.getLogger(ConfigEditorView.class);
+
     private String taskId;
     private JTable table;
     private ConfigView configView;
@@ -53,6 +57,7 @@ public class ConfigEditorView extends JDialog {
      * Saves the modified configuration to database and refreshes the table view.
      */
     private void updateBtActionListener(ActionEvent e) {
+        log.debug("Updating config for taskId: {}, file: {}", taskId, fileNameText.getText());
         try (SqlSession session = DatabaseInit.getSqlSession()) {
             ComplexSplitConfigMapper mapper = session.getMapper(ComplexSplitConfigMapper.class);
             ComplexSplitConfigEntity complexSplitConfigEntity = new ComplexSplitConfigEntity();
@@ -63,6 +68,7 @@ public class ConfigEditorView extends JDialog {
             complexSplitConfigEntity.setColumnIndex(Integer.parseInt(columnIndex.getText()));
             mapper.update(complexSplitConfigEntity);
             session.commit();
+            log.info("Successfully updated config for taskId: {}", taskId);
             // update table
             List<ComplexSplitConfigEntity> complexSplitConfigEntities = mapper.selectAllByTaskId(taskId);
             List<Object[]> rowDatas = new ArrayList<>();
@@ -71,6 +77,8 @@ public class ConfigEditorView extends JDialog {
             }
             configView.setTableModel(rowDatas);
             this.setVisible(false);
+        } catch (Exception ex) {
+            log.error("Failed to update config for taskId: {}", taskId, ex);
         }
     }
 

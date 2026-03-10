@@ -4,53 +4,76 @@
 
 package fan.summer.kitpage.setting.second;
 
-import java.awt.event.*;
 import fan.summer.database.DatabaseInit;
 import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.setting.email.EmailTagMapper;
-import fan.summer.kitpage.excel.second.ConfigEditorView;
 import fan.summer.ui.components.GradientProgressBar;
 import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
+ * Dialog window for managing email tags.
+ * Allows users to view, add, and update email tags stored in the database.
+ * Tags can be used to categorize email addresses in the address book.
+ *
  * @author phoebej
  */
 public class EmailTagsView extends JDialog {
+    private static final Logger log = LoggerFactory.getLogger(EmailTagsView.class);
+
+    /** ID of the tag being updated (null for new tag creation) */
     private Long needUpdateId;
+
+    /**
+     * Creates a new EmailTagsView dialog.
+     *
+     * @param panel the parent panel to determine the window ancestor
+     */
     public EmailTagsView(JPanel panel) {
         super(SwingUtilities.getWindowAncestor(panel));
         ;
         initComponents();
     }
 
-    public void openTagView(){
+    /**
+     * Opens the tag view and loads all existing tags from database.
+     * Displays tags in a table with ID and Tag columns.
+     * Uses SwingWorker for background database query.
+     */
+    public void openTagView() {
         new SwingWorker<List<EmailTagEntity>, Void>() {
             @Override
             protected List<EmailTagEntity> doInBackground() throws Exception {
-                try(SqlSession session = DatabaseInit.getSqlSession()) {
+                log.debug("Loading email tags from database");
+                try (SqlSession session = DatabaseInit.getSqlSession()) {
                     EmailTagMapper mapper = session.getMapper(EmailTagMapper.class);
                     return mapper.selectAll();
                 }
             }
+
             @Override
             protected void done() {
                 List<EmailTagEntity> emailTagEntities = null;
                 try {
                     emailTagEntities = get();
-                    List<Object[]>  rowData = new ArrayList<>();
+                    log.debug("Loaded {} email tags", emailTagEntities.size());
+                    List<Object[]> rowData = new ArrayList<>();
                     for (EmailTagEntity emailTagEntity : emailTagEntities) {
-                        rowData.add(new Object[]{emailTagEntity.getId(),emailTagEntity.getTag()});
+                        rowData.add(new Object[]{emailTagEntity.getId(), emailTagEntity.getTag()});
                     }
-                    if(!rowData.isEmpty()){
+                    if (!rowData.isEmpty()) {
                         String[] columns = {"ID", "Tag"};
                         DefaultTableModel model = new DefaultTableModel(columns, 0) {
                             @Override
@@ -64,12 +87,14 @@ public class EmailTagsView extends JDialog {
                         tagTable.setModel(model);
                     }
                     if (!EmailTagsView.this.isVisible()) {
-                        EmailTagsView.this.setVisible(true); // 首次打开才显示
+                        EmailTagsView.this.setVisible(true); // Show only on first open
                     }
 
                 } catch (InterruptedException ex) {
+                    log.error("Interrupted while loading email tags", ex);
                     throw new RuntimeException(ex);
                 } catch (ExecutionException ex) {
+                    log.error("Failed to load email tags", ex);
                     throw new RuntimeException(ex);
                 }
 
@@ -77,8 +102,15 @@ public class EmailTagsView extends JDialog {
         }.execute();
     }
 
+    /**
+     * Handles add/update tag button action.
+     * If button text is "AddNewTag", inserts a new tag to database.
+     * If button text is "Update", updates the existing tag with needUpdateId.
+     *
+     * @param e the action event
+     */
     private void addTagBtAction(ActionEvent e) {
-        if(addTagBt.getText().equals("AddNewTag")) {
+        if (addTagBt.getText().equals("AddNewTag")) {
             new SwingWorker<Void, Void>() {
                 private Exception error;
 
@@ -91,14 +123,17 @@ public class EmailTagsView extends JDialog {
                         progressBar1.setVisible(true);
                     });
                     if (tagField.getText() != null && !tagField.getText().isEmpty()) {
+                        log.debug("Inserting new tag: {}", tagField.getText());
                         try (SqlSession session = DatabaseInit.getSqlSession()) {
                             EmailTagMapper mapper = session.getMapper(EmailTagMapper.class);
                             EmailTagEntity emailTagEntity = new EmailTagEntity();
                             emailTagEntity.setTag(tagField.getText());
                             mapper.insert(emailTagEntity);
                             session.commit();
+                            log.info("Successfully inserted tag: {}", tagField.getText());
                         } catch (Exception ex) {
                             error = ex;
+                            log.error("Failed to insert tag: {}", tagField.getText(), ex);
                             throw ex;
                         }
                     } else {
@@ -124,20 +159,22 @@ public class EmailTagsView extends JDialog {
                     }
                 }
             }.execute();
-        }else if(addTagBt.getText().equals("Update")){
+        } else if (addTagBt.getText().equals("Update")) {
             // Update Tags
             new SwingWorker<Void, Void>() {
                 @Override
                 protected Void doInBackground() throws Exception {
-                   try (SqlSession session = DatabaseInit.getSqlSession()) {
-                       EmailTagMapper mapper = session.getMapper(EmailTagMapper.class);
-                       EmailTagEntity emailTagEntity = new EmailTagEntity();
-                       emailTagEntity.setId(needUpdateId);
-                       emailTagEntity.setTag(tagField.getText());
-                       mapper.update(emailTagEntity);
-                       session.commit();
-                   }
-                   return null;
+                    log.debug("Updating tag id={} with value: {}", needUpdateId, tagField.getText());
+                    try (SqlSession session = DatabaseInit.getSqlSession()) {
+                        EmailTagMapper mapper = session.getMapper(EmailTagMapper.class);
+                        EmailTagEntity emailTagEntity = new EmailTagEntity();
+                        emailTagEntity.setId(needUpdateId);
+                        emailTagEntity.setTag(tagField.getText());
+                        mapper.update(emailTagEntity);
+                        session.commit();
+                        log.info("Successfully updated tag id={}", needUpdateId);
+                    }
+                    return null;
                 }
 
                 @Override
@@ -151,14 +188,29 @@ public class EmailTagsView extends JDialog {
         }
     }
 
+    /**
+     * Handles close button action - hides the dialog.
+     *
+     * @param e the action event
+     */
     private void closeBtAction(ActionEvent e) {
         this.setVisible(false);
     }
 
+    /**
+     * Creates custom UI components for the dialog.
+     * Called by JFormDesigner during component initialization.
+     */
     private void createUIComponents() {
         progressBar1 = new GradientProgressBar();
     }
 
+    /**
+     * Handles mouse click events on the tag table.
+     * Double-click on a row enables edit mode for that tag.
+     *
+     * @param e the mouse event
+     */
     private void tagTableMouseClicked(MouseEvent e) {
         if (e.getClickCount() >= 2) {
             // Convert click point to row index
@@ -169,9 +221,10 @@ public class EmailTagsView extends JDialog {
                 // Open editor dialog for this row, passing table reference and row index
                 needUpdateId = Long.parseLong(tagTable.getValueAt(row, 0).toString());
                 Object tag = tagTable.getValueAt(row, 1);
-                if(needUpdateId != null && tag != null){
+                if (needUpdateId != null && tag != null) {
                     addTagBt.setText("Update");
                     tagField.setText(tag.toString());
+                    log.debug("Selected tag for update: id={}, tag={}", needUpdateId, tag);
                 }
             }
         }

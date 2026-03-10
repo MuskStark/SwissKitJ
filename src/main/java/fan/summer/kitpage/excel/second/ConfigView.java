@@ -5,6 +5,8 @@
 package fan.summer.kitpage.excel.second;
 
 import net.miginfocom.swing.MigLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -16,13 +18,15 @@ import java.util.List;
 
 
 /**
- * Configuration View Dialog
- * Displays saved complex split configurations in a table format
- * Allows users to view and edit configurations by double-clicking rows
+ * Configuration View Dialog.
+ * Displays saved complex split configurations in a table format.
+ * Allows users to view and edit configurations by double-clicking rows.
  *
  * @author phoebej
  */
 public class ConfigView extends JDialog {
+    private static final Logger log = LoggerFactory.getLogger(ConfigView.class);
+
     private String taskId;
 
     /**
@@ -71,8 +75,8 @@ public class ConfigView extends JDialog {
     }
 
     /**
-     * Handles mouse click events on the configuration table
-     * Opens editor dialog when user double-clicks on a row
+     * Handles mouse click events on the configuration table.
+     * Opens editor dialog when user double-clicks on a row.
      *
      * @param e MouseEvent containing click coordinates and information
      */
@@ -84,6 +88,7 @@ public class ConfigView extends JDialog {
             if (row >= 0) {
                 // Select the clicked row for visual feedback
                 configInfo.setRowSelectionInterval(row, row);
+                log.debug("Opening editor for row {}", row);
                 // Open editor dialog for this row, passing table reference and row index
                 new ConfigEditorView(contentPanel, this, configInfo, row, taskId).setVisible(true);
             }

@@ -3,13 +3,15 @@ package fan.summer.kitpage.email;
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
 import net.miginfocom.swing.MigLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
 /**
  * Email Tool Page
- * Provides email sending functionality
+ * Provides email sending functionality with support for single and mass email sending.
  *
  * @author summer
  * @version 1.00
@@ -17,18 +19,32 @@ import java.awt.event.ActionEvent;
  */
 @SwissKitPage(menuName = "Email", menuTooltip = "Email", order = 2)
 public class EmailKitPage implements KitPage {
+    private static final Logger log = LoggerFactory.getLogger(EmailKitPage.class);
 
     public EmailKitPage() {
         initComponents();
     }
 
+    /**
+     * Returns the main panel for this email page.
+     *
+     * @return the email JPanel
+     */
     @Override
     public JPanel getPanel() {
         return emailPanel;
     }
 
+    /**
+     * Handles the mass send checkbox state change.
+     * Enables or disables mass send configuration buttons and text fields.
+     * When enabled, To and Cc fields are disabled as recipients are loaded from configuration.
+     *
+     * @param e the action event
+     */
     private void massSentCheckBoxActionListener(ActionEvent e) {
         if (massSentCheckBox.isSelected()) {
+            log.debug("Mass send mode enabled");
             setMassSentConfigBt.setEnabled(true);
             viewSentConfigBt.setEnabled(true);
             toText.setText("");
@@ -36,6 +52,7 @@ public class EmailKitPage implements KitPage {
             ccText.setText("");
             ccText.setEnabled(false);
         } else {
+            log.debug("Mass send mode disabled");
             toText.setText("");
             toText.setEnabled(true);
             ccText.setText("");

@@ -10,6 +10,8 @@ import fan.summer.database.mapper.setting.email.EmailAddressBookMapper;
 import fan.summer.utils.StringUtil;
 import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,14 +24,23 @@ import java.awt.event.ActionEvent;
  * @author phoebej
  */
 public class AddAddressView extends JDialog {
+    private static final Logger log = LoggerFactory.getLogger(AddAddressView.class);
+
     public AddAddressView(JPanel panel) {
         super(SwingUtilities.getWindowAncestor(panel));
         initComponents();
     }
 
+    /**
+     * Handles the insert button action.
+     * Validates the email address and saves it to the database.
+     *
+     * @param e the action event
+     */
     private void insertBtAction(ActionEvent e) {
-        // valid info
+        // Validate email format
         if (StringUtil.checkEmail(addressField.getText())) {
+            log.debug("Inserting email address: {}", addressField.getText());
             try (SqlSession session = DatabaseInit.getSqlSession()) {
                 EmailAddressBookMapper mapper = session.getMapper(EmailAddressBookMapper.class);
                 EmailAddressBookEntity emailAddressBookEntity = new EmailAddressBookEntity();
@@ -38,8 +49,10 @@ public class AddAddressView extends JDialog {
                 emailAddressBookEntity.setTags(tagsField.getText());
                 mapper.insert(emailAddressBookEntity);
                 session.commit();
+                log.info("Successfully inserted email address: {}", addressField.getText());
                 this.setVisible(false);
             } catch (Exception ex) {
+                log.error("Failed to insert email address: {}", addressField.getText(), ex);
                 this.setVisible(false);
                 JOptionPane.showMessageDialog(this,
                         "Can Not Insert Email Address :" + ex.getMessage(),

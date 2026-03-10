@@ -9,6 +9,8 @@ import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.setting.email.EmailTagMapper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -25,6 +27,8 @@ import java.util.concurrent.ExecutionException;
  * @author phoebej
  */
 public class EmailAddressBookView extends JDialog {
+    private static final Logger log = LoggerFactory.getLogger(EmailAddressBookView.class);
+
     private JPanel pannel;
 
     public EmailAddressBookView(JPanel panel) {
@@ -33,6 +37,13 @@ public class EmailAddressBookView extends JDialog {
         initComponents();
     }
 
+    /**
+     * Initializes the table with the provided row data.
+     * Creates a non-editable table with Address, NickName, and Tags columns.
+     *
+     * @param rowData list of row data arrays containing [address, nickname, tags]
+     * @return this EmailAddressBookView instance for method chaining
+     */
     public EmailAddressBookView initTable(List<Object[]> rowData) {
         String[] columns = {"Address", "NickName", "Tags"};
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
@@ -48,16 +59,34 @@ public class EmailAddressBookView extends JDialog {
         return this;
     }
 
+    /**
+     * Handles add address button action - opens the add address dialog.
+     *
+     * @param e the action event
+     */
     private void addAddressBtAction(ActionEvent e) {
+        log.debug("Opening add address view");
         new AddAddressView(pannel).setVisible(true);
 
     }
 
+    /**
+     * Handles close button action - hides the dialog.
+     *
+     * @param e the action event
+     */
     private void closeBtAction(ActionEvent e) {
+        log.debug("Closing address book view");
         this.setVisible(false);
     }
 
+    /**
+     * Handles modify tags button action - opens the tag management view.
+     *
+     * @param e the action event
+     */
     private void modifyTagsBtAction(ActionEvent e) {
+        log.debug("Opening tags view");
         new EmailTagsView(pannel).openTagView();
 
     }

@@ -9,9 +9,15 @@ import javax.swing.*;
 import net.miginfocom.swing.*;
 
 /**
+ * Splash screen window displayed during application initialization.
+ * Shows a loading message while the database and UI are being initialized.
+ *
  * @author summer
  */
 public class StartLoadingPage {
+    /**
+     * Creates a new StartLoadingPage and initializes the splash screen components.
+     */
     public StartLoadingPage() {
         initComponents();
     }
@@ -69,6 +75,12 @@ public class StartLoadingPage {
         }
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
     }
+
+    /**
+     * Returns the JWindow instance for display control.
+     *
+     * @return the splash screen JWindow
+     */
     public JWindow getWindow() {
         return startLoading;
     }

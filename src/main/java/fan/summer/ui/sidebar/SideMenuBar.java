@@ -12,8 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Side menu bar component
- * Dynamically generates menu based on KitPage
+ * Side menu bar component.
+ * Dynamically generates menu items based on registered KitPage implementations.
+ * Provides navigation between different tool pages in the application.
+ *
+ * @author summer
  */
 public class SideMenuBar extends JPanel {
 

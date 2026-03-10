@@ -34,9 +34,13 @@ public class DatabaseInit {
 
     private static SqlSessionFactory sqlSessionFactory;
 
+    /**
+     * Initializes the database connection and creates necessary tables.
+     * This method should be called once at application startup.
+     */
     public static void init() {
         try {
-            // 确保数据库目录存在
+            // Ensure database directory exists
             Path dbDir = Path.of(System.getProperty("user.dir")).resolve(".swisskit");
             if (!Files.exists(dbDir)) {
                 Files.createDirectories(dbDir);
@@ -53,6 +57,10 @@ public class DatabaseInit {
         }
     }
 
+    /**
+     * Creates database tables by executing init.sql script.
+     * The script is loaded from classpath resources.
+     */
     private static void createTables() {
         try {
             Class.forName("org.h2.Driver");
@@ -85,6 +93,10 @@ public class DatabaseInit {
         }
     }
 
+    /**
+     * Initializes MyBatis SqlSessionFactory with database configuration.
+     * Loads mybatis-config.xml from classpath and injects dynamic database URL.
+     */
     private static void initMyBatis() {
         try (InputStream configStream = DatabaseInit.class.getClassLoader()
                 .getResourceAsStream("mybatis-config.xml")) {
@@ -108,6 +120,13 @@ public class DatabaseInit {
         }
     }
 
+    /**
+     * Returns a new SqlSession for database operations.
+     * Caller is responsible for closing the session after use.
+     *
+     * @return a new SqlSession instance
+     * @throws IllegalStateException if database is not initialized
+     */
     public static SqlSession getSqlSession() {
         if (sqlSessionFactory == null) {
             throw new IllegalStateException("Database not initialized. Call init() first.");
@@ -115,6 +134,12 @@ public class DatabaseInit {
         return sqlSessionFactory.openSession();
     }
 
+    /**
+     * Returns the SqlSessionFactory instance for advanced MyBatis usage.
+     *
+     * @return the SqlSessionFactory instance
+     * @throws IllegalStateException if database is not initialized
+     */
     public static SqlSessionFactory getSqlSessionFactory() {
         if (sqlSessionFactory == null) {
             throw new IllegalStateException("Database not initialized. Call init() first.");

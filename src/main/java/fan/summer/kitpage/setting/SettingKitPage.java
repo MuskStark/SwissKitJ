@@ -12,6 +12,8 @@ import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoCallBack;
 import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoWorker;
 import fan.summer.plugin.PluginLoader;
 import net.miginfocom.swing.MigLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,12 +28,14 @@ import java.util.List;
 
 /**
  * Settings page for application configuration.
- * Includes email server settings and address book management.
+ * Includes email server settings, address book management, and plugin installation.
  *
  * @author phoebej
  */
 @SwissKitPage(menuName = "Setting", menuTooltip = "Setting", order = 99999)
 public class SettingKitPage implements KitPage {
+    private static final Logger log = LoggerFactory.getLogger(SettingKitPage.class);
+
     /** Cached email address book data */
     private List<EmailAddressBookEntity> dataBaseInfo;
 
@@ -53,10 +57,12 @@ public class SettingKitPage implements KitPage {
      * Queries all email addresses from database and displays them in a table.
      */
     private void openAddressBookBtActionListener(ActionEvent e) {
+        log.debug("Opening address book view");
         new QueryAllEmailInfoWorker(new QueryAllEmailInfoCallBack() {
             @Override
             public void onSuccess(List<EmailAddressBookEntity> emailAddressBookEntities) {
                 dataBaseInfo = emailAddressBookEntities;
+                log.debug("Loaded {} email addresses", emailAddressBookEntities.size());
                 if (dataBaseInfo != null && !dataBaseInfo.isEmpty()) {
                     List<Object[]> rowData = new ArrayList<>();
                     for (EmailAddressBookEntity info : dataBaseInfo) {
@@ -70,6 +76,7 @@ public class SettingKitPage implements KitPage {
 
             @Override
             public void onFailure(Exception e) {
+                log.error("Failed to load email addresses", e);
                 JOptionPane.showMessageDialog(settingTable,
                         "Can Not Find Any Email Address!",
                         "Warning",
@@ -80,6 +87,12 @@ public class SettingKitPage implements KitPage {
 
     }
 
+    /**
+     * Handles the plugin file selection action.
+     * Opens a file chooser dialog for selecting a JAR plugin file.
+     *
+     * @param e the action event
+     */
     private void choicePluginBtAction(ActionEvent e) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -90,6 +103,7 @@ public class SettingKitPage implements KitPage {
             String fileName = selectedFile.getName().toLowerCase();
 
             if (!fileName.endsWith(".jar")) {
+                log.warn("Invalid file type selected: {}", fileName);
                 JOptionPane.showMessageDialog(settingTable,
                         "Please select a valid JAR file!",
                         "Invalid File Type",
@@ -97,21 +111,32 @@ public class SettingKitPage implements KitPage {
                 return;
             }
 
+            log.debug("Selected plugin file: {}", selectedFile.getAbsolutePath());
             pluginPath.setText(selectedFile.getAbsolutePath());
         }
     }
 
+    /**
+     * Handles the plugin upload/installation action.
+     * Copies the selected plugin JAR file to the plugins directory.
+     *
+     * @param e the action event
+     */
     private void pluginUploadBtAction(ActionEvent e) {
         File pluginDir = Path.of(PluginLoader.PLUGIN_DIR).toFile();
         pluginDir.mkdirs();
         try {
-            Path target = pluginDir.toPath().resolve(Path.of(pluginPath.getText()).toFile().getName());
-            Files.copy(Path.of(pluginPath.getText()), target, StandardCopyOption.REPLACE_EXISTING);
+            Path source = Path.of(pluginPath.getText());
+            Path target = pluginDir.toPath().resolve(source.toFile().getName());
+            log.debug("Installing plugin from {} to {}", source, target);
+            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+            log.info("Successfully installed plugin: {}", source.toFile().getName());
             JOptionPane.showMessageDialog(settingTable,
                     "✅ Installed:" + Path.of(pluginPath.getText()).toFile().getName() + "（Need ReOpen SwissKitJ）",
                     "Plugin Install Success",
                     JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException ex) {
+            log.error("Failed to install plugin: {}", pluginPath.getText(), ex);
             JOptionPane.showMessageDialog(settingTable,
                     "Error:" + ex.getMessage(),
                     "Plugin Install Error",
