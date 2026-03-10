@@ -12,8 +12,12 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author phoebej
@@ -23,6 +27,51 @@ public class EmailTagsView extends JDialog {
         super(SwingUtilities.getWindowAncestor(panel));
         ;
         initComponents();
+    }
+
+    public void openTagView(){
+        new SwingWorker<List<EmailTagEntity>, Void>() {
+            @Override
+            protected List<EmailTagEntity> doInBackground() throws Exception {
+                try(SqlSession session = DatabaseInit.getSqlSession()) {
+                    EmailTagMapper mapper = session.getMapper(EmailTagMapper.class);
+                    return mapper.selectAll();
+                }
+            }
+            @Override
+            protected void done() {
+                List<EmailTagEntity> emailTagEntities = null;
+                try {
+                    emailTagEntities = get();
+                    List<Object[]>  rowData = new ArrayList<>();
+                    for (EmailTagEntity emailTagEntity : emailTagEntities) {
+                        rowData.add(new Object[]{emailTagEntity.getId(),emailTagEntity.getTag()});
+                    }
+                    if(!rowData.isEmpty()){
+                        String[] columns = {"ID", "Tag"};
+                        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+                            @Override
+                            public boolean isCellEditable(int row, int column) {
+                                return column > 99;
+                            }
+                        };
+                        for (Object[] row : rowData) {
+                            model.addRow(row);
+                        }
+                        tagTable.setModel(model);
+                    }
+                    if (!EmailTagsView.this.isVisible()) {
+                        EmailTagsView.this.setVisible(true); // 首次打开才显示
+                    }
+
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                } catch (ExecutionException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+            }
+        }.execute();
     }
 
     private void addTagBtAction(ActionEvent e) {
@@ -61,6 +110,7 @@ public class EmailTagsView extends JDialog {
                     get();
                     progressBar1.setValue(100);
                     progressBar1.setString("Done");
+                    openTagView();
                 } catch (Exception ex) {
                     progressBar1.setString("Error: " + ex.getMessage());
                     JOptionPane.showMessageDialog(EmailTagsView.this,
