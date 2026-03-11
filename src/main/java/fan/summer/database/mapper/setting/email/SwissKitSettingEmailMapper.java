@@ -19,4 +19,9 @@ public interface SwissKitSettingEmailMapper {
     void insert(SwissKitSettingEmailEntity user);
 
     SwissKitSettingEmailEntity selectLatest();
+
+    /**
+     * Deletes all email setting records.
+     */
+    void deleteAll();
 }

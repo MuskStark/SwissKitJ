@@ -23,4 +23,9 @@
         LIMIT 1
     </select>
 
+    <!-- Delete all email settings records -->
+    <delete id="deleteAll">
+        DELETE FROM swiss_kit_setting_email
+    </delete>
+
 </mapper>

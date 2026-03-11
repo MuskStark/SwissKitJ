@@ -6,12 +6,17 @@ package fan.summer.kitpage.setting;
 
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
+import fan.summer.database.DatabaseInit;
 import fan.summer.database.entity.setting.email.EmailAddressBookEntity;
+import fan.summer.database.entity.setting.email.SwissKitSettingEmailEntity;
+import fan.summer.database.mapper.setting.email.SwissKitSettingEmailMapper;
 import fan.summer.kitpage.setting.second.EmailAddressBookView;
 import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoCallBack;
 import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoWorker;
 import fan.summer.plugin.PluginLoader;
+import fan.summer.utils.EmailUtil;
 import net.miginfocom.swing.MigLayout;
+import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +48,7 @@ public class SettingKitPage implements KitPage {
 
     public SettingKitPage() {
         initComponents();
+        initSettingPageInfo();
     }
 
     /**
@@ -52,6 +58,50 @@ public class SettingKitPage implements KitPage {
      */
     public JPanel getPanel() {
         return settingPanle;
+    }
+
+    /**
+     * Initializes the settings page with data from database.
+     * Queries the latest email settings and populates the UI fields.
+     * This method is called when the settings page is loaded.
+     */
+    private void initSettingPageInfo() {
+        log.debug("Initializing settings page info from database");
+        new SwingWorker<SwissKitSettingEmailEntity, Void>() {
+            @Override
+            protected SwissKitSettingEmailEntity doInBackground() throws Exception {
+                log.debug("Querying latest email settings from database");
+                try (SqlSession session = DatabaseInit.getSqlSession()) {
+                    SwissKitSettingEmailMapper mapper = session.getMapper(SwissKitSettingEmailMapper.class);
+                    SwissKitSettingEmailEntity entity = mapper.selectLatest();
+                    log.debug("Email settings query result: {}", entity != null ? "found" : "not found");
+                    return entity;
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    SwissKitSettingEmailEntity entity = get();
+                    if (entity != null) {
+                        // Populate UI fields with retrieved data
+                        textField1.setText(entity.getSmtpAddress());
+                        textField2.setText(String.valueOf(entity.getSmtpPort()));
+                        textField3.setText(entity.getEmail());
+                        textField4.setText(entity.getPassword());
+                        textField5.setText(entity.getFromAddress());
+                        isTsl.setSelected(entity.getNeedTLS());
+                        isSsl.setSelected(entity.getNeedSSL());
+                        log.info("Email settings loaded successfully: smtpAddress={}, smtpPort={}",
+                                entity.getSmtpAddress(), entity.getSmtpPort());
+                    } else {
+                        log.debug("No existing email settings found in database");
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to load email settings from database", e);
+                }
+            }
+        }.execute();
     }
 
     /**
@@ -148,7 +198,152 @@ public class SettingKitPage implements KitPage {
     }
 
     private void saveBtAction(ActionEvent e) {
-        
+        // Validate required fields before saving
+        String smtpAddress = textField1.getText().trim();
+        String smtpPortStr = textField2.getText().trim();
+        String email = textField3.getText().trim();
+        String password = textField4.getText().trim();
+        String fromAddress = textField5.getText().trim();
+
+        // Check if required fields are empty
+        if (smtpAddress.isEmpty()) {
+            JOptionPane.showMessageDialog(settingTable,
+                    "ServerUrl cannot be empty!",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            textField1.requestFocusInWindow();
+            return;
+        }
+
+        if (smtpPortStr.isEmpty()) {
+            JOptionPane.showMessageDialog(settingTable,
+                    "ServerPort cannot be empty!",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            textField2.requestFocusInWindow();
+            return;
+        }
+
+        // Validate port is a valid number
+        int smtpPort;
+        try {
+            smtpPort = Integer.parseInt(smtpPortStr);
+            if (smtpPort <= 0 || smtpPort > 65535) {
+                JOptionPane.showMessageDialog(settingTable,
+                        "ServerPort must be a valid port number (1-65535)!",
+                        "Validation Error",
+                        JOptionPane.ERROR_MESSAGE);
+                textField2.requestFocusInWindow();
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(settingTable,
+                    "ServerPort must be a valid number!",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            textField2.requestFocusInWindow();
+            return;
+        }
+
+        if (email.isEmpty()) {
+            JOptionPane.showMessageDialog(settingTable,
+                    "UserName cannot be empty!",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            textField3.requestFocusInWindow();
+            return;
+        }
+
+        if (password.isEmpty()) {
+            JOptionPane.showMessageDialog(settingTable,
+                    "PassWord cannot be empty!",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            textField4.requestFocusInWindow();
+            return;
+        }
+
+        if (fromAddress.isEmpty()) {
+            JOptionPane.showMessageDialog(settingTable,
+                    "FromAddress cannot be empty!",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            textField5.requestFocusInWindow();
+            return;
+        }
+
+        // Validate TLS and SSL are not both selected
+        if (isTsl.isSelected() && isSsl.isSelected()) {
+            JOptionPane.showMessageDialog(settingTable,
+                    "TSL and SSL cannot be both selected!",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // All validations passed, proceed with database save
+        log.debug("Starting to save email settings");
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                try (SqlSession session = DatabaseInit.getSqlSession()) {
+                    SwissKitSettingEmailMapper mapper = session.getMapper(SwissKitSettingEmailMapper.class);
+
+                    // Delete all existing records first to keep only latest data
+                    log.debug("Deleting existing email settings from database");
+                    mapper.deleteAll();
+
+                    // Create entity with validated values
+                    SwissKitSettingEmailEntity entity = new SwissKitSettingEmailEntity();
+                    entity.setEmail(email);
+                    entity.setPassword(password);
+                    entity.setSmtpAddress(smtpAddress);
+                    entity.setSmtpPort(smtpPort);
+                    entity.setNeedTLS(isTsl.isSelected());
+                    entity.setNeedSSL(isSsl.isSelected());
+                    entity.setFromAddress(fromAddress);
+
+                    // Insert new record
+                    log.debug("Inserting new email settings: smtpAddress={}, smtpPort={}, email={}, fromAddress={}, needTLS={}, needSSL={}",
+                            smtpAddress, smtpPort, email, fromAddress, isTsl.isSelected(), isSsl.isSelected());
+                    mapper.insert(entity);
+                    session.commit();
+
+                    log.info("Email settings saved successfully: smtpAddress={}, smtpPort={}, email={}",
+                            smtpAddress, smtpPort, email);
+                } catch (Exception e) {
+                    log.error("Failed to save email settings to database", e);
+                    throw e;
+                }
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    JOptionPane.showMessageDialog(settingTable,
+                            "Email settings saved successfully!",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception e) {
+                    log.error("Error in save completion", e);
+                    JOptionPane.showMessageDialog(settingTable,
+                            "Failed to save email settings: " + e.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
+
+    }
+
+    private void sentTestEmailBtAction(ActionEvent e) {
+        try {
+            EmailUtil.sendEmail(EmailUtil.EmailMessage.builder().to("test@swisskit.com").subject("SwisskitTestMail").textBody("SwisskitTestMail").build());
+        } catch (EmailUtil.EmailException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private void initComponents() {
@@ -168,9 +363,9 @@ public class SettingKitPage implements KitPage {
         textField4 = new JTextField();
         label7 = new JLabel();
         textField5 = new JTextField();
-        checkBox1 = new JCheckBox();
-        checkBox2 = new JCheckBox();
-        button2 = new JButton();
+        isTsl = new JCheckBox();
+        isSsl = new JCheckBox();
+        sentTestEmailBt = new JButton();
         saveBtAction = new JButton();
         button3 = new JButton();
         plugin = new JPanel();
@@ -252,17 +447,18 @@ public class SettingKitPage implements KitPage {
                     email.add(label7, "cell 0 5");
                     email.add(textField5, "cell 1 5 2 1");
 
-                    //---- checkBox1 ----
-                    checkBox1.setText("TSL");
-                    email.add(checkBox1, "cell 0 6");
+                    //---- isTsl ----
+                    isTsl.setText("TSL");
+                    email.add(isTsl, "cell 0 6");
 
-                    //---- checkBox2 ----
-                    checkBox2.setText("SSL");
-                    email.add(checkBox2, "cell 1 6");
+                    //---- isSsl ----
+                    isSsl.setText("SSL");
+                    email.add(isSsl, "cell 1 6");
 
-                    //---- button2 ----
-                    button2.setText("SentTestEmail");
-                    email.add(button2, "cell 0 8 3 1");
+                    //---- sentTestEmailBt ----
+                    sentTestEmailBt.setText("SentTestEmail");
+                    sentTestEmailBt.addActionListener(e -> sentTestEmailBtAction(e));
+                    email.add(sentTestEmailBt, "cell 0 8 3 1");
 
                     //---- saveBtAction ----
                     saveBtAction.setText("Save");
@@ -325,9 +521,9 @@ public class SettingKitPage implements KitPage {
     private JTextField textField4;
     private JLabel label7;
     private JTextField textField5;
-    private JCheckBox checkBox1;
-    private JCheckBox checkBox2;
-    private JButton button2;
+    private JCheckBox isTsl;
+    private JCheckBox isSsl;
+    private JButton sentTestEmailBt;
     private JButton saveBtAction;
     private JButton button3;
     private JPanel plugin;

@@ -86,20 +86,21 @@ new FormModel {
 						"value": "cell 1 5 2 1"
 					} )
 					add( new FormComponent( "javax.swing.JCheckBox" ) {
-						name: "checkBox1"
+						name: "isTsl"
 						"text": "TSL"
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 						"value": "cell 0 6"
 					} )
 					add( new FormComponent( "javax.swing.JCheckBox" ) {
-						name: "checkBox2"
+						name: "isSsl"
 						"text": "SSL"
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 						"value": "cell 1 6"
 					} )
 					add( new FormComponent( "javax.swing.JButton" ) {
-						name: "button2"
+						name: "sentTestEmailBt"
 						"text": "SentTestEmail"
+						addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "sentTestEmailBtAction", true ) )
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 						"value": "cell 0 8 3 1"
 					} )
@@ -158,3 +159,4 @@ new FormModel {
 		} )
 	}
 }
+
