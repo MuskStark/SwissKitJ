@@ -40,4 +40,15 @@ CREATE TABLE IF NOT EXISTS email_tag
     tag VARCHAR(255) NOT NULL UNIQUE
 );
 
+-- Email Mass Sent Config Table
+CREATE TABLE IF NOT EXISTS email_mass_sent_config
+(
+    id            INTEGER PRIMARY KEY AUTO_INCREMENT,
+    task_id       VARCHAR(255) NOT NULL UNIQUE,
+    to_tag        VARCHAR(255),
+    cc_tag        VARCHAR(255),
+    is_sent_att   INTEGER      NOT NULL DEFAULT 0,
+    att_folder_path VARCHAR(255)
+);
+
 

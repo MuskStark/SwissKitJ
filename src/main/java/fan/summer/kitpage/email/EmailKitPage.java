@@ -2,12 +2,18 @@ package fan.summer.kitpage.email;
 
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
+import fan.summer.database.DatabaseInit;
+import fan.summer.database.entity.email.EmailMassSentConfigEntity;
+import fan.summer.database.mapper.email.EmailMassSentConfigMapper;
+import fan.summer.kitpage.email.second.MassSentConfigView;
 import net.miginfocom.swing.MigLayout;
+import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.UUID;
 
 /**
  * Email Tool Page
@@ -20,6 +26,7 @@ import java.awt.event.ActionEvent;
 @SwissKitPage(menuName = "Email", menuTooltip = "Email", order = 2)
 public class EmailKitPage implements KitPage {
     private static final Logger log = LoggerFactory.getLogger(EmailKitPage.class);
+    private String taskId;
 
     public EmailKitPage() {
         initComponents();
@@ -44,7 +51,8 @@ public class EmailKitPage implements KitPage {
      */
     private void massSentCheckBoxActionListener(ActionEvent e) {
         if (massSentCheckBox.isSelected()) {
-            log.debug("Mass send mode enabled");
+            taskId = "MassTask-" + UUID.randomUUID();
+            log.debug("Mass send mode enabled, taskId:{}", taskId);
             setMassSentConfigBt.setEnabled(true);
             viewSentConfigBt.setEnabled(true);
             toText.setText("");
@@ -53,6 +61,7 @@ public class EmailKitPage implements KitPage {
             ccText.setEnabled(false);
         } else {
             log.debug("Mass send mode disabled");
+            taskId = null;
             toText.setText("");
             toText.setEnabled(true);
             ccText.setText("");
@@ -60,6 +69,52 @@ public class EmailKitPage implements KitPage {
             setMassSentConfigBt.setEnabled(false);
             viewSentConfigBt.setEnabled(false);
         }
+    }
+
+    private void setMassSentConfigBtAction(ActionEvent e) {
+        if (taskId != null) {
+            new MassSentConfigView(emailPanel, taskId).setVisible(true);
+        }
+    }
+
+    private void viewSentConfigBtAction(ActionEvent e) {
+        if (taskId == null) {
+            return;
+        }
+
+        new SwingWorker<EmailMassSentConfigEntity, Void>() {
+            @Override
+            protected EmailMassSentConfigEntity doInBackground() throws Exception {
+                try (SqlSession session = DatabaseInit.getSqlSession()) {
+                    EmailMassSentConfigMapper mapper = session.getMapper(EmailMassSentConfigMapper.class);
+                    return mapper.selectByTaskId(taskId);
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    EmailMassSentConfigEntity config = get();
+                    StringBuilder message = new StringBuilder();
+                    message.append("<html><body>");
+                    message.append("<p><b>Task ID:</b> ").append(taskId).append("</p>");
+                    message.append("<p><b>To Tag:</b> ").append(config != null && config.getToTag() != null ? config.getToTag() : "N/A").append("</p>");
+                    message.append("<p><b>Cc Tag:</b> ").append(config != null && config.getCcTag() != null ? config.getCcTag() : "N/A").append("</p>");
+                    message.append("<p><b>Send Attachment:</b> ").append(config != null && config.isSentAtt() ? "Yes" : "No").append("</p>");
+                    message.append("<p><b>Attachment Folder:</b> ").append(config != null && config.getAttFolderPath() != null ? config.getAttFolderPath() : "N/A").append("</p>");
+                    message.append("</body></html>");
+
+                    if (config == null) {
+                        JOptionPane.showMessageDialog(emailPanel, "No configuration found for this task", "Info", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(emailPanel, message.toString(), "Mass Sent Configuration", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                } catch (Exception ex) {
+                    log.error("Failed to load config for taskId: {}", taskId, ex);
+                    JOptionPane.showMessageDialog(emailPanel, "Failed to load config: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
     }
 
     private void initComponents() {
@@ -125,11 +180,13 @@ public class EmailKitPage implements KitPage {
             //---- setMassSentConfigBt ----
             setMassSentConfigBt.setText("MassSendConfig");
             setMassSentConfigBt.setEnabled(false);
+            setMassSentConfigBt.addActionListener(e -> setMassSentConfigBtAction(e));
             emailPanel.add(setMassSentConfigBt, "cell 1 4");
 
             //---- viewSentConfigBt ----
             viewSentConfigBt.setText("ViewSentConfig");
             viewSentConfigBt.setEnabled(false);
+            viewSentConfigBt.addActionListener(e -> viewSentConfigBtAction(e));
             emailPanel.add(viewSentConfigBt, "cell 2 4");
 
             //---- sentButton ----

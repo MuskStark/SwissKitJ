@@ -28,6 +28,7 @@
         <mapper resource="mapper/excel/ComplexSplitConfigMapper.xml"/>
         <mapper resource="mapper/setting/email/EmailAddressBookMapper.xml"/>
         <mapper resource="mapper/setting/email/EmailTagMapper.xml"/>
+        <mapper resource="mapper/email/EmailMassSentConfigMapper.xml"/>
     </mappers>
 
 </configuration>
