@@ -4,8 +4,10 @@ import com.alibaba.fastjson2.JSON;
 import fan.summer.database.DatabaseInit;
 import fan.summer.database.entity.email.EmailMassSentConfigEntity;
 import fan.summer.database.entity.setting.email.EmailAddressBookEntity;
+import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.email.EmailMassSentConfigMapper;
 import fan.summer.database.mapper.setting.email.EmailAddressBookMapper;
+import fan.summer.database.mapper.setting.email.EmailTagMapper;
 import fan.summer.utils.EmailUtil;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
@@ -50,12 +52,12 @@ public class EmailSentWorker extends SwingWorker<Void, Void> {
     /**
      * Constructor for single recipient mode (non-mass sending).
      *
-     * @param subject         email subject
-     * @param body            email body content
-     * @param toTags          list of recipient email addresses
-     * @param ccTags          list of CC email addresses
-     * @param attachmentPath  path to attachment file (can be null)
-     * @param isMassModel     flag indicating if mass sending mode is enabled
+     * @param subject        email subject
+     * @param body           email body content
+     * @param toTags         list of recipient email addresses
+     * @param ccTags         list of CC email addresses
+     * @param attachmentPath path to attachment file (can be null)
+     * @param isMassModel    flag indicating if mass sending mode is enabled
      */
     public EmailSentWorker(String subject, String body, List<String> toTags, List<String> ccTags, String attachmentPath, boolean isMassModel) {
         this.subject = subject;
@@ -124,6 +126,14 @@ public class EmailSentWorker extends SwingWorker<Void, Void> {
             return;
         }
 
+        // Step 2: Load All Tags
+        List<EmailTagEntity> emailTags;
+        try (SqlSession session = DatabaseInit.getSqlSession()) {
+            EmailTagMapper mapper = session.getMapper(EmailTagMapper.class);
+            emailTags = mapper.selectAll();
+        }
+        Map<String, List<EmailTagEntity>> tagCollect = emailTags.stream().collect(Collectors.groupingBy(EmailTagEntity::getTag));
+
         // Step 2: Load mass sending configuration by taskId
         log.debug("Step 2: Loading mass sending configuration for taskId: {}", taskId);
         EmailMassSentConfigEntity config;
@@ -161,7 +171,7 @@ public class EmailSentWorker extends SwingWorker<Void, Void> {
 
         log.debug("Step 4: Starting to iterate through each tag and send emails");
         for (Map.Entry<String, List<File>> entry : taggedFiles.entrySet()) {
-            String fileTag = entry.getKey();
+            EmailTagEntity fileTag = tagCollect.get(entry.getKey()).get(0);
             List<File> files = entry.getValue();
             log.debug("Processing tag: {} with {} attachment files", fileTag, files.size());
 
@@ -173,26 +183,26 @@ public class EmailSentWorker extends SwingWorker<Void, Void> {
             log.debug("Building recipient lists for tag: {}", fileTag);
             for (EmailAddressBookEntity entity : allEmailAddresses) {
                 // Parse tags from JSON string
-                List<String> tagList;
+                List<Long> tagList;
                 try {
-                    tagList = JSON.parseArray(entity.getTags(), String.class).stream()
-                            .map(String::trim)
-                            .collect(Collectors.toList());
+                    tagList = JSON.parseArray(entity.getTags(), Long.class);
                 } catch (Exception e) {
                     log.warn("Failed to parse tags for email: {}, skipping", entity.getEmailAddress(), e);
                     continue;
                 }
 
                 // Check if contact has the To tag
-                if (config.getToTag() != null && tagList.contains(config.getToTag().trim())) {
-                    toList.add(entity.getEmailAddress());
-                    log.trace("Added {} to To list (matched tag: {})", entity.getEmailAddress(), config.getToTag());
-                }
+                if (tagList.contains(fileTag.getId())) {
+                    if (config.getToTag() != null && tagList.contains(Long.parseLong(config.getToTag()))) {
+                        toList.add(entity.getEmailAddress());
+                        log.trace("Added {} to To list (matched tag: {})", entity.getEmailAddress(), config.getToTag());
+                    }
 
-                // Check if contact has the Cc tag
-                if (config.getCcTag() != null && tagList.contains(config.getCcTag().trim())) {
-                    ccList.add(entity.getEmailAddress());
-                    log.trace("Added {} to Cc list (matched tag: {})", entity.getEmailAddress(), config.getCcTag());
+                    // Check if contact has the Cc tag
+                    if (config.getCcTag() != null && tagList.contains(Long.parseLong(config.getCcTag()))) {
+                        ccList.add(entity.getEmailAddress());
+                        log.trace("Added {} to Cc list (matched tag: {})", entity.getEmailAddress(), config.getCcTag());
+                    }
                 }
             }
 

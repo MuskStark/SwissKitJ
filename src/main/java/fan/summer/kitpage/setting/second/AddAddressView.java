@@ -10,6 +10,7 @@ import fan.summer.database.entity.setting.email.EmailAddressBookEntity;
 import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.setting.email.EmailAddressBookMapper;
 import fan.summer.database.mapper.setting.email.EmailTagMapper;
+import fan.summer.kitpage.setting.dto.TagComBoxItemDto;
 import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoCallBack;
 import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoWorker;
 import fan.summer.utils.StringUtil;
@@ -33,6 +34,7 @@ import java.util.List;
 public class AddAddressView extends JDialog {
     private static final Logger log = LoggerFactory.getLogger(AddAddressView.class);
     private List<String> tags = new ArrayList<>();
+    private List<String> chosedTagName = new ArrayList<>();
     private List<EmailAddressBookEntity> dataBaseInfo;
     private EmailAddressBookView emailAddressBookView;
     private boolean comboBoxReady = false;
@@ -54,7 +56,7 @@ public class AddAddressView extends JDialog {
                     comboBox1.removeAllItems();
                     if (emailTagEntities != null && !emailTagEntities.isEmpty()) {
                         for (EmailTagEntity entity : emailTagEntities) {
-                            comboBox1.addItem(entity.getTag());
+                            comboBox1.addItem(new TagComBoxItemDto(entity.getId(), entity.getTag()));
                         }
                         comboBox1.setSelectedIndex(-1);
                         comboBoxReady = true;
@@ -122,11 +124,11 @@ public class AddAddressView extends JDialog {
 
     private void tagChoiceComBoxAction(ActionEvent e) {
         if (comboBoxReady) {
-            String tag = comboBox1.getSelectedItem().toString();
+            TagComBoxItemDto tag = (TagComBoxItemDto) comboBox1.getSelectedItem();
             if (tag != null) {
-                tags.add(tag);
-                String jsonString = JSON.toJSONString(tags);
-                tagsField.setText(jsonString);
+                tags.add(tag.getId().toString());
+                chosedTagName.add(tag.getTag());
+                tagsField.setText(JSON.toJSONString(chosedTagName));
                 comboBox1.removeItem(comboBox1.getSelectedIndex());
             }
         }
@@ -136,6 +138,7 @@ public class AddAddressView extends JDialog {
         initComponents();
         tagsField.setText("");
         tags.clear();
+        chosedTagName.clear();
     }
 
     private void closeBtAction(ActionEvent e) {

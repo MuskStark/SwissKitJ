@@ -1,13 +1,17 @@
 package fan.summer.kitpage.setting.worker.second;
 
+import com.alibaba.fastjson2.JSON;
 import fan.summer.database.DatabaseInit;
 import fan.summer.database.entity.setting.email.EmailAddressBookEntity;
+import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.setting.email.EmailAddressBookMapper;
+import fan.summer.database.mapper.setting.email.EmailTagMapper;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -36,6 +40,20 @@ public class QueryAllEmailInfoWorker extends SwingWorker<List<EmailAddressBookEn
             EmailAddressBookMapper mapper = session.getMapper(EmailAddressBookMapper.class);
             List<EmailAddressBookEntity> result = mapper.selectEmailAddressBook();
             log.debug("Found {} email address book entries", result.size());
+            EmailTagMapper tagMapper = session.getMapper(EmailTagMapper.class);
+            List<EmailTagEntity> tagEntities = tagMapper.selectAll();
+            if (!tagEntities.isEmpty()) {
+                for (EmailAddressBookEntity email : result) {
+                    List<Long> tagIds = JSON.parseArray(email.getTags(), Long.class);
+                    List<String> tagNames = new ArrayList<>();
+                    for (EmailTagEntity tag : tagEntities) {
+                        if (tagIds.contains(tag.getId())) {
+                            tagNames.add(tag.getTag());
+                        }
+                    }
+                    email.setTags(JSON.toJSONString(tagNames));
+                }
+            }
             return result;
         } catch (Exception e) {
             log.error("Failed to query email address book entries", e);

@@ -9,6 +9,7 @@ import fan.summer.database.entity.email.EmailMassSentConfigEntity;
 import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.email.EmailMassSentConfigMapper;
 import fan.summer.database.mapper.setting.email.EmailTagMapper;
+import fan.summer.kitpage.setting.dto.TagComBoxItemDto;
 import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
@@ -19,7 +20,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.io.File;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Mass sent config view dialog for configuring email mass sending settings.
@@ -31,8 +31,15 @@ import java.util.Objects;
 public class MassSentConfigView extends JDialog {
     private static final Logger log = LoggerFactory.getLogger(MassSentConfigView.class);
 
+    // Current task ID for associating with configuration
     private final String taskId;
 
+    /**
+     * Creates the mass sent config dialog.
+     *
+     * @param panel  Parent panel for getting the top-level window
+     * @param taskId Task ID for associating with configuration
+     */
     public MassSentConfigView(JPanel panel, String taskId) {
         super(SwingUtilities.getWindowAncestor(panel));
         this.taskId = taskId;
@@ -42,17 +49,19 @@ public class MassSentConfigView extends JDialog {
     }
 
     /**
-     * Validates the form inputs.
-     * Returns true if all required fields are filled.
+     * Validates form inputs.
+     * Checks if required fields are filled and if attachment folder is selected when required.
      *
      * @return true if validation passes, false otherwise
      */
     private boolean validateForm() {
+        // Validate To tag is required
         if (toTagcomboBox.getSelectedItem() == null || toTagcomboBox.getSelectedItem().toString().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please select a To tag", "Validation Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
 
+        // Validate attachment folder is selected when checkbox is enabled
         if (attachmentByTagCheckBox.isSelected()) {
             String attPath = attPathField.getText();
             if (attPath == null || attPath.trim().isEmpty()) {
@@ -64,6 +73,9 @@ public class MassSentConfigView extends JDialog {
         return true;
     }
 
+    /**
+     * Save button action event. Saves configuration to database in background.
+     */
     private void saveBtAction(ActionEvent e) {
         if (!validateForm()) {
             return;
@@ -75,13 +87,23 @@ public class MassSentConfigView extends JDialog {
                 try (SqlSession session = DatabaseInit.getSqlSession()) {
                     EmailMassSentConfigMapper mapper = session.getMapper(EmailMassSentConfigMapper.class);
 
+                    // Build config entity
                     EmailMassSentConfigEntity config = new EmailMassSentConfigEntity();
                     config.setTaskId(taskId);
-                    config.setToTag(Objects.requireNonNull(toTagcomboBox.getSelectedItem()).toString());
-                    config.setCcTag(ccTagComboBox.getSelectedItem() != null ? ccTagComboBox.getSelectedItem().toString() : null);
+                    TagComBoxItemDto toSelectedItem = (TagComBoxItemDto) toTagcomboBox.getSelectedItem();
+                    if (toSelectedItem != null) {
+                        config.setToTag(toSelectedItem.getId().toString());
+                    }
+                    if (ccTagComboBox.getSelectedItem() != null) {
+                        TagComBoxItemDto selectedItem = (TagComBoxItemDto) ccTagComboBox.getSelectedItem();
+                        config.setCcTag(selectedItem.getId().toString());
+                    } else {
+                        config.setCcTag(null);
+                    }
                     config.setSentAtt(attachmentByTagCheckBox.isSelected());
                     config.setAttFolderPath(attachmentByTagCheckBox.isSelected() ? attPathField.getText() : null);
 
+                    // Insert or update config
                     mapper.upsert(config);
                     session.commit();
                     log.info("Mass sent config saved for taskId: {}", taskId);
@@ -98,10 +120,16 @@ public class MassSentConfigView extends JDialog {
         }.execute();
     }
 
+    /**
+     * Close button action event. Closes the dialog.
+     */
     private void closedBtAction(ActionEvent e) {
         dispose();
     }
 
+    /**
+     * Attachment checkbox state changed event. Controls enabled state of attachment path field and selection button.
+     */
     private void attachmentByTagCheckBoxItemStateChanged(ItemEvent e) {
         choiceAttFolderBt.setEnabled(attachmentByTagCheckBox.isSelected());
         if (!attachmentByTagCheckBox.isSelected()) {
@@ -109,6 +137,9 @@ public class MassSentConfigView extends JDialog {
         }
     }
 
+    /**
+     * Select attachment folder button action event. Opens folder selection dialog.
+     */
     private void choiceAttFolderBtAction(ActionEvent e) {
         JFileChooser folderChooser = new JFileChooser();
         folderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -134,8 +165,9 @@ public class MassSentConfigView extends JDialog {
             ccTagComboBox.removeAllItems();
 
             for (EmailTagEntity tag : tags) {
-                toTagcomboBox.addItem(tag.getTag());
-                ccTagComboBox.addItem(tag.getTag());
+                TagComBoxItemDto tagComBoxItemDto = new TagComBoxItemDto(tag.getId(), tag.getTag());
+                toTagcomboBox.addItem(tagComBoxItemDto);
+                ccTagComboBox.addItem(tagComBoxItemDto);
             }
         } catch (Exception ex) {
             log.error("Failed to load tags", ex);
@@ -144,7 +176,7 @@ public class MassSentConfigView extends JDialog {
     }
 
     /**
-     * Loads existing config for the current task.
+     * Loads existing config for current task from database and populates the UI.
      */
     private void loadConfig() {
         try (SqlSession session = DatabaseInit.getSqlSession()) {
@@ -244,15 +276,15 @@ public class MassSentConfigView extends JDialog {
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
-    private JLabel label1;
-    private JComboBox toTagcomboBox;
-    private JLabel label2;
-    private JComboBox ccTagComboBox;
-    private JCheckBox attachmentByTagCheckBox;
-    private JButton choiceAttFolderBt;
-    private JTextField attPathField;
-    private JPanel panel1;
-    private JButton saveBt;
-    private JButton closedBt;
+    private JLabel label1;                    // "To" label
+    private JComboBox toTagcomboBox;           // To tag combo box
+    private JLabel label2;                    // "Cc" label
+    private JComboBox ccTagComboBox;           // Cc tag combo box
+    private JCheckBox attachmentByTagCheckBox; // Checkbox for adding attachments by tag
+    private JButton choiceAttFolderBt;         // Select attachment folder button
+    private JTextField attPathField;            // Attachment folder path text field
+    private JPanel panel1;                      // Button panel
+    private JButton saveBt;                     // Save button
+    private JButton closedBt;                   // Close button
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }
