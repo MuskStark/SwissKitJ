@@ -81,7 +81,7 @@ public class AddAddressView extends JDialog {
                 EmailAddressBookEntity emailAddressBookEntity = new EmailAddressBookEntity();
                 emailAddressBookEntity.setEmailAddress(addressField.getText());
                 emailAddressBookEntity.setNickname(nicknameField.getText());
-                emailAddressBookEntity.setTags(tagsField.getText());
+                emailAddressBookEntity.setTags(JSON.toJSONString(tags));
                 mapper.insert(emailAddressBookEntity);
                 session.commit();
                 log.info("Successfully inserted email address: {}", addressField.getText());

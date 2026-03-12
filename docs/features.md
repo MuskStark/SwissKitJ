@@ -95,15 +95,64 @@ All Excel operations include real-time progress tracking:
 
 ## Email Tool
 
-The email tool allows you to compose and send emails.
+The email tool allows you to compose and send emails, with support for single and mass email sending.
 
 **Features**:
 - Email composition with subject and body
 - Multiple recipient support (To, Cc)
-- Mass email mode (in development)
+- Mass email mode with tag-based recipients
 - SMTP configuration integration
+- Attachment support by tag-based folder selection
 
-**Status**: 🚧 Mass email feature in development
+### Single Email Sending
+
+Send emails to individual recipients.
+
+**How to Use**:
+
+1. Enter email subject
+2. Enter recipient email addresses (To, Cc)
+3. Enter email body content
+4. Click "Sent" button
+5. Wait for sending completion
+
+### Mass Email Sending
+
+Send emails to multiple recipients based on tag configuration.
+
+**Features**:
+- Tag-based recipient selection
+- Attachment files from tag-based folders
+- Automatic recipient matching by tags
+- Support for multiple tags (To/Cc)
+
+**How to Use**:
+
+1. Enable "MassSent" checkbox
+2. Click "MassSendConfig" to configure
+3. Select To tag (required)
+4. Select Cc tag (optional)
+5. Enable attachment if needed, select folder
+6. Save configuration
+7. Click "Sent" to send emails
+
+**How It Works**:
+
+1. The system generates a unique task ID for the mass sending session
+2. Load all contacts from address book
+3. Parse attachment files from selected folder (filename format: `filename_tag.ext`)
+4. For each tag, find matching recipients and send emails
+5. Show progress and results
+
+### View Configuration
+
+View the current mass sending configuration.
+
+**How to Use**:
+
+1. Enable "MassSent" checkbox
+2. Click "ViewSentConfig" button
+3. View configuration in dialog
 
 ## Settings
 
@@ -252,6 +301,7 @@ SwissKit includes a built-in database layer using H2 and MyBatis for persistent 
 | `complex_split_config` | Excel complex split settings |
 | `email_address_book` | Email contacts with nicknames and tags |
 | `email_tag` | Tags for categorizing contacts |
+| `email_mass_sent_config` | Mass email sending configuration |
 
 ## Custom UI Components
 
@@ -339,8 +389,6 @@ Planned enhancements:
 - [ ] Image processing tool
 - [ ] Theme switching
 - [ ] Multi-language support
-- [ ] Email sending functionality
-- [ ] Plugin marketplace
 
 ---
 

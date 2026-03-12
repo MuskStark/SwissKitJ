@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS email_address_book
     id            INTEGER PRIMARY KEY AUTO_INCREMENT,
     email_address VARCHAR(255) NOT NULL,
     nickname      VARCHAR(255),
-    tags          JSON
+    tags          VARCHAR(1000)
 );
 
 -- Email Tag Table
@@ -43,11 +43,11 @@ CREATE TABLE IF NOT EXISTS email_tag
 -- Email Mass Sent Config Table
 CREATE TABLE IF NOT EXISTS email_mass_sent_config
 (
-    id            INTEGER PRIMARY KEY AUTO_INCREMENT,
-    task_id       VARCHAR(255) NOT NULL UNIQUE,
-    to_tag        VARCHAR(255),
-    cc_tag        VARCHAR(255),
-    is_sent_att   INTEGER      NOT NULL DEFAULT 0,
+    id              INTEGER PRIMARY KEY AUTO_INCREMENT,
+    task_id         VARCHAR(255) NOT NULL UNIQUE,
+    to_tag          VARCHAR(255),
+    cc_tag          VARCHAR(255),
+    is_sent_att     INTEGER      NOT NULL DEFAULT 0,
     att_folder_path VARCHAR(255)
 );
 

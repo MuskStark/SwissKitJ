@@ -72,8 +72,11 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 
 #### 📧 Email Tool
 - **Email Composition** - Compose emails with subject and body
-- **Recipient Management** - Add multiple recipients
-- **Mass Email Support** - Send emails to multiple contacts (in development)
+- **Recipient Management** - Add multiple recipients (To, Cc)
+- **Mass Email Support** - Send emails to multiple contacts based on tags
+- **Tag-based Recipients** - Load recipients from address book by tags
+- **Attachment by Tag** - Attach files from tag-based folder selection
+- **SMTP Integration** - Full SMTP support with TLS/SSL
 
 #### ⚙️ Settings
 - **Email Server Configuration** - SMTP settings with TLS/SSL support
@@ -112,6 +115,8 @@ SwissKit/
 │   │       ├── EmailAddressBookEntity.java
 │   │       └── EmailTagEntity.java
 │   └── mapper/                     # MyBatis mappers
+│       ├── email/
+│       │   └── EmailMassSentConfigMapper.java
 │       ├── excel/
 │       │   └── ComplexSplitConfigMapper.java
 │       └── setting/email/
@@ -217,6 +222,7 @@ public class MyToolPage implements KitPage {
 | `complex_split_config` | Excel complex split configuration |
 | `email_address_book` | Email contacts with nicknames and tags |
 | `email_tag` | Tags for categorizing email contacts |
+| `email_mass_sent_config` | Mass email sending configuration |
 
 ### Database Location
 
@@ -268,7 +274,8 @@ java -jar target/SwissKit-1.0-Alpha.jar
 - [x] Email address book management
 - [x] Email tag management
 - [x] Plugin installation support
-- [ ] Implement email sending with SMTP support
+- [x] Email sending with SMTP support
+- [x] Mass email sending with tag-based recipients
 - [ ] Add PDF processing tool
 - [ ] Add image processing tool
 - [ ] Support theme switching

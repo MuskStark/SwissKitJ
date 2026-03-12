@@ -6,6 +6,7 @@ import fan.summer.database.DatabaseInit;
 import fan.summer.database.entity.email.EmailMassSentConfigEntity;
 import fan.summer.database.mapper.email.EmailMassSentConfigMapper;
 import fan.summer.kitpage.email.second.MassSentConfigView;
+import fan.summer.kitpage.email.worker.EmailSentWorker;
 import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
@@ -117,6 +118,10 @@ public class EmailKitPage implements KitPage {
         }.execute();
     }
 
+    private void sentBtAction(ActionEvent e) {
+        new EmailSentWorker(subject.getText(), body.getText(), taskId, massSentCheckBox.isSelected()).execute();
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
         emailPanel = new JPanel();
@@ -191,6 +196,7 @@ public class EmailKitPage implements KitPage {
 
             //---- sentButton ----
             sentButton.setText("Sent");
+            sentButton.addActionListener(e -> sentBtAction(e));
             emailPanel.add(sentButton, "cell 0 5 4 1");
             emailPanel.add(progressBar1, "cell 0 6 4 1");
         }

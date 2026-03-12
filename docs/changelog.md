@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Email sending functionality
+  - `EmailUtil.java` - SMTP email sending utility with TLS/SSL support
+  - Support for single email sending
+  - Support for attachments
+- Mass email sending feature
+  - `EmailMassSentConfigEntity` - Entity for mass sending configuration
+  - `EmailMassSentConfigMapper` - MyBatis mapper for mass config operations
+  - `MassSentConfigView` - Dialog for configuring mass sending settings
+  - `ViewSentConfigView` - Dialog for viewing configuration
+  - `EmailSentWorker` - Background worker for mass email sending
+  - Tag-based recipient selection
+  - Attachment support by tag-based folder selection
+  - Task ID generation for tracking mass sending sessions
+- Database table `email_mass_sent_config` for storing mass sending configurations
+- Email settings validation, save and load functionality
+- Tag selection feature in AddAddressView
+
+### Changed
+- Updated project version to 1.0-Alpha
+
 ## [1.0-Alpha] - 2026-03-10
 
 ### Added
