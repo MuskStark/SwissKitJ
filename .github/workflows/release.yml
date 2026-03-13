@@ -161,11 +161,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-13      # GitHub-hosted x64 runner
+          - os: macos-latest      # GitHub-hosted x64 runner
             arch: x64
             jre-arch: x64
             suffix: intel
-          - os: macos-14      # GitHub-hosted arm64 runner (M1)
+          - os: macos-latest      # GitHub-hosted arm64 runner (M1)
             arch: arm64
             jre-arch: aarch64
             suffix: apple-silicon
