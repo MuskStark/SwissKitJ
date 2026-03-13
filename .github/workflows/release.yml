@@ -130,13 +130,9 @@ jobs:
           cp "$JAR_FILE" release/linux/SwissKit/SwissKit.jar
           
           # Create launcher script
-          cat > release/linux/SwissKit/run.sh << 'EOF'
-#!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
-./jre/bin/java -jar SwissKit.jar "$@"
-EOF
-          chmod +x release/linux/SwissKit/run.sh
+          run: |
+            printf '#!/bin/bash\nSCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"\ncd "$SCRIPT_DIR"\n./jre/bin/java -jar SwissKit.jar "$@"\n' > release/linux/SwissKit/run.sh
+            chmod +x release/linux/SwissKit/run.sh
           
           cp README.md release/linux/SwissKit/
           
@@ -206,13 +202,9 @@ EOF
           cp "$JAR_FILE" release/macos/SwissKit/
           
           # Create launcher script (for command line use)
-          cat > release/macos/SwissKit/run.sh << 'EOF'
-#!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
-./Contents/Home/jre/bin/java -jar SwissKit.jar "$@"
-EOF
-          chmod +x release/macos/SwissKit/run.sh
+          run: |
+            printf '#!/bin/bash\nSCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"\ncd "$SCRIPT_DIR"\n./Contents/Home/jre/bin/java -jar SwissKit.jar "$@"\n' > release/macos/SwissKit/run.sh
+            chmod +x release/macos/SwissKit/run.sh
           
           cp README.md release/macos/SwissKit/
           
