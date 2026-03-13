@@ -95,13 +95,13 @@ All Excel operations include real-time progress tracking:
 
 ## Email Tool
 
-The email tool allows you to compose and send emails, with support for single and mass email sending.
+The email tool allows you to compose and send emails, with support for single and mass email sending. SwissKit uses **Simple Java Mail** library for robust SMTP email handling.
 
 **Features**:
 - Email composition with subject and body
 - Multiple recipient support (To, Cc)
 - Mass email mode with tag-based recipients
-- SMTP configuration integration
+- SMTP configuration integration (via Simple Java Mail)
 - Attachment support by tag-based folder selection
 
 ### Single Email Sending

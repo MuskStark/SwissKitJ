@@ -209,6 +209,7 @@ public class MyToolPage implements KitPage {
 | **Logging** | Log4j2 + SLF4J | 2.25.3 / 2.0.16 |
 | **JSON** | FastJSON2 | 2.0.59 |
 | **Code Simplification** | Lombok | 1.18.42 |
+| **Email** | Simple Java Mail | 8.12.6 |
 
 ---
 

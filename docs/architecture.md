@@ -434,6 +434,7 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Obje
 | h2 | 2.4.240 | H2 Database |
 | mybatis | 3.5.19 | MyBatis ORM |
 | miglayout-swing | 11.3 | Layout manager |
+| simple-java-mail | 8.12.6 | Email sending via SMTP |
 
 ## Design Patterns
 

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0-Alpha3] - 2026-03-12
+
+### Changed
+- Tag association mechanism refactored
+  - Replaced tag name with tag ID (Long) for email tag handling
+  - Added `TagComBoxItemDto` for combo box display with ID and name
+
 ## [1.0-Alpha2] - 2026-03-12
 
 ### Added

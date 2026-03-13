@@ -394,6 +394,60 @@ public abstract class AppInfo {
 }
 ```
 
+### EmailUtil
+
+Email sending utility using Simple Java Mail library. Automatically loads SMTP configuration from database.
+
+```java
+public class EmailUtil {
+    /**
+     * Sends a plain text email.
+     *
+     * @param to      recipient email address
+     * @param subject email subject
+     * @param body    email body content
+     */
+    public static void sendText(String to, String subject, String body);
+
+    /**
+     * Tests SMTP connection using current configuration.
+     *
+     * @return true if connection successful
+     */
+    public static boolean testConnection();
+
+    /**
+     * Sends an email with full configuration.
+     *
+     * @param message EmailMessage builder
+     */
+    public static void sendEmail(EmailMessage message);
+}
+```
+
+**Example Usage**:
+
+```java
+// Plain text email
+EmailUtil.sendText("to@example.com", "Subject", "Hello!");
+
+// HTML email with attachments
+EmailUtil.sendEmail(
+    EmailMessage.builder()
+        .to("a@example.com", "b@example.com")
+        .cc("c@example.com")
+        .subject("Monthly Report")
+        .htmlBody("<h1>Report</h1>")
+        .attachments(new File("report.pdf"))
+        .build()
+);
+
+// Test connection
+if (EmailUtil.testConnection()) {
+    System.out.println("SMTP connection successful!");
+}
+```
+
 ### StringUtil
 
 String validation utilities.
