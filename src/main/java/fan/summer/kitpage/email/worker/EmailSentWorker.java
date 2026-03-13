@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * @version 1.00
  * @Date 2026/3/11
  */
-public class EmailSentWorker extends SwingWorker<Void, Void> {
+public class EmailSentWorker extends SwingWorker<Void, Integer> {
 
     private static final Logger log = LoggerFactory.getLogger(EmailSentWorker.class);
 
@@ -48,6 +48,7 @@ public class EmailSentWorker extends SwingWorker<Void, Void> {
     private List<String> ccTags;
     private String attachmentPath;
     private boolean isMassModel;
+    private JProgressBar progressBar;
 
     /**
      * Constructor for single recipient mode (non-mass sending).
@@ -77,11 +78,12 @@ public class EmailSentWorker extends SwingWorker<Void, Void> {
      * @param taskId      unique task identifier for mass sending
      * @param isMassModel flag indicating if mass sending mode is enabled
      */
-    public EmailSentWorker(String subject, String body, String taskId, boolean isMassModel) {
+    public EmailSentWorker(String subject, String body, String taskId, boolean isMassModel, JProgressBar progressBar) {
         this.subject = subject;
         this.body = body;
         this.taskId = taskId;
         this.isMassModel = isMassModel;
+        this.progressBar = progressBar;
         log.debug("EmailSentWorker initialized in mass sending mode, taskId: {}, isMassModel: {}", taskId, isMassModel);
     }
 
@@ -95,6 +97,11 @@ public class EmailSentWorker extends SwingWorker<Void, Void> {
     @Override
     protected Void doInBackground() throws Exception {
         log.info("Starting email sending task, isMassModel: {}", isMassModel);
+        SwingUtilities.invokeLater(() -> {
+            progressBar.setValue(0);
+            progressBar.setStringPainted(true);
+            progressBar.setString("Sending... 0%");
+        });
 
         if (isMassModel) {
             executeMassSending();
@@ -106,12 +113,35 @@ public class EmailSentWorker extends SwingWorker<Void, Void> {
         return null;
     }
 
+    @Override
+    protected void process(List<Integer> chunks) {
+        if (!chunks.isEmpty()) {
+            int latestProgress = chunks.get(chunks.size() - 1);
+            progressBar.setValue(latestProgress);
+            progressBar.setString("Sending... " + latestProgress + "%");
+        }
+    }
+
+    @Override
+    protected void done() {
+        // EDT thread: Task completion
+        try {
+            get(); // Check for exceptions
+            progressBar.setValue(100);
+            progressBar.setString("Sending completed!");
+        } catch (Exception e) {
+            progressBar.setString("Sending failed: " + e.getMessage());
+            // Button will be enabled in doInBackground when error occurs
+        }
+    }
+
     /**
      * Executes mass sending logic.
      * Loads email addresses, config, parses attachments, and sends emails to recipients based on tags.
      */
     private void executeMassSending() {
         log.info("Starting mass sending process for taskId: {}", taskId);
+        int totalEmails = 0;
 
         // Step 1: Load all email addresses from address book
         log.debug("Step 1: Loading all email addresses from address book");
@@ -170,8 +200,16 @@ public class EmailSentWorker extends SwingWorker<Void, Void> {
         int failCount = 0;
 
         log.debug("Step 4: Starting to iterate through each tag and send emails");
+        totalEmails = taggedFiles.entrySet().size();
         for (Map.Entry<String, List<File>> entry : taggedFiles.entrySet()) {
-            EmailTagEntity fileTag = tagCollect.get(entry.getKey()).get(0);
+            EmailTagEntity fileTag;
+            try {
+                fileTag = tagCollect.get(entry.getKey()).get(0);
+            } catch (Exception e) {
+                log.warn("Failed to parse attachment file: {}", entry.getKey());
+                continue;
+            }
+
             List<File> files = entry.getValue();
             log.debug("Processing tag: {} with {} attachment files", fileTag, files.size());
 
@@ -233,6 +271,7 @@ public class EmailSentWorker extends SwingWorker<Void, Void> {
                 failCount++;
             }
         }
+        publish(successCount * 100 / totalEmails);
 
         log.info("Mass sending completed - Success: {}, Failed: {}", successCount, failCount);
     }

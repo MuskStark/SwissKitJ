@@ -119,7 +119,7 @@ public class EmailKitPage implements KitPage {
     }
 
     private void sentBtAction(ActionEvent e) {
-        new EmailSentWorker(subject.getText(), body.getText(), taskId, massSentCheckBox.isSelected()).execute();
+        new EmailSentWorker(subject.getText(), body.getText(), taskId, massSentCheckBox.isSelected(), progressBar1).execute();
     }
 
     private void initComponents() {
