@@ -302,7 +302,6 @@ jobs:
 
             ### Documentation
             - [README](https://github.com/MuskStark/SwissKitJ#readme)
-            - [AGENTS.md](https://github.com/MuskStark/SwissKitJ/blob/main/AGENTS.md)
 
             ---
             SHA-256 checksums are in `checksums.txt` attached below.
