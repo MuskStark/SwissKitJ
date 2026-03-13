@@ -270,8 +270,9 @@ public class EmailSentWorker extends SwingWorker<Void, Integer> {
                 log.error("Failed to send email for tag: {} - Error: {}", fileTag, e.getMessage(), e);
                 failCount++;
             }
+            publish(successCount * 100 / totalEmails);
         }
-        publish(successCount * 100 / totalEmails);
+
 
         log.info("Mass sending completed - Success: {}, Failed: {}", successCount, failCount);
     }

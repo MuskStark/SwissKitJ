@@ -169,6 +169,8 @@ public class MassSentConfigView extends JDialog {
                 toTagcomboBox.addItem(tagComBoxItemDto);
                 ccTagComboBox.addItem(tagComBoxItemDto);
             }
+            toTagcomboBox.setSelectedIndex(-1);
+            ccTagComboBox.setSelectedIndex(-1);
         } catch (Exception ex) {
             log.error("Failed to load tags", ex);
             JOptionPane.showMessageDialog(this, "Failed to load tags: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
