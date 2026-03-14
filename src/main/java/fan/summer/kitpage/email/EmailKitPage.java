@@ -4,7 +4,9 @@ import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
 import fan.summer.database.DatabaseInit;
 import fan.summer.database.entity.email.EmailMassSentConfigEntity;
+import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.email.EmailMassSentConfigMapper;
+import fan.summer.database.mapper.setting.email.EmailTagMapper;
 import fan.summer.kitpage.email.second.MassSentConfigView;
 import fan.summer.kitpage.email.worker.EmailSentWorker;
 import net.miginfocom.swing.MigLayout;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -83,24 +86,39 @@ public class EmailKitPage implements KitPage {
             return;
         }
 
-        new SwingWorker<EmailMassSentConfigEntity, Void>() {
+        new SwingWorker<Void, Void>() {
+            private EmailMassSentConfigEntity config;
+            private List<EmailTagEntity> tagList;
+
             @Override
-            protected EmailMassSentConfigEntity doInBackground() throws Exception {
+            protected Void doInBackground() throws Exception {
                 try (SqlSession session = DatabaseInit.getSqlSession()) {
                     EmailMassSentConfigMapper mapper = session.getMapper(EmailMassSentConfigMapper.class);
-                    return mapper.selectByTaskId(taskId);
+                    EmailTagMapper tagMapper = session.getMapper(EmailTagMapper.class);
+                    tagList = tagMapper.selectAll();
+                    config = mapper.selectByTaskId(taskId);
                 }
+                return null;
             }
 
             @Override
             protected void done() {
                 try {
-                    EmailMassSentConfigEntity config = get();
                     StringBuilder message = new StringBuilder();
+                    String toTagName = null;
+                    String ccTagName = null;
+                    for (EmailTagEntity tag : tagList) {
+                        if (tag.getId().toString().equals(config.getToTag())) {
+                            toTagName = tag.getTag();
+                        }
+                        if (tag.getId().toString().equals(config.getCcTag())) {
+                            ccTagName = tag.getTag();
+                        }
+                    }
                     message.append("<html><body>");
                     message.append("<p><b>Task ID:</b> ").append(taskId).append("</p>");
-                    message.append("<p><b>To Tag:</b> ").append(config != null && config.getToTag() != null ? config.getToTag() : "N/A").append("</p>");
-                    message.append("<p><b>Cc Tag:</b> ").append(config != null && config.getCcTag() != null ? config.getCcTag() : "N/A").append("</p>");
+                    message.append("<p><b>To Tag:</b> ").append(toTagName).append("</p>");
+                    message.append("<p><b>Cc Tag:</b> ").append(ccTagName).append("</p>");
                     message.append("<p><b>Send Attachment:</b> ").append(config != null && config.isSentAtt() ? "Yes" : "No").append("</p>");
                     message.append("<p><b>Attachment Folder:</b> ").append(config != null && config.getAttFolderPath() != null ? config.getAttFolderPath() : "N/A").append("</p>");
                     message.append("</body></html>");
