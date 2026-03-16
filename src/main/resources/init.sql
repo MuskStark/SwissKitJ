@@ -51,4 +51,18 @@ CREATE TABLE IF NOT EXISTS email_mass_sent_config
     att_folder_path VARCHAR(255)
 );
 
+-- Email Sent Log Table
+CREATE TABLE IF NOT EXISTS email_sent_log
+(
+    id          INTEGER PRIMARY KEY AUTO_INCREMENT,
+    to          VARCHAR(1000),
+    cc          VARCHAR(1000),
+    bcc         VARCHAR(1000),
+    subject     VARCHAR(500),
+    content     TEXT,
+    attachment  VARCHAR(1000),
+    send_time   TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+    is_success  INTEGER     NOT NULL DEFAULT 0
+);
+
 

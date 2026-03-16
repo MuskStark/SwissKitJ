@@ -29,6 +29,7 @@
         <mapper resource="mapper/setting/email/EmailAddressBookMapper.xml"/>
         <mapper resource="mapper/setting/email/EmailTagMapper.xml"/>
         <mapper resource="mapper/email/EmailMassSentConfigMapper.xml"/>
+        <mapper resource="mapper/email/EmailSentLogMapper.xml"/>
     </mappers>
 
 </configuration>
