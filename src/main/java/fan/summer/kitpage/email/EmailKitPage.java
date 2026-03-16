@@ -59,17 +59,17 @@ public class EmailKitPage implements KitPage {
             log.debug("Mass send mode enabled, taskId:{}", taskId);
             setMassSentConfigBt.setEnabled(true);
             viewSentConfigBt.setEnabled(true);
-            toText.setText("");
-            toText.setEnabled(false);
-            ccText.setText("");
-            ccText.setEnabled(false);
+//            toText.setText("");
+//            toText.setEnabled(false);
+//            ccText.setText("");
+//            ccText.setEnabled(false);
         } else {
             log.debug("Mass send mode disabled");
             taskId = null;
-            toText.setText("");
-            toText.setEnabled(true);
-            ccText.setText("");
-            ccText.setEnabled(true);
+//            toText.setText("");
+//            toText.setEnabled(true);
+//            ccText.setText("");
+//            ccText.setEnabled(true);
             setMassSentConfigBt.setEnabled(false);
             viewSentConfigBt.setEnabled(false);
         }
@@ -145,10 +145,6 @@ public class EmailKitPage implements KitPage {
         emailPanel = new JPanel();
         emailTitle = new JLabel();
         subject = new JTextField();
-        to = new JLabel();
-        toText = new JTextField();
-        label1 = new JLabel();
-        ccText = new JTextField();
         body = new JTextArea();
         massSentCheckBox = new JCheckBox();
         setMassSentConfigBt = new JButton();
@@ -167,8 +163,6 @@ public class EmailKitPage implements KitPage {
                 "[fill]",
                 // rows
                 "[fill]" +
-                "[fill]" +
-                "[]" +
                 "[grow,fill]" +
                 "[]" +
                 "[]" +
@@ -180,43 +174,33 @@ public class EmailKitPage implements KitPage {
             emailPanel.add(emailTitle, "cell 0 0,align left center,grow 0 0");
             emailPanel.add(subject, "cell 1 0 3 1,aligny center,grow 100 0");
 
-            //---- to ----
-            to.setText("To:");
-            emailPanel.add(to, "cell 0 1,align left center,grow 0 0");
-            emailPanel.add(toText, "cell 1 1 3 1,aligny center,grow 100 0");
-
-            //---- label1 ----
-            label1.setText("Cc:");
-            emailPanel.add(label1, "cell 0 2");
-            emailPanel.add(ccText, "cell 1 2 3 1");
-
             //---- body ----
             body.setLineWrap(false);
             body.setText("");
-            emailPanel.add(body, "cell 0 3 4 1,grow");
+            emailPanel.add(body, "cell 0 1 4 1,grow");
 
             //---- massSentCheckBox ----
             massSentCheckBox.setText("MassSent");
             massSentCheckBox.addActionListener(e -> massSentCheckBoxActionListener(e));
-            emailPanel.add(massSentCheckBox, "cell 0 4");
+            emailPanel.add(massSentCheckBox, "cell 0 2");
 
             //---- setMassSentConfigBt ----
             setMassSentConfigBt.setText("MassSendConfig");
             setMassSentConfigBt.setEnabled(false);
             setMassSentConfigBt.addActionListener(e -> setMassSentConfigBtAction(e));
-            emailPanel.add(setMassSentConfigBt, "cell 1 4");
+            emailPanel.add(setMassSentConfigBt, "cell 1 2");
 
             //---- viewSentConfigBt ----
             viewSentConfigBt.setText("ViewSentConfig");
             viewSentConfigBt.setEnabled(false);
             viewSentConfigBt.addActionListener(e -> viewSentConfigBtAction(e));
-            emailPanel.add(viewSentConfigBt, "cell 2 4");
+            emailPanel.add(viewSentConfigBt, "cell 2 2");
 
             //---- sentButton ----
             sentButton.setText("Sent");
             sentButton.addActionListener(e -> sentBtAction(e));
-            emailPanel.add(sentButton, "cell 0 5 4 1");
-            emailPanel.add(progressBar1, "cell 0 6 4 1");
+            emailPanel.add(sentButton, "cell 0 3 4 1");
+            emailPanel.add(progressBar1, "cell 0 4 4 1");
         }
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
     }
@@ -225,10 +209,6 @@ public class EmailKitPage implements KitPage {
     private JPanel emailPanel;
     private JLabel emailTitle;
     private JTextField subject;
-    private JLabel to;
-    private JTextField toText;
-    private JLabel label1;
-    private JTextField ccText;
     private JTextArea body;
     private JCheckBox massSentCheckBox;
     private JButton setMassSentConfigBt;
