@@ -125,6 +125,8 @@ Send emails to multiple recipients based on tag configuration.
 - Attachment files from tag-based folders
 - Automatic recipient matching by tags
 - Support for multiple tags (To/Cc)
+- **Real-time progress bar** showing sending progress
+- Completion status display
 
 **How to Use**:
 

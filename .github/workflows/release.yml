@@ -45,7 +45,7 @@ jobs:
       - name: Install Launch4j via Chocolatey
         shell: pwsh
         run: |
-          choco install launch4j --version 3.50 -y --no-progress
+          choco install launch4j -y --no-progress
           $launch4jc = Get-ChildItem "C:\ProgramData\chocolatey" -Recurse -Filter "launch4jc.exe" -ErrorAction SilentlyContinue |
                        Select-Object -First 1 -ExpandProperty FullName
           if (-not $launch4jc) {

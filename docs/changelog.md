@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0-Alpha4] - 2026-03-12
+
+### Added
+- Progress bar support for email sending
+  - Added JProgressBar parameter to EmailSentWorker constructor
+  - Changed SwingWorker type to support progress updates (Void → Integer)
+  - Added process() and done() methods for progress bar updates
+
+### Changed
+- Display tag names instead of IDs in configuration view
+  - Updated EmailKitPage to convert tag IDs to tag names for display
+- Improved progress bar real-time updates
+  - Moved publish() inside loop for real-time progress updates in EmailSentWorker
+
+### Fixed
+- Set combo box to unselected state after loading tags in MassSentConfigView
+
+### Removed
+- Removed unused ViewSentConfigView file
+
 ## [1.0-Alpha3] - 2026-03-12
 
 ### Changed
@@ -103,6 +123,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/MuskStark/SwissKitJ/compare/v1.0-Alpha2...HEAD
+[Unreleased]: https://github.com/MuskStark/SwissKitJ/compare/v1.0-Alpha4...HEAD
+[1.0-Alpha4]: https://github.com/MuskStark/SwissKitJ/compare/v1.0-Alpha3...v1.0-Alpha4
+[1.0-Alpha3]: https://github.com/MuskStark/SwissKitJ/compare/v1.0-Alpha2...v1.0-Alpha3
 [1.0-Alpha2]: https://github.com/MuskStark/SwissKitJ/compare/v1.0-Alpha...v1.0-Alpha2
 [1.0-Alpha]: https://github.com/MuskStark/SwissKitJ/compare/v1.0-Alpha...v1.0-Alpha
