@@ -99,7 +99,6 @@ The email tool allows you to compose and send emails, with support for single an
 
 **Features**:
 - Email composition with subject and body
-- Multiple recipient support (To, Cc)
 - Mass email mode with tag-based recipients
 - SMTP configuration integration (via Simple Java Mail)
 - Attachment support by tag-based folder selection
@@ -111,7 +110,7 @@ Send emails to individual recipients.
 **How to Use**:
 
 1. Enter email subject
-2. Enter recipient email addresses (To, Cc)
+2. Select recipient tags (To/Cc)
 3. Enter email body content
 4. Click "Sent" button
 5. Wait for sending completion

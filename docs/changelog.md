@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated EmailKitPage to convert tag IDs to tag names for display
 - Improved progress bar real-time updates
   - Moved publish() inside loop for real-time progress updates in EmailSentWorker
+- Simplified EmailKitPage UI
+  - Removed To/Cc text input fields
+  - Recipients now selected via tags only
 
 ### Fixed
 - Set combo box to unselected state after loading tags in MassSentConfigView
