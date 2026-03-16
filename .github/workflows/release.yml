@@ -18,7 +18,6 @@ permissions:
   contents: write
 
 jobs:
-
   # -------------------------------------------------
   # Windows - Launch4j wraps JAR into a GUI .exe
   # headerType=gui compiles as /SUBSYSTEM:WINDOWS so
@@ -43,17 +42,18 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      # SourceForge redirects several times before serving the file.
-      # -MaximumRedirection 10 ensures all redirects are followed.
-      - name: Download and extract Launch4j
+      - name: Install Launch4j via Chocolatey
         shell: pwsh
         run: |
-          $url = "https://sourceforge.net/projects/launch4j/files/launch4j-3/3.50/launch4j-3.50-win32.zip/download"
-          Write-Host "Downloading Launch4j..."
-          Invoke-WebRequest -Uri $url -OutFile launch4j.zip -UseBasicParsing -MaximumRedirection 10
-          Expand-Archive -Path launch4j.zip -DestinationPath launch4j -Force
-          Write-Host "Extracted executables:"
-          Get-ChildItem -Recurse launch4j -Filter "*.exe" | Select-Object -ExpandProperty FullName
+          choco install launch4j --version 3.50 -y --no-progress
+          $launch4jc = Get-ChildItem "C:\ProgramData\chocolatey" -Recurse -Filter "launch4jc.exe" -ErrorAction SilentlyContinue |
+                       Select-Object -First 1 -ExpandProperty FullName
+          if (-not $launch4jc) {
+            Write-Error "launch4jc.exe not found after choco install"
+            exit 1
+          }
+          echo "LAUNCH4JC=$launch4jc" >> $env:GITHUB_ENV
+          Write-Host "launch4jc: $launch4jc"
 
       - name: Locate JAR and prepare output directory
         shell: pwsh
@@ -61,17 +61,13 @@ jobs:
           $jarFile = Get-ChildItem target\SwissKit-*.jar -ErrorAction Stop | Select-Object -First 1
           if ($null -eq $jarFile) { Write-Error "No SwissKit-*.jar found in target/"; exit 1 }
           New-Item -ItemType Directory -Force -Path release | Out-Null
-          # Store paths as step outputs for use in the next step
           $jarPath = $jarFile.FullName -replace '\\', '/'
           $outPath = ((Get-Location).Path -replace '\\', '/') + "/release/SwissKit.exe"
           Write-Host "JAR : $jarPath"
           Write-Host "EXE : $outPath"
-          # Persist to GITHUB_ENV so subsequent steps can read them
           "JAR_PATH=$jarPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "EXE_PATH=$outPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      # Write Launch4j XML config line-by-line to avoid YAML block-mapping issues
-      # that occur when multiline strings like @"..."@ start at column 0.
       - name: Write Launch4j config
         shell: pwsh
         run: |
@@ -102,15 +98,10 @@ jobs:
       - name: Build EXE with Launch4j
         shell: pwsh
         run: |
-          $launch4jc = Get-ChildItem -Recurse -Path launch4j -Filter "launch4jc.exe" | Select-Object -First 1
-          if ($null -eq $launch4jc) { Write-Error "launch4jc.exe not found"; exit 1 }
-          Write-Host "Using: $($launch4jc.FullName)"
-          & $launch4jc.FullName (Resolve-Path launch4j-config.xml).Path
+          & $env:LAUNCH4JC (Resolve-Path launch4j-config.xml).Path
           if ($LASTEXITCODE -ne 0) { Write-Error "Launch4j exited with code $LASTEXITCODE"; exit 1 }
-          $exeExists = Test-Path release\SwissKit.exe
-          if (-not $exeExists) { Write-Error "SwissKit.exe was not created"; exit 1 }
-          $size = (Get-Item release\SwissKit.exe).Length
-          Write-Host "SwissKit.exe ready ($size bytes)"
+          if (-not (Test-Path release\SwissKit.exe)) { Write-Error "SwissKit.exe was not created"; exit 1 }
+          Write-Host "SwissKit.exe ready ($((Get-Item release\SwissKit.exe).Length) bytes)"
 
       - name: Assemble and compress Windows package
         shell: pwsh
