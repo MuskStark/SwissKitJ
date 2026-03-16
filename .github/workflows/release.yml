@@ -46,18 +46,16 @@ jobs:
         shell: pwsh
         run: |
           choco install launch4j -y --no-progress
-          $launch4jc = "C:\Program Files (x86)\Launch4j\launch4jc.exe"
-          if (-not (Test-Path $launch4jc)) {
-            # Fallback: search broadly
-            $launch4jc = Get-ChildItem "C:\Program Files","C:\Program Files (x86)" -Recurse -Filter "launch4jc.exe" -ErrorAction SilentlyContinue |
-                         Select-Object -First 1 -ExpandProperty FullName
+          # Find the launch4j.jar (not launch4jc.exe) — works with any JDK on PATH
+          $l4jJar = Get-ChildItem "C:\Program Files (x86)\Launch4j" -Recurse -Filter "launch4j.jar" -ErrorAction SilentlyContinue |
+                    Select-Object -First 1 -ExpandProperty FullName
+          if (-not $l4jJar) {
+            $l4jJar = Get-ChildItem "C:\Program Files\Launch4j","C:\Program Files (x86)\Launch4j" -Recurse -Filter "launch4j.jar" -ErrorAction SilentlyContinue |
+                      Select-Object -First 1 -ExpandProperty FullName
           }
-          if (-not $launch4jc) {
-            Write-Error "launch4jc.exe not found after choco install"
-            exit 1
-          }
-          echo "LAUNCH4JC=$launch4jc" >> $env:GITHUB_ENV
-          Write-Host "launch4jc: $launch4jc"
+          if (-not $l4jJar) { Write-Error "launch4j.jar not found after choco install"; exit 1 }
+          echo "LAUNCH4J_JAR=$l4jJar" >> $env:GITHUB_ENV
+          Write-Host "launch4j.jar: $l4jJar"
 
       - name: Locate JAR and prepare output directory
         shell: pwsh
@@ -102,10 +100,11 @@ jobs:
       - name: Build EXE with Launch4j
         shell: pwsh
         run: |
-          & $env:LAUNCH4JC (Resolve-Path launch4j-config.xml).Path
+          & "$env:JAVA_HOME\bin\java.exe" -jar $env:LAUNCH4J_JAR (Resolve-Path launch4j-config.xml).Path
           if ($LASTEXITCODE -ne 0) { Write-Error "Launch4j exited with code $LASTEXITCODE"; exit 1 }
           if (-not (Test-Path release\SwissKit.exe)) { Write-Error "SwissKit.exe was not created"; exit 1 }
           Write-Host "SwissKit.exe ready ($((Get-Item release\SwissKit.exe).Length) bytes)"
+
 
       - name: Assemble and compress Windows package
         shell: pwsh
