@@ -46,8 +46,12 @@ jobs:
         shell: pwsh
         run: |
           choco install launch4j -y --no-progress
-          $launch4jc = Get-ChildItem "C:\ProgramData\chocolatey" -Recurse -Filter "launch4jc.exe" -ErrorAction SilentlyContinue |
-                       Select-Object -First 1 -ExpandProperty FullName
+          $launch4jc = "C:\Program Files (x86)\Launch4j\launch4jc.exe"
+          if (-not (Test-Path $launch4jc)) {
+            # Fallback: search broadly
+            $launch4jc = Get-ChildItem "C:\Program Files","C:\Program Files (x86)" -Recurse -Filter "launch4jc.exe" -ErrorAction SilentlyContinue |
+                         Select-Object -First 1 -ExpandProperty FullName
+          }
           if (-not $launch4jc) {
             Write-Error "launch4jc.exe not found after choco install"
             exit 1
