@@ -339,8 +339,10 @@ public class SettingKitPage implements KitPage {
     }
 
     private void sentTestEmailBtAction(ActionEvent e) {
-        try {
-            EmailUtil.sendEmail(EmailUtil.EmailMessage.builder().to("test@swisskit.com").subject("SwisskitTestMail").textBody("SwisskitTestMail").build());
+        try (SqlSession session = DatabaseInit.getSqlSession()) {
+            SwissKitSettingEmailMapper mapper = session.getMapper(SwissKitSettingEmailMapper.class);
+            SwissKitSettingEmailEntity swissKitSettingEmailEntity = mapper.selectLatest();
+            EmailUtil.sendEmail(EmailUtil.EmailMessage.builder().to(swissKitSettingEmailEntity.getFromAddress()).subject("SwisskitTestMail").textBody("SwisskitTestMail").build());
         } catch (EmailUtil.EmailException ex) {
             throw new RuntimeException(ex);
         }
