@@ -16,6 +16,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>fan.summer.api</groupId>
+            <artifactId>SwissKitJ-Api</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.miglayout</groupId>
             <artifactId>miglayout-swing</artifactId>
             <version>11.3</version>
