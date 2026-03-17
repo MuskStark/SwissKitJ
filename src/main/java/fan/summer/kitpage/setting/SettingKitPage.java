@@ -67,6 +67,13 @@ public class SettingKitPage implements KitPage {
      */
     private void initSettingPageInfo() {
         log.debug("Initializing settings page info from database");
+
+        // Check if database is initialized before attempting to query
+        if (!DatabaseInit.isInitialized()) {
+            log.warn("Database not initialized yet, skipping settings load");
+            return;
+        }
+
         new SwingWorker<SwissKitSettingEmailEntity, Void>() {
             @Override
             protected SwissKitSettingEmailEntity doInBackground() throws Exception {

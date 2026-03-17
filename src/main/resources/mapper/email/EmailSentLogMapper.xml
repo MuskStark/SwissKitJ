@@ -7,7 +7,7 @@
     <!-- Insert a new email sent log -->
     <insert id="insert" parameterType="fan.summer.database.entity.email.EmailSentLogEntity"
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO email_sent_log (to, cc, bcc, subject, content, attachment, send_time, is_success)
+        INSERT INTO email_sent_log ("to", cc, bcc, subject, content, attachment, send_time, is_success)
         VALUES (#{to}, #{cc}, #{bcc}, #{subject}, #{content}, #{attachment}, #{sendTime}, #{isSuccess})
     </insert>
 
@@ -19,7 +19,7 @@
     <!-- Update email sent log -->
     <update id="update" parameterType="fan.summer.database.entity.email.EmailSentLogEntity">
         UPDATE email_sent_log
-        SET to = #{to},
+        SET "to" = #{to},
             cc = #{cc},
             bcc = #{bcc},
             subject = #{subject},
@@ -33,14 +33,14 @@
     <!-- Select email sent log by ID -->
     <select id="selectById" parameterType="long"
             resultType="fan.summer.database.entity.email.EmailSentLogEntity">
-        SELECT id, to, cc, bcc, subject, content, attachment, send_time AS sendTime, is_success AS isSuccess
+        SELECT id, "to", cc, bcc, subject, content, attachment, send_time AS sendTime, is_success AS isSuccess
         FROM email_sent_log
         WHERE id = #{id}
     </select>
 
     <!-- Select all email sent logs -->
     <select id="selectAll" resultType="fan.summer.database.entity.email.EmailSentLogEntity">
-        SELECT id, to, cc, bcc, subject, content, attachment, send_time AS sendTime, is_success AS isSuccess
+        SELECT id, "to", cc, bcc, subject, content, attachment, send_time AS sendTime, is_success AS isSuccess
         FROM email_sent_log
         ORDER BY send_time DESC
     </select>
@@ -48,7 +48,7 @@
     <!-- Select email sent logs by success status -->
     <select id="selectBySuccess" parameterType="boolean"
             resultType="fan.summer.database.entity.email.EmailSentLogEntity">
-        SELECT id, to, cc, bcc, subject, content, attachment, send_time AS sendTime, is_success AS isSuccess
+        SELECT id, "to", cc, bcc, subject, content, attachment, send_time AS sendTime, is_success AS isSuccess
         FROM email_sent_log
         WHERE is_success = #{isSuccess}
         ORDER BY send_time DESC
@@ -56,7 +56,7 @@
 
     <!-- Select email sent logs within date range -->
     <select id="selectByDateRange" resultType="fan.summer.database.entity.email.EmailSentLogEntity">
-        SELECT id, to, cc, bcc, subject, content, attachment, send_time AS sendTime, is_success AS isSuccess
+        SELECT id, "to", cc, bcc, subject, content, attachment, send_time AS sendTime, is_success AS isSuccess
         FROM email_sent_log
         WHERE send_time BETWEEN #{startDate} AND #{endDate}
         ORDER BY send_time DESC

@@ -1,5 +1,6 @@
 package fan.summer.scaner;
 
+
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
 import fan.summer.plugin.PluginLoader;
@@ -20,6 +21,7 @@ import java.util.ServiceLoader;
  */
 public class SwissKitPageScaner {
     private static final Logger logger = LoggerFactory.getLogger(SwissKitPageScaner.class);
+
     public static List<KitPage> scan() {
         List<KitPage> pages = new ArrayList<>();
 

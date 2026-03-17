@@ -146,4 +146,13 @@ public class DatabaseInit {
         }
         return sqlSessionFactory;
     }
+
+    /**
+     * Checks if the database has been initialized.
+     *
+     * @return true if database is initialized, false otherwise
+     */
+    public static boolean isInitialized() {
+        return sqlSessionFactory != null;
+    }
 }

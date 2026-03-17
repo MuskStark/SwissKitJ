@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS email_mass_sent_config
 CREATE TABLE IF NOT EXISTS email_sent_log
 (
     id          INTEGER PRIMARY KEY AUTO_INCREMENT,
-    to          VARCHAR(1000),
+    "to"        VARCHAR(1000),
     cc          VARCHAR(1000),
     bcc         VARCHAR(1000),
     subject     VARCHAR(500),
