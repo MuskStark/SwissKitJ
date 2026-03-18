@@ -4,10 +4,13 @@ import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
 import fan.summer.database.DatabaseInit;
 import fan.summer.database.entity.email.EmailMassSentConfigEntity;
+import fan.summer.database.entity.email.EmailSentLogEntity;
 import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.email.EmailMassSentConfigMapper;
+import fan.summer.database.mapper.email.EmailSentLogMapper;
 import fan.summer.database.mapper.setting.email.EmailTagMapper;
 import fan.summer.kitpage.email.second.MassSentConfigView;
+import fan.summer.kitpage.email.second.ViewEmailSentLogView;
 import fan.summer.kitpage.email.worker.EmailSentWorker;
 import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
@@ -16,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -140,6 +144,51 @@ public class EmailKitPage implements KitPage {
         new EmailSentWorker(subject.getText(), body.getText(), taskId, massSentCheckBox.isSelected(), progressBar1).execute();
     }
 
+    /**
+     * Handles the view sent log button action.
+     * Loads all email sent logs from database and displays them in a dialog.
+     */
+    private void viewSentLogBtAction(ActionEvent e) {
+        log.debug("View sent log button clicked");
+        new SwingWorker<List<EmailSentLogEntity>, Void>() {
+            @Override
+            protected List<EmailSentLogEntity> doInBackground() throws Exception {
+                log.debug("Loading email sent logs from database");
+                try (SqlSession session = DatabaseInit.getSqlSession()) {
+                    EmailSentLogMapper mapper = session.getMapper(EmailSentLogMapper.class);
+                    return mapper.selectAll();
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<EmailSentLogEntity> logs = get();
+                    if (logs == null || logs.isEmpty()) {
+                        log.info("No email sent logs found");
+                        JOptionPane.showMessageDialog(emailPanel,
+                                "Empty Email Sent Log",
+                                "Info",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        log.info("Loaded {} email sent logs", logs.size());
+                        List<Object[]> rowData = new ArrayList<>();
+                        for (EmailSentLogEntity logEntry : logs) {
+                            rowData.add(new Object[]{logEntry.getId(), logEntry.getSubject(), logEntry.getTo(), logEntry.getCc(), logEntry.getBcc(), logEntry.getContent(), logEntry.getAttachment(), logEntry.getSendTime(), logEntry.isSuccess()});
+                        }
+                        new ViewEmailSentLogView(emailPanel).updateTable(rowData).setVisible(true);
+                    }
+                } catch (Exception ex) {
+                    log.error("Failed to load email sent logs", ex);
+                    JOptionPane.showMessageDialog(emailPanel,
+                            "Error:" + ex.getMessage(),
+                            "Warning",
+                            JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        }.execute();
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
         emailPanel = new JPanel();
@@ -150,6 +199,7 @@ public class EmailKitPage implements KitPage {
         setMassSentConfigBt = new JButton();
         viewSentConfigBt = new JButton();
         sentButton = new JButton();
+        viewSentLogBt = new JButton();
         progressBar1 = new JProgressBar();
 
         //======== emailPanel ========
@@ -164,6 +214,7 @@ public class EmailKitPage implements KitPage {
                 // rows
                 "[fill]" +
                 "[grow,fill]" +
+                "[]" +
                 "[]" +
                 "[]" +
                 "[]" +
@@ -200,7 +251,12 @@ public class EmailKitPage implements KitPage {
             sentButton.setText("Sent");
             sentButton.addActionListener(e -> sentBtAction(e));
             emailPanel.add(sentButton, "cell 0 3 4 1");
-            emailPanel.add(progressBar1, "cell 0 4 4 1");
+
+            //---- viewSentLogBt ----
+            viewSentLogBt.setText("ViewSentLog");
+            viewSentLogBt.addActionListener(e -> viewSentLogBtAction(e));
+            emailPanel.add(viewSentLogBt, "cell 0 4 4 1");
+            emailPanel.add(progressBar1, "cell 0 5 4 1");
         }
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
     }
@@ -214,6 +270,7 @@ public class EmailKitPage implements KitPage {
     private JButton setMassSentConfigBt;
     private JButton viewSentConfigBt;
     private JButton sentButton;
+    private JButton viewSentLogBt;
     private JProgressBar progressBar1;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }

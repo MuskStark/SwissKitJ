@@ -3,9 +3,11 @@ package fan.summer.kitpage.email.worker;
 import com.alibaba.fastjson2.JSON;
 import fan.summer.database.DatabaseInit;
 import fan.summer.database.entity.email.EmailMassSentConfigEntity;
+import fan.summer.database.entity.email.EmailSentLogEntity;
 import fan.summer.database.entity.setting.email.EmailAddressBookEntity;
 import fan.summer.database.entity.setting.email.EmailTagEntity;
 import fan.summer.database.mapper.email.EmailMassSentConfigMapper;
+import fan.summer.database.mapper.email.EmailSentLogMapper;
 import fan.summer.database.mapper.setting.email.EmailAddressBookMapper;
 import fan.summer.database.mapper.setting.email.EmailTagMapper;
 import fan.summer.utils.EmailUtil;
@@ -15,10 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -254,7 +253,14 @@ public class EmailSentWorker extends SwingWorker<Void, Integer> {
                     fileTag, toList.size(), ccList.size());
 
             // Build and send email with attachments
-            try {
+            EmailSentLogEntity emailSentLogEntity = new EmailSentLogEntity();
+            emailSentLogEntity.setSubject(subject);
+            emailSentLogEntity.setTo(toList.toString());
+            emailSentLogEntity.setCc(ccList.isEmpty() ? null : ccList.toString());
+            emailSentLogEntity.setContent(body);
+            emailSentLogEntity.setAttachment(files.toString());
+            emailSentLogEntity.setSendTime(new Date());
+            try (SqlSession session = DatabaseInit.getSqlSession()) {
                 EmailUtil.EmailMessage message = EmailUtil.EmailMessage.builder()
                         .to(toList)
                         .cc(ccList.isEmpty() ? null : ccList)
@@ -266,9 +272,23 @@ public class EmailSentWorker extends SwingWorker<Void, Integer> {
                 EmailUtil.sendEmail(message);
                 log.info("Email sent successfully for tag: {} to {} recipients", fileTag, toList.size());
                 successCount++;
+                // Log success to database
+                EmailSentLogMapper mapper = session.getMapper(EmailSentLogMapper.class);
+                emailSentLogEntity.setSuccess(true);
+                mapper.insert(emailSentLogEntity);
+                session.commit();
             } catch (EmailUtil.EmailException e) {
                 log.error("Failed to send email for tag: {} - Error: {}", fileTag, e.getMessage(), e);
                 failCount++;
+                // Log failure to database
+                try (SqlSession session = DatabaseInit.getSqlSession()) {
+                    EmailSentLogMapper mapper = session.getMapper(EmailSentLogMapper.class);
+                    emailSentLogEntity.setSuccess(false);
+                    mapper.insert(emailSentLogEntity);
+                    session.commit();
+                } catch (Exception dbEx) {
+                    log.error("Failed to save error log to database", dbEx);
+                }
             }
             publish(successCount * 100 / totalEmails);
         }

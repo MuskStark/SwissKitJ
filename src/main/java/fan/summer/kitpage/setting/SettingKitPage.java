@@ -377,7 +377,6 @@ public class SettingKitPage implements KitPage {
         sentTestEmailBt = new JButton();
         saveBtAction = new JButton();
         button3 = new JButton();
-        logBt = new JButton();
         plugin = new JPanel();
         choicePluginBt = new JButton();
         pluginPath = new JTextField();
@@ -480,10 +479,6 @@ public class SettingKitPage implements KitPage {
                     button3.setText("OpenAddressBook");
                     button3.addActionListener(e -> openAddressBookBtActionListener(e));
                     email.add(button3, "cell 0 12 3 1");
-
-                    //---- logBt ----
-                    logBt.setText("OpenSnetLog");
-                    email.add(logBt, "cell 0 13 3 1");
                 }
                 settingTable.addTab("Email", email);
 
@@ -541,7 +536,6 @@ public class SettingKitPage implements KitPage {
     private JButton sentTestEmailBt;
     private JButton saveBtAction;
     private JButton button3;
-    private JButton logBt;
     private JPanel plugin;
     private JButton choicePluginBt;
     private JTextField pluginPath;
