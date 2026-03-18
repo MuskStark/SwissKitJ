@@ -117,6 +117,47 @@
         </dependency>
 
     </dependencies>
+    <profiles>
+        <profile>
+            <id>windows-exe</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                        <artifactId>launch4j-maven-plugin</artifactId>
+                        <version>2.7.0</version>
+                        <executions>
+                            <execution>
+                                <id>l4j-clui</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>launch4j</goal>
+                                </goals>
+                                <configuration>
+                                    <headerType>gui</headerType>
+                                    <outfile>target/SwissKit.exe</outfile>
+                                    <jar>target/SwissKit-${project.version}.jar</jar>
+                                    <errTitle>SwissKit Error</errTitle>
+                                    <downloadUrl>https://adoptium.net/</downloadUrl>
+                                    <supportUrl>https://github.com/MuskStark/SwissKitJ</supportUrl>
+                                    <jre>
+                                        <minVersion>11</minVersion>
+                                        <jdkPreference>preferJre</jdkPreference>
+                                        <runtimeBits>64/32</runtimeBits>
+                                    </jre>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <resources>
