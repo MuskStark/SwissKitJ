@@ -128,9 +128,9 @@ public class EmailSentWorker extends SwingWorker<Void, Integer> {
             get(); // Check for exceptions
             progressBar.setValue(100);
             progressBar.setString("Sending completed!");
-        } catch (Exception e) {
-            progressBar.setString("Sending failed: " + e.getMessage());
-            // Button will be enabled in doInBackground when error occurs
+        } catch (Exception ex) {
+            progressBar.setString("Sending failed!");
+            JOptionPane.showMessageDialog(null, "Email sending task failed!，Info:" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
