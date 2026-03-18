@@ -80,10 +80,9 @@ public class ViewEmailSentLogView extends JDialog {
             //======== contentPanel ========
             {
                 contentPanel.setLayout(new MigLayout(
-                    "insets dialog,hidemode 3",
+                    "fill,insets dialog,hidemode 3,align center center",
                     // columns
-                    "[552,fill]" +
-                    "[fill]",
+                    "[569,fill]",
                     // rows
                     "[302]" +
                     "[]" +
@@ -94,7 +93,7 @@ public class ViewEmailSentLogView extends JDialog {
                 {
                     scrollPane1.setViewportView(shentLog);
                 }
-                contentPanel.add(scrollPane1, "cell 0 0");
+                contentPanel.add(scrollPane1, "cell 0 0,aligny center,grow 100 0");
             }
             dialogPane.add(contentPanel, BorderLayout.CENTER);
 
