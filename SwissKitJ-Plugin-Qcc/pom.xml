@@ -16,9 +16,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>fan.summer</groupId>
-            <artifactId>SwissKit</artifactId>
-            <version>1.0.0-Alpha5</version>
+            <groupId>fan.summer.api</groupId>
+            <artifactId>SwissKitJ-Api</artifactId>
+            <version>1.0.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

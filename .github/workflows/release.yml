@@ -39,6 +39,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Install SwissKitJ-Api to local repository
+        run: mvn install -f SwissKitJ-Api/pom.xml -DskipTests
+
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
@@ -141,6 +144,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Install SwissKitJ-Api to local repository
+        run: mvn install -f SwissKitJ-Api/pom.xml -DskipTests
+
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
@@ -218,6 +224,9 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: maven
+
+      - name: Install SwissKitJ-Api to local repository
+        run: mvn install -f SwissKitJ-Api/pom.xml -DskipTests
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
