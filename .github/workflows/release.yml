@@ -49,7 +49,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path release\SwissKit | Out-Null
-          Move-Item release\SwissKit.exe release\SwissKit\SwissKit.exe
+          Move-Item target\SwissKit.exe release\SwissKit\SwissKit.exe
           Copy-Item README.md release\SwissKit\
           Compress-Archive -Path release\SwissKit -DestinationPath release\SwissKit-windows.zip -Force
           Write-Host "Created: release\SwissKit-windows.zip"
