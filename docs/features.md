@@ -102,6 +102,7 @@ The email tool allows you to compose and send emails, with support for single an
 - Mass email mode with tag-based recipients
 - SMTP configuration integration (via Simple Java Mail)
 - Attachment support by tag-based folder selection
+- Sent log viewing for tracking email history
 
 ### Single Email Sending
 
@@ -144,6 +145,7 @@ Send emails to multiple recipients based on tag configuration.
 3. Parse attachment files from selected folder (filename format: `filename_tag.ext`)
 4. For each tag, find matching recipients and send emails
 5. Show progress and results
+6. Log all sent emails to database for history tracking
 
 ### View Configuration
 
@@ -154,6 +156,43 @@ View the current mass sending configuration.
 1. Enable "MassSent" checkbox
 2. Click "ViewSentConfig" button
 3. View configuration in dialog
+
+### View Sent Log
+
+View the history of all sent emails with status tracking.
+
+**Features**:
+- View all sent emails in a table
+- Track email status (success/failure)
+- View recipients (To, Cc, Bcc)
+- View subject, content, and attachments
+- View send timestamp
+
+**How to Use**:
+
+1. Click "ViewSentLog" button on Email Tool page
+2. A dialog will appear with all sent email records
+3. Review email details including:
+   - Subject
+   - Recipients (To, Cc, Bcc)
+   - Content
+   - Attachments
+   - Send Time
+   - Success Status
+
+**Table Columns**:
+
+| Column | Description |
+|--------|-------------|
+| ID | Record identifier |
+| Subject | Email subject line |
+| To | Primary recipients |
+| Cc | Carbon copy recipients |
+| Bcc | Blind carbon copy recipients |
+| Content | Email body content |
+| Attachment | Attached files |
+| Send Time | Timestamp when email was sent |
+| Success | Whether the email was sent successfully |
 
 ## Settings
 
@@ -240,8 +279,8 @@ SwissKit's modular architecture allows easy extension of functionality using SPI
 To add a new tool:
 
 1. Create a package under `fan.summer.kitpage`
-2. Implement the `KitPage` interface
-3. Add `@SwissKitPage` annotation for menu configuration
+2. Implement the `KitPage` interface (from `fan.summer.api.KitPage`)
+3. Add `@SwissKitPage` annotation (from `fan.summer.annoattion.SwissKitPage`)
 4. Register in SPI service file (`META-INF/services/fan.summer.api.KitPage`)
 5. The tool will be automatically discovered and sorted by order
 
@@ -273,7 +312,7 @@ public class MyToolPage implements KitPage {
 
 ### Installing External Plugins
 
-1. Build your plugin as a JAR file
+1. Build your plugin as a JAR file with `SwissKitJ-Api` as dependency
 2. Open Settings → Plugin tab
 3. Select and upload the JAR file
 4. Restart SwissKit
@@ -303,10 +342,11 @@ SwissKit includes a built-in database layer using H2 and MyBatis for persistent 
 | `email_address_book` | Email contacts with nicknames and tags |
 | `email_tag` | Tags for categorizing contacts |
 | `email_mass_sent_config` | Mass email sending configuration |
+| `email_sent_log` | Email sending history with status tracking |
 
 ## Custom UI Components
 
-SwissKit includes custom UI components for enhanced user experience.
+SwissKit includes custom UI components for enhanced user experience. These components are available in the `SwissKitJ-Api` module.
 
 ### GradientProgressBar
 
@@ -363,6 +403,21 @@ Dynamic side menu component with modern styling.
 - Selected text: Purple (#BB86FC)
 - Hover background: Light gray (#E8E8E8)
 - Default background: Lighter gray (#F3F3F3)
+
+### TableUtil
+
+Utility class for consistent JTable initialization.
+
+**Features**:
+- Easy table setup with column names and data
+- Configurable cell editability
+- Simple API
+
+**Usage**:
+```java
+// Initialize table with non-editable cells
+TableUtil.initTable(table, columns, rowData, 99);
+```
 
 ## Performance Features
 

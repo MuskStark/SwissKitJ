@@ -4,6 +4,7 @@ This section provides detailed API documentation for SwissKit's core interfaces 
 
 ## Table of Contents
 
+- [Module Overview](#module-overview)
 - [KitPage Interface](#kitpage-interface)
 - [@SwissKitPage Annotation](#swisskitpage-annotation)
 - [SwissKitPageScanner](#swisskitpagescanner)
@@ -14,52 +15,89 @@ This section provides detailed API documentation for SwissKit's core interfaces 
 - [Listeners](#listeners)
 - [Entity Classes](#entity-classes)
 
+## Module Overview
+
+SwissKit uses a multi-module architecture. Key components are organized as follows:
+
+| Module | Package | Description |
+|--------|---------|-------------|
+| `SwissKitJ-Api` | `fan.summer.api` | Core interfaces (KitPage) |
+| `SwissKitJ-Api` | `fan.summer.annoattion` | Annotations (SwissKitPage) |
+| `SwissKitJ-Api` | `fan.summer.ui.components` | Shared UI components |
+| `SwissKit` (main) | `fan.summer.database` | Database layer |
+| `SwissKit` (main) | `fan.summer.kitpage` | Tool implementations |
+| `SwissKit` (main) | `fan.summer.utils` | Utility classes |
+
+---
+
 ## KitPage Interface
 
-The `KitPage` interface is the foundation for all tool pages in SwissKit.
+The `KitPage` interface is the foundation for all tool pages in SwissKit. It is located in the `SwissKitJ-Api` module.
+
+### Location
+
+```
+SwissKitJ-Api/src/main/java/fan/summer/api/KitPage.java
+```
 
 ### Interface Definition
 
 ```java
 package fan.summer.api;
 
+import fan.summer.annoattion.SwissKitPage;
+
 import javax.swing.*;
 
+/**
+ * Interface for SwissKit plugin pages.
+ * All plugin pages must implement this interface and be annotated with {@link SwissKitPage}.
+ */
 public interface KitPage {
     /**
-     * Returns the main panel of this page.
+     * Returns the main panel for this page.
+     * This panel will be displayed in the content area when the page is selected.
      *
-     * @return the JPanel containing all UI elements
+     * @return the JPanel containing the page content
      */
     JPanel getPanel();
 
     /**
-     * Returns the display name for the menu.
-     * Defaults to @SwissKitPage annotation value.
+     * Returns the menu display name.
+     * Default implementation reads from {@link SwissKitPage#menuName()} annotation.
      *
-     * @return the menu display name
+     * @return menu display name
      */
     default String getMenuName() {
-        return "";
+        SwissKitPage annotation = getClass().getAnnotation(SwissKitPage.class);
+        if (annotation != null && !annotation.menuName().isEmpty()) {
+            return annotation.menuName();
+        }
+        return getClass().getSimpleName();
     }
 
     /**
-     * Returns the icon for the menu item.
+     * Returns the menu icon.
+     * Override this method to provide a custom icon for the menu item.
      *
-     * @return the Icon, or null if no icon
+     * @return menu icon, or null for no icon
      */
     default Icon getMenuIcon() {
         return null;
     }
 
     /**
-     * Returns the tooltip text for the menu item.
-     * Defaults to @SwissKitPage annotation value.
+     * Returns the menu tooltip text shown on hover.
+     * Default implementation reads from {@link SwissKitPage#menuTooltip()} annotation.
      *
-     * @return the tooltip text, or null if no tooltip
+     * @return tooltip text, or null for no tooltip
      */
     default String getMenuTooltip() {
-        return "";
+        SwissKitPage annotation = getClass().getAnnotation(SwissKitPage.class);
+        if (annotation != null) {
+            return annotation.menuTooltip();
+        }
+        return null;
     }
 }
 ```
@@ -104,7 +142,13 @@ public class ExamplePage implements KitPage {
 
 ## @SwissKitPage Annotation
 
-The `@SwissKitPage` annotation configures tool page menu properties.
+The `@SwissKitPage` annotation configures tool page menu properties. It is located in the `SwissKitJ-Api` module.
+
+### Location
+
+```
+SwissKitJ-Api/src/main/java/fan/summer/annoattion/SwissKitPage.java
+```
 
 ### Annotation Definition
 
@@ -113,12 +157,32 @@ package fan.summer.annoattion;
 
 import java.lang.annotation.*;
 
+/**
+ * Annotation to mark a class as a KitPage implementation.
+ * Used for automatic page registration and menu configuration.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface SwissKitPage {
+    /**
+     * Menu display name shown in the sidebar.
+     */
     String menuName() default "";
+
+    /**
+     * Menu tooltip text shown on hover.
+     */
     String menuTooltip() default "";
+
+    /**
+     * Whether this page is visible in the menu.
+     */
     boolean visible() default true;
+
+    /**
+     * Menu item order for sorting.
+     * Lower values appear first in the menu.
+     */
     int order() default 0;
 }
 ```
@@ -137,6 +201,12 @@ public @interface SwissKitPage {
 ## SwissKitPageScanner
 
 The `SwissKitPageScaner` class automatically discovers and loads all `KitPage` implementations.
+
+### Location
+
+```
+src/main/java/fan/summer/scaner/SwissKitPageScaner.java
+```
 
 ```java
 package fan.summer.scaner;
@@ -216,6 +286,23 @@ public class EmailTagEntity {
 }
 ```
 
+#### EmailSentLogEntity
+
+```java
+@Data
+public class EmailSentLogEntity {
+    private Long id;
+    private String to;
+    private String cc;
+    private String bcc;
+    private String subject;
+    private String content;
+    private String attachment;
+    private Date sendTime;
+    private boolean isSuccess;
+}
+```
+
 #### ComplexSplitConfigEntity
 
 ```java
@@ -251,13 +338,26 @@ public interface EmailTagMapper {
 }
 ```
 
+#### EmailSentLogMapper
+
+```java
+public interface EmailSentLogMapper {
+    void insert(EmailSentLogEntity entity);
+    List<EmailSentLogEntity> selectAll();
+}
+```
+
 ---
 
 ## UI Components
 
+UI components are located in the `SwissKitJ-Api` module for shared use across the main application and plugins.
+
 ### GradientProgressBar
 
 A progress bar with gradient colors and smooth animation.
+
+**Location**: `SwissKitJ-Api/src/main/java/fan/summer/ui/components/GradientProgressBar.java`
 
 #### Constructor
 
@@ -288,6 +388,8 @@ progressBar.setString("Processing... 50%");
 
 A combo box with fixed width.
 
+**Location**: `SwissKitJ-Api/src/main/java/fan/summer/ui/components/FixedWidthComboBox.java`
+
 #### Constructor
 
 ```java
@@ -297,6 +399,8 @@ public FixedWidthComboBox(int width)
 ### SideMenuBar
 
 Dynamic side menu component.
+
+**Location**: `src/main/java/fan/summer/ui/sidebar/SideMenuBar.java`
 
 #### Constructor
 
@@ -313,6 +417,40 @@ public SideMenuBar(List<KitPage> pages, JPanel contentPanel)
 | `selectPage(int index)` | `void` | Sets the selected page |
 | `rebuildMenu()` | `void` | Rebuilds menu from pages list |
 | `setPages(List<KitPage> newPages)` | `void` | Sets new page list |
+
+### TableUtil
+
+Utility class for consistent JTable initialization.
+
+**Location**: `src/main/java/fan/summer/utils/ui/TableUtil.java`
+
+```java
+public abstract class TableUtil {
+    /**
+     * Initializes a JTable with specified columns and data.
+     *
+     * @param table the JTable to initialize
+     * @param columns column names
+     * @param rowData list of row data arrays
+     * @param isCellEditableIndex columns after this index are editable
+     * @return the initialized JTable
+     */
+    public static JTable initTable(JTable table, String[] columns, 
+                                    List<Object[]> rowData, int isCellEditableIndex) {
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column > isCellEditableIndex;
+            }
+        };
+        for (Object[] row : rowData) {
+            model.addRow(row);
+        }
+        table.setModel(model);
+        return table;
+    }
+}
+```
 
 ---
 
@@ -375,6 +513,22 @@ public ExcelSplitWorker(
 )
 ```
 
+### EmailSentWorker
+
+Background worker for sending emails.
+
+#### Constructor
+
+```java
+public EmailSentWorker(
+    String subject,
+    String body,
+    String taskId,
+    boolean isMassSent,
+    JProgressBar progressBar
+)
+```
+
 ---
 
 ## Utility Classes
@@ -382,6 +536,8 @@ public ExcelSplitWorker(
 ### AppInfo
 
 Application version and name constants.
+
+**Location**: `src/main/java/fan/summer/utils/AppInfo.java`
 
 ```java
 public abstract class AppInfo {
@@ -398,28 +554,22 @@ public abstract class AppInfo {
 
 Email sending utility using Simple Java Mail library. Automatically loads SMTP configuration from database.
 
+**Location**: `src/main/java/fan/summer/utils/EmailUtil.java`
+
 ```java
 public class EmailUtil {
     /**
      * Sends a plain text email.
-     *
-     * @param to      recipient email address
-     * @param subject email subject
-     * @param body    email body content
      */
     public static void sendText(String to, String subject, String body);
 
     /**
      * Tests SMTP connection using current configuration.
-     *
-     * @return true if connection successful
      */
     public static boolean testConnection();
 
     /**
      * Sends an email with full configuration.
-     *
-     * @param message EmailMessage builder
      */
     public static void sendEmail(EmailMessage message);
 }
@@ -452,13 +602,12 @@ if (EmailUtil.testConnection()) {
 
 String validation utilities.
 
+**Location**: `src/main/java/fan/summer/utils/StringUtil.java`
+
 ```java
 public class StringUtil {
     /**
      * Validates email address format.
-     *
-     * @param email the email address to validate
-     * @return true if valid email format
      */
     public static boolean checkEmail(String email);
 }
@@ -467,6 +616,8 @@ public class StringUtil {
 ### UIUtils
 
 Common UI component creation methods.
+
+**Location**: `src/main/java/fan/summer/utils/UIUtils.java`
 
 ```java
 public class UIUtils {
@@ -491,6 +642,8 @@ public class UIUtils {
 
 Listener for extracting Excel headers.
 
+**Location**: `src/main/java/fan/summer/kitpage/excel/listener/HeaderListener.java`
+
 ```java
 public class HeaderListener extends AnalysisEventListener<Map<Integer, String>> {
     private Map<Integer, String> headers = new HashMap<>();
@@ -509,6 +662,8 @@ public class HeaderListener extends AnalysisEventListener<Map<Integer, String>> 
 ### NoModelDataListener
 
 Listener for streaming Excel data.
+
+**Location**: `src/main/java/fan/summer/kitpage/excel/listener/NoModelDataListener.java`
 
 ```java
 @Slf4j
@@ -534,6 +689,8 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Obje
 
 Callback interface for email info queries.
 
+**Location**: `src/main/java/fan/summer/kitpage/setting/worker/second/QueryAllEmailInfoCallBack.java`
+
 ```java
 public interface QueryAllEmailInfoCallBack {
     void onSuccess(List<EmailAddressBookEntity> emailAddressBookEntities);
@@ -544,6 +701,8 @@ public interface QueryAllEmailInfoCallBack {
 ### ExcelAnalysisCallback
 
 Callback interface for Excel analysis results.
+
+**Location**: `src/main/java/fan/summer/kitpage/excel/worker/ExcelAnalysisCallback.java`
 
 ```java
 public interface ExcelAnalysisCallback {

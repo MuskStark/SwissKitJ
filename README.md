@@ -21,11 +21,14 @@ If you want a lightweight, fast, and customizable desktop utility suite, this is
 git clone https://github.com/MuskStark/SwissKitJ.git
 cd SwissKitJ
 
-# Build the project
+# Install API module first (required)
+mvn install -f SwissKitJ-Api/pom.xml -DskipTests
+
+# Build the main project
 mvn clean package
 
 # Run the application (executable JAR)
-java -jar target/SwissKit-1.0-Alpha4.jar
+java -jar target/SwissKit-1.0.0-Alpha5.jar
 ```
 
 Or using Maven exec plugin:
@@ -77,6 +80,7 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 - **Tag-based Recipients** - Load recipients from address book by tags
 - **Attachment by Tag** - Attach files from tag-based folder selection
 - **SMTP Integration** - Full SMTP support with TLS/SSL
+- **Sent Log Viewer** - View history of sent emails with status tracking
 
 #### ⚙️ Settings
 - **Email Server Configuration** - SMTP settings with TLS/SSL support
@@ -92,70 +96,97 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 
 ## Architecture
 
+### Project Modules
+
+SwissKit uses a multi-module Maven structure:
+
+| Module | Description |
+|--------|-------------|
+| `SwissKitJ-Api` | Shared API module containing interfaces, annotations, and UI components |
+| `SwissKit` (main) | Core application with Excel, Email, and Settings tools |
+| `SwissKitJ-Plugin-Qcc` | Example plugin project demonstrating plugin development |
+
+### Project Structure
+
 ```
 SwissKit/
-├── Main.java                        # Application entry point
-├── annoattion/                      # Annotations
-│   └── SwissKitPage.java           # Page annotation
-├── api/                            # API interfaces
-│   └── KitPage.java                # Plugin interface
-├── plugin/                         # Plugin system
-│   ├── PluginLoader.java           # Plugin JAR loader
-│   └── PluginDiagnostic.java       # Plugin diagnostics
-├── scaner/                         # SPI-based scanner
-│   └── SwissKitPageScaner.java    # Auto-discovery scanner
-├── database/                       # Database layer (H2 + MyBatis)
-│   ├── DatabaseInit.java           # Database initialization
-│   ├── SwissKitDBTable.java       # Table marker interface
-│   ├── entity/                     # Entity classes
+├── SwissKitJ-Api/                   # Shared API module
+│   └── src/main/java/fan/summer/
+│       ├── annoattion/
+│       │   └── SwissKitPage.java    # Page annotation
+│       ├── api/
+│       │   └── KitPage.java         # Plugin interface
+│       └── ui/components/
+│           ├── GradientProgressBar.java
+│           └── FixedWidthComboBox.java
+├── src/main/java/fan/summer/
+│   ├── Main.java                    # Application entry point
+│   ├── database/                    # Database layer (H2 + MyBatis)
+│   │   ├── DatabaseInit.java
+│   │   ├── entity/
+│   │   │   ├── email/
+│   │   │   │   ├── EmailMassSentConfigEntity.java
+│   │   │   │   └── EmailSentLogEntity.java
+│   │   │   ├── excel/
+│   │   │   │   └── ComplexSplitConfigEntity.java
+│   │   │   └── setting/
+│   │   │       ├── SwissKitSettingEmailEntity.java
+│   │   │       ├── EmailAddressBookEntity.java
+│   │   │       └── EmailTagEntity.java
+│   │   ├── mapper/
+│   │   │   ├── email/
+│   │   │   │   ├── EmailMassSentConfigMapper.java
+│   │   │   │   └── EmailSentLogMapper.java
+│   │   │   ├── excel/
+│   │   │   │   └── ComplexSplitConfigMapper.java
+│   │   │   └── setting/
+│   │   │       ├── SwissKitSettingEmailMapper.java
+│   │   │       ├── EmailAddressBookMapper.java
+│   │   │       └── EmailTagMapper.java
+│   │   └── table/
+│   ├── kitpage/                     # Tool page modules
+│   │   ├── welcome/
+│   │   ├── email/
+│   │   │   ├── second/
+│   │   │   │   ├── MassSentConfigView.java
+│   │   │   │   └── ViewEmailSentLogView.java
+│   │   │   └── worker/
 │   │   ├── excel/
-│   │   │   └── ComplexSplitConfigEntity.java
-│   │   └── setting/email/
-│   │       ├── SwissKitSettingEmailEntity.java
-│   │       ├── EmailAddressBookEntity.java
-│   │       └── EmailTagEntity.java
-│   └── mapper/                     # MyBatis mappers
-│       ├── email/
-│       │   └── EmailMassSentConfigMapper.java
-│       ├── excel/
-│       │   └── ComplexSplitConfigMapper.java
-│       └── setting/email/
-│           ├── SwissKitSettingEmailMapper.java
-│           ├── EmailAddressBookMapper.java
-│           └── EmailTagMapper.java
-├── kitpage/                        # Tool page modules
-│   ├── welcome/                    # Welcome page
-│   ├── email/                      # Email tool
-│   ├── excel/                      # Excel tool
-│   │   ├── second/                 # Config views
-│   │   ├── listener/              # Event listeners
-│   │   └── worker/                # Background workers
-│   └── setting/                    # Settings page
-│       ├── second/                 # Address book, tags views
-│       └── worker/second/         # Query workers
-├── ui/                              # UI components
-│   ├── StartLoadingPage.java        # Splash screen
-│   ├── home/
-│   │   └── HomePage.java           # Main window
-│   ├── sidebar/
-│   │   └── SideMenuBar.java        # Side menu
-│   └── components/
-│       ├── GradientProgressBar.java
-│       └── FixedWidthComboBox.java
-└── utils/
-    ├── AppInfo.java                # Application version info
-    ├── UIUtils.java                # UI utilities
-    ├── ExcelUtil.java              # Excel utilities
-    ├── FileNameUtil.java           # File name utilities
-    └── StringUtil.java             # String validation utilities
+│   │   │   ├── second/
+│   │   │   ├── listener/
+│   │   │   └── worker/
+│   │   └── setting/
+│   │       ├── second/
+│   │       └── worker/second/
+│   ├── plugin/
+│   │   ├── PluginLoader.java
+│   │   └── PluginDiagnostic.java
+│   ├── scaner/
+│   │   └── SwissKitPageScaner.java
+│   ├── ui/
+│   │   ├── StartLoadingPage.java
+│   │   ├── home/
+│   │   │   └── HomePage.java
+│   │   └── sidebar/
+│   │       └── SideMenuBar.java
+│   └── utils/
+│       ├── AppInfo.java
+│       ├── EmailUtil.java
+│       ├── ExcelUtil.java
+│       ├── FileNameUtil.java
+│       ├── StringUtil.java
+│       ├── UIUtils.java
+│       └── ui/
+│           └── TableUtil.java
+└── SwissKitJ-Plugin-Qcc/            # Example plugin
 ```
 
 ### Plugin System
 
 SwissKit uses an automatic discovery mechanism with annotations and SPI (Service Provider Interface) for tool pages:
 
-1. **Interface**: Implement the `KitPage` interface
-2. **Annotation**: Add `@SwissKitPage` annotation to configure menu properties
+1. **Interface**: Implement the `KitPage` interface (from `fan.summer.api.KitPage`)
+2. **Annotation**: Add `@SwissKitPage` annotation (from `fan.summer.annoattion.SwissKitPage`)
 3. **SPI Registration**: Add class name to `META-INF/services/fan.summer.api.KitPage`
 4. **Auto-discovery**: Pages are automatically discovered at runtime using `SwissKitPageScaner`
 5. **Sorting**: Pages are sorted by `order()` value in annotation
@@ -224,6 +255,7 @@ public class MyToolPage implements KitPage {
 | `email_address_book` | Email contacts with nicknames and tags |
 | `email_tag` | Tags for categorizing email contacts |
 | `email_mass_sent_config` | Mass email sending configuration |
+| `email_sent_log` | Email sending history with status tracking |
 
 ### Database Location
 
@@ -237,10 +269,25 @@ public class MyToolPage implements KitPage {
 ### Adding a New Tool
 
 1. Create a new package under `fan.summer.kitpage` (e.g., `pdf/`, `image/`)
-2. Create a class implementing `KitPage`
+2. Create a class implementing `KitPage` (from `SwissKitJ-Api` module)
 3. Add `@SwissKitPage` annotation for menu configuration
 4. Register in SPI service file (`META-INF/services/fan.summer.api.KitPage`)
-5. Build and run - the page will be automatically discovered
+5. The tool will be automatically discovered
+
+### Creating a Plugin
+
+1. Create a new Maven project with `SwissKitJ-Api` as dependency:
+   ```xml
+   <dependency>
+       <groupId>fan.summer.api</groupId>
+       <artifactId>SwissKitJ-Api</artifactId>
+       <version>1.0.0</version>
+   </dependency>
+   ```
+2. Implement `KitPage` interface
+3. Add `@SwissKitPage` annotation
+4. Register in `META-INF/services/fan.summer.api.KitPage`
+5. Package as JAR and install via Settings page
 
 ### Code Style
 
@@ -254,6 +301,9 @@ public class MyToolPage implements KitPage {
 ### Building
 
 ```bash
+# Install API module first (required)
+mvn install -f SwissKitJ-Api/pom.xml -DskipTests
+
 # Clean build with executable JAR
 mvn clean package
 
@@ -261,7 +311,7 @@ mvn clean package
 mvn clean package -DskipTests
 
 # Run executable JAR
-java -jar target/SwissKit-1.0-Alpha4.jar
+java -jar target/SwissKit-1.0.0-Alpha5.jar
 ```
 
 ---
@@ -277,6 +327,7 @@ java -jar target/SwissKit-1.0-Alpha4.jar
 - [x] Plugin installation support
 - [x] Email sending with SMTP support
 - [x] Mass email sending with tag-based recipients
+- [x] Email sent log viewing functionality
 - [ ] Add PDF processing tool
 - [ ] Add image processing tool
 - [ ] Support theme switching

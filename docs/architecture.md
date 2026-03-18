@@ -5,6 +5,7 @@ SwissKit is built with a modular, plugin-based architecture that allows for easy
 ## Table of Contents
 
 - [Overview](#overview)
+- [Project Modules](#project-modules)
 - [Project Structure](#project-structure)
 - [Plugin System](#plugin-system)
 - [Database Layer](#database-layer)
@@ -21,99 +22,174 @@ SwissKit follows these architectural principles:
 - **Extensibility** - Easy to add new tools via plugins
 - **Performance** - Efficient processing with streaming and async operations
 - **Maintainability** - Clean code structure and separation of concerns
+- **Reusability** - Shared components in SwissKitJ-Api module
+
+## Project Modules
+
+SwissKit uses a multi-module Maven structure:
+
+### SwissKitJ-Api Module
+
+The API module provides shared components for both the core application and external plugins:
+
+```
+SwissKitJ-Api/
+├── src/main/java/fan/summer/
+│   ├── annoattion/
+│   │   └── SwissKitPage.java        # Page annotation
+│   ├── api/
+│   │   └── KitPage.java             # Plugin interface
+│   └── ui/components/
+│       ├── GradientProgressBar.java # Custom progress bar
+│       └── FixedWidthComboBox.java  # Fixed-width combo box
+└── pom.xml
+```
+
+**Key Features:**
+- Generates source JAR and Javadoc JAR during package phase
+- Only depends on Lombok (minimal dependencies)
+- Must be installed to local Maven repository before building the main module
+
+**Dependency for Plugins:**
+```xml
+<dependency>
+    <groupId>fan.summer.api</groupId>
+    <artifactId>SwissKitJ-Api</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+### Main Module (SwissKit)
+
+The core application with Excel, Email, and Settings tools.
+
+### SwissKitJ-Plugin-Qcc
+
+Example plugin project demonstrating plugin development.
 
 ## Project Structure
 
 ```
 SwissKit/
+├── SwissKitJ-Api/                   # Shared API module
+│   └── src/main/java/fan/summer/
+│       ├── annoattion/
+│       │   └── SwissKitPage.java    # Page annotation
+│       ├── api/
+│       │   └── KitPage.java         # Plugin interface
+│       └── ui/components/
+│           ├── GradientProgressBar.java
+│           └── FixedWidthComboBox.java
 ├── src/main/java/fan/summer/
-│   ├── Main.java                        # Application entry point
-│   ├── annoattion/                      # Annotations
-│   │   └── SwissKitPage.java            # Page annotation
-│   ├── api/                             # API interfaces
-│   │   └── KitPage.java                 # Plugin interface
-│   ├── plugin/                          # Plugin system
-│   │   ├── PluginLoader.java            # Plugin JAR loader
-│   │   └── PluginDiagnostic.java        # Plugin diagnostics
-│   ├── scaner/                          # SPI-based scanner
-│   │   └── SwissKitPageScaner.java      # Auto-discovery scanner
-│   ├── database/                        # Database layer
-│   │   ├── DatabaseInit.java            # Database initialization
-│   │   ├── SwissKitDBTable.java         # Table marker interface
-│   │   ├── entity/                      # Entity classes
+│   ├── Main.java                    # Application entry point
+│   ├── database/                    # Database layer
+│   │   ├── DatabaseInit.java        # Database initialization
+│   │   ├── SwissKitDBTable.java     # Table marker interface
+│   │   ├── entity/                  # Entity classes
+│   │   │   ├── email/
+│   │   │   │   ├── EmailMassSentConfigEntity.java
+│   │   │   │   └── EmailSentLogEntity.java
 │   │   │   ├── excel/
 │   │   │   │   └── ComplexSplitConfigEntity.java
-│   │   │   └── setting/email/
+│   │   │   └── setting/
 │   │   │       ├── SwissKitSettingEmailEntity.java
 │   │   │       ├── EmailAddressBookEntity.java
 │   │   │       └── EmailTagEntity.java
-│   │   └── mapper/                      # MyBatis mappers
-│   │       ├── excel/
-│   │       │   └── ComplexSplitConfigMapper.java
-│   │       └── setting/email/
-│   │           ├── SwissKitSettingEmailMapper.java
-│   │           ├── EmailAddressBookMapper.java
-│   │           └── EmailTagMapper.java
-│   ├── kitpage/                         # Tool page modules
-│   │   ├── welcome/                     # Welcome page
+│   │   ├── mapper/                  # MyBatis mappers
+│   │   │   ├── email/
+│   │   │   │   ├── EmailMassSentConfigMapper.java
+│   │   │   │   └── EmailSentLogMapper.java
+│   │   │   ├── excel/
+│   │   │   │   └── ComplexSplitConfigMapper.java
+│   │   │   └── setting/
+│   │   │       ├── SwissKitSettingEmailMapper.java
+│   │   │       ├── EmailAddressBookMapper.java
+│   │   │       └── EmailTagMapper.java
+│   │   └── table/                   # Table initialization utilities
+│   ├── kitpage/                     # Tool page modules
+│   │   ├── welcome/                 # Welcome page
 │   │   │   ├── WelcomePage.java
 │   │   │   └── WelcomePage.jfd
-│   │   ├── email/                       # Email tool
+│   │   ├── email/                   # Email tool
 │   │   │   ├── EmailKitPage.java
-│   │   │   └── EmailKitPage.jfd
-│   │   ├── excel/                       # Excel tool
+│   │   │   ├── EmailKitPage.jfd
+│   │   │   ├── second/              # Sub-views
+│   │   │   │   ├── MassSentConfigView.java
+│   │   │   │   ├── MassSentConfigView.jfd
+│   │   │   │   ├── ViewEmailSentLogView.java
+│   │   │   │   └── ViewEmailSentLogView.jfd
+│   │   │   └── worker/              # Background workers
+│   │   │       └── EmailSentWorker.java
+│   │   ├── excel/                   # Excel tool
 │   │   │   ├── ExcelKitPage.java
 │   │   │   ├── ExcelKitPage.jfd
-│   │   │   ├── second/                  # Config views
+│   │   │   ├── second/              # Config views
 │   │   │   │   ├── ConfigView.java
 │   │   │   │   ├── ConfigView.jfd
 │   │   │   │   ├── ConfigEditorView.java
 │   │   │   │   └── ConfigEditorView.jfd
-│   │   │   ├── listener/                # Event listeners
+│   │   │   ├── listener/            # Event listeners
 │   │   │   │   ├── HeaderListener.java
 │   │   │   │   └── NoModelDataListener.java
-│   │   │   └── worker/                  # Background workers
+│   │   │   └── worker/              # Background workers
 │   │   │       ├── ExcelAnalysisWorker.java
 │   │   │       ├── ExcelAnalysisCallback.java
 │   │   │       ├── ExcelSplitWorker.java
 │   │   │       ├── SetComplexSplitConfigWorker.java
 │   │   │       ├── ClearComplexSplitConfigWorker.java
 │   │   │       └── ShowConfigViewWorker.java
-│   │   └── setting/                     # Settings page
+│   │   └── setting/                 # Settings page
 │   │       ├── SettingKitPage.java
 │   │       ├── SettingKitPage.jfd
-│   │       ├── second/                  # Sub-views
+│   │       ├── dto/
+│   │       │   └── TagComBoxItemDto.java
+│   │       ├── second/              # Sub-views
 │   │       │   ├── AddAddressView.java
 │   │       │   ├── AddAddressView.jfd
 │   │       │   ├── EmailAddressBookView.java
 │   │       │   ├── EmailAddressBookView.jfd
 │   │       │   ├── EmailTagsView.java
 │   │       │   └── EmailTagsView.jfd
-│   │       └── worker/second/           # Query workers
+│   │       └── worker/second/       # Query workers
 │   │           ├── QueryAllEmailInfoCallBack.java
 │   │           └── QueryAllEmailInfoWorker.java
-│   ├── ui/                              # UI components
-│   │   ├── StartLoadingPage.java        # Splash screen
+│   ├── plugin/                      # Plugin system
+│   │   ├── PluginLoader.java        # Plugin JAR loader
+│   │   └── PluginDiagnostic.java    # Plugin diagnostics
+│   ├── scaner/                      # SPI-based scanner
+│   │   └── SwissKitPageScaner.java  # Auto-discovery scanner
+│   ├── ui/                          # UI components
+│   │   ├── StartLoadingPage.java    # Splash screen
+│   │   ├── StartLoadingPage.jfd
 │   │   ├── home/
-│   │   │   └── HomePage.java            # Main window
-│   │   ├── sidebar/
-│   │   │   └── SideMenuBar.java         # Side menu
-│   │   └── components/
-│   │       ├── GradientProgressBar.java
-│   │       └── FixedWidthComboBox.java
-│   └── utils/
-│       ├── AppInfo.java                 # Application version info
-│       ├── UIUtils.java                 # UI utilities
-│       ├── ExcelUtil.java               # Excel utilities
-│       ├── FileNameUtil.java            # File name utilities
-│       └── StringUtil.java              # String validation utilities
+│   │   │   └── HomePage.java        # Main window
+│   │   └── sidebar/
+│   │       └── SideMenuBar.java     # Side menu
+│   └── utils/                       # Utilities
+│       ├── AppInfo.java             # Application version info
+│       ├── EmailUtil.java           # Email utilities
+│       ├── ExcelUtil.java           # Excel utilities
+│       ├── FileNameUtil.java        # File name utilities
+│       ├── StringUtil.java          # String validation utilities
+│       ├── UIUtils.java             # UI utilities
+│       └── ui/
+│           └── TableUtil.java       # Table initialization utility
 └── src/main/resources/
-    ├── app.properties                   # Application properties
-    ├── init.sql                         # Database initialization SQL
-    ├── log4j2.xml                       # Log4j configuration
-    ├── mybatis-config.xml               # MyBatis configuration
-    ├── mapper/                          # MyBatis mapper XMLs
-    └── META-INF/services/               # SPI service files
+    ├── app.properties               # Application properties
+    ├── init.sql                     # Database initialization SQL
+    ├── log4j2.xml                   # Log4j configuration
+    ├── mybatis-config.xml           # MyBatis configuration
+    ├── mapper/                      # MyBatis mapper XMLs
+    │   ├── email/
+    │   │   ├── EmailMassSentConfigMapper.xml
+    │   │   └── EmailSentLogMapper.xml
+    │   ├── excel/
+    │   │   └── ComplexSplitConfigMapper.xml
+    │   └── setting/
+    │       ├── SwissKitSettingEmailMapper.xml
+    │       ├── EmailAddressBookMapper.xml
+    │       └── EmailTagMapper.xml
+    └── META-INF/services/           # SPI service files
         └── fan.summer.api.KitPage
 ```
 
@@ -123,7 +199,7 @@ The plugin system is the core of SwissKit's extensibility.
 
 ### @SwissKitPage Annotation
 
-All tools use the `@SwissKitPage` annotation for configuration:
+Located in `SwissKitJ-Api` module at `fan.summer.annoattion.SwissKitPage`:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -138,7 +214,7 @@ public @interface SwissKitPage {
 
 ### KitPage Interface
 
-All tools must implement the `KitPage` interface:
+Located in `SwissKitJ-Api` module at `fan.summer.api.KitPage`:
 
 ```java
 public interface KitPage {
@@ -239,6 +315,8 @@ try (SqlSession session = DatabaseInit.getSqlSession()) {
 | `complex_split_config` | Excel complex split configuration |
 | `email_address_book` | Email contacts with nicknames and tags |
 | `email_tag` | Tags for categorizing contacts |
+| `email_mass_sent_config` | Mass email sending configuration |
+| `email_sent_log` | Email sending history with status tracking |
 
 ### MyBatis Configuration
 
@@ -270,7 +348,7 @@ public class EmailAddressBookEntity {
 
 ## UI Components
 
-SwissKit includes custom UI components for a modern, consistent appearance.
+SwissKit includes custom UI components for a modern, consistent appearance. These components are located in the `SwissKitJ-Api` module.
 
 ### SideMenuBar
 
@@ -298,7 +376,7 @@ public class SideMenuBar extends JPanel {
 
 ### GradientProgressBar
 
-Custom progress bar with animation:
+Custom progress bar with animation (located in `SwissKitJ-Api` module):
 
 ```java
 public class GradientProgressBar extends JProgressBar {
@@ -324,6 +402,26 @@ public class GradientProgressBar extends JProgressBar {
 - Smooth easing animation (60 FPS)
 - Rounded corners
 - Glossy highlight effect
+
+### TableUtil
+
+Utility class for consistent JTable initialization:
+
+```java
+public abstract class TableUtil {
+    public static JTable initTable(JTable table, String[] columns, 
+                                    List<Object[]> rowData, int isCellEditableIndex) {
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column > isCellEditableIndex;
+            }
+        };
+        // ... populate model
+        return table;
+    }
+}
+```
 
 ## Background Processing
 
@@ -460,6 +558,13 @@ public class UIUtils {
     public static JPanel createSectionPanel(String title, JComponent content) { }
     public static JLabel createPageTitle(String title) { }
 }
+```
+
+### Module Pattern
+```java
+// SwissKitJ-Api module provides shared components
+// Main module depends on API module
+// Plugins also depend on API module for compatibility
 ```
 
 ---

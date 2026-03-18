@@ -25,10 +25,10 @@ mvn -version
 
 The easiest way to get started is to download the pre-built JAR file from the [GitHub Releases](https://github.com/MuskStark/SwissKitJ/releases) page.
 
-1. Download `SwissKit-1.0-Alpha4.jar`
+1. Download `SwissKit-1.0.0-Alpha5.jar`
 2. Run the application:
    ```bash
-   java -jar SwissKit-1.0-Alpha4.jar
+   java -jar SwissKit-1.0.0-Alpha5.jar
    ```
 
 ### Option 2: Build from Source
@@ -38,13 +38,16 @@ If you want to build from source, follow these steps:
 ```bash
 # Clone the repository
 git clone https://github.com/MuskStark/SwissKitJ.git
-cd SwissKit
+cd SwissKitJ
 
-# Build the project
+# Install API module first (required)
+mvn install -f SwissKitJ-Api/pom.xml -DskipTests
+
+# Build the main project
 mvn clean package
 
 # Run the application
-java -jar target/SwissKit-1.0-Alpha4.jar
+java -jar target/SwissKit-1.0.0-Alpha5.jar
 ```
 
 ## Configuration
@@ -80,7 +83,7 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 ### Using JAR File
 
 ```bash
-java -jar target/SwissKit-1.0-Alpha4.jar
+java -jar target/SwissKit-1.0.0-Alpha5.jar
 ```
 
 ### Using IDE
@@ -99,7 +102,7 @@ Once SwissKit is running:
 2. **Welcome Page** - After loading, you'll see the welcome page with an overview
 3. **Select a Tool** - Choose a tool from the left sidebar:
    - **Excel Tool** - Process and split Excel files
-   - **Email Tool** - Compose and send emails (in development)
+   - **Email Tool** - Compose and send emails, view sent history
 4. **Explore** - Click around to explore the available features
 
 ## Troubleshooting
@@ -139,6 +142,16 @@ java -version
 ```bash
 mvn clean package
 ```
+
+### API Module Not Found
+
+**Issue**: Build fails with "SwissKitJ-Api not found"
+
+**Solution**:
+- Install the API module first:
+  ```bash
+  mvn install -f SwissKitJ-Api/pom.xml -DskipTests
+  ```
 
 ## Next Steps
 
