@@ -81,12 +81,12 @@ public abstract class WebUtil {
     }
 
     /**
-     * Send a POST request.
+     * Send a POST request with JSON body (Content-Type: application/json).
      *
      * @param baseUrl     the base URL
      * @param uri         the request path
      * @param headers     the request headers (supports multiple values)
-     * @param requestBody the request body object, sends empty body if null
+     * @param requestBody the request body object, serialized to JSON; sends empty body if null
      * @param tClass      the target class for response body deserialization
      */
     public static <T> T sendPostRequest(String baseUrl,
@@ -104,6 +104,46 @@ public abstract class WebUtil {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + uri))
                 .header("Content-Type", "application/json")
+                .POST(bodyPublisher);
+
+        if (headers != null) {
+            headers.forEach((key, values) ->
+                    values.forEach(value -> requestBuilder.header(key, value)));
+        }
+
+        return execute(requestBuilder.build(), tClass);
+    }
+
+    /**
+     * Send a POST request with form-urlencoded body (Content-Type: application/x-www-form-urlencoded).
+     *
+     * @param baseUrl    the base URL
+     * @param uri        the request path
+     * @param headers    the request headers (supports multiple values)
+     * @param formParams the form fields (supports multiple values per key)
+     * @param tClass     the target class for response body deserialization
+     */
+    public static <T> T sendFormPostRequest(String baseUrl,
+                                            String uri,
+                                            Map<String, List<String>> headers,
+                                            Map<String, List<String>> formParams,
+                                            Class<T> tClass) {
+        HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.noBody();
+
+        if (formParams != null && !formParams.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            formParams.forEach((key, values) -> {
+                for (String value : values) {
+                    if (sb.length() > 0) sb.append("&");
+                    sb.append(encode(key)).append("=").append(encode(value));
+                }
+            });
+            bodyPublisher = HttpRequest.BodyPublishers.ofString(sb.toString());
+        }
+
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + uri))
+                .header("Content-Type", "application/x-www-form-urlencoded")
                 .POST(bodyPublisher);
 
         if (headers != null) {

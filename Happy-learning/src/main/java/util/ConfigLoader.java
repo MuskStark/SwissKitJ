@@ -84,4 +84,22 @@ public abstract class ConfigLoader {
     public static Map<String, String> headers(String profile) {
         return headers(profile, null);
     }
+    // -------------------------  Lesson Type  -------------------------
+
+    /**
+     * Get the server-side lesson type string by UI key.
+     * <p>
+     * Example keys: {@code "MajorSubject"}, {@code "ElectiveSubject"}
+     *
+     * @param key the UI-facing lesson type key defined in lessonType section
+     * @return the corresponding server-side string value
+     * @throws IllegalArgumentException if the key does not exist
+     */
+    public static String lessonType(String key) {
+        JSONObject lessonTypes = CONFIG.getJSONObject("lessonType");
+        if (lessonTypes == null) throw new IllegalStateException("lessonType section not found in config");
+        String value = lessonTypes.getString(key);
+        if (value == null) throw new IllegalArgumentException("Unknown lessonType key: " + key);
+        return value;
+    }
 }
