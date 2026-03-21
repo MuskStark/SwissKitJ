@@ -4,17 +4,30 @@
 
 package ui;
 
+
+import fan.summer.annoattion.SwissKitPage;
+import fan.summer.api.KitPage;
 import net.miginfocom.swing.MigLayout;
-import plugin.swisskitj.api.annoattion.SwissKitPage;
-import plugin.swisskitj.api.api.KitPage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import util.ConfigLoader;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  * @author summer
  */
 @SwissKitPage()
 public class HappyLearning implements KitPage {
+
+    private static final Logger log = LoggerFactory.getLogger(HappyLearning.class);
+
     public HappyLearning() {
         initComponents();
     }
@@ -22,6 +35,29 @@ public class HappyLearning implements KitPage {
     @Override
     public JPanel getPanel() {
         return learningPanel;
+    }
+
+    private void uploadBtAction(ActionEvent e) {
+        File configDir = Path.of(ConfigLoader.CONFIG_DIR).toFile();
+        configDir.mkdirs();
+        try {
+            Path source = Path.of(configFilePath.getText());
+            Path target = configDir.toPath().resolve(source.toFile().getName());
+            log.debug("Installing config from {} to {}", source, target);
+            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+            log.info("Successfully installed config: {}", source.toFile().getName());
+            JOptionPane.showMessageDialog(null,
+                    "✅ Installed:" + Path.of(configFilePath.getText()).toFile().getName() + "（Need ReOpen SwissKitJ）",
+                    "Plugin Install Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            log.error("Failed to install config: {}", configFilePath.getText(), ex);
+            JOptionPane.showMessageDialog(null,
+                    "Error:" + ex.getMessage(),
+                    "Plugin Install Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+
     }
 
     private void initComponents() {
@@ -65,6 +101,7 @@ public class HappyLearning implements KitPage {
 
             //---- uploadBt ----
             uploadBt.setText("UploadConfig");
+            uploadBt.addActionListener(e -> uploadBtAction(e));
             learningPanel.add(uploadBt, "cell 2 0");
 
             //---- label1 ----

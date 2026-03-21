@@ -15,9 +15,15 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>fan.summer.plugin</groupId>
-            <artifactId>api</artifactId>
+            <groupId>fan.summer.api</groupId>
+            <artifactId>SwissKitJ-Api</artifactId>
             <version>1.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.miglayout</groupId>
+            <artifactId>miglayout-swing</artifactId>
+            <version>11.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
