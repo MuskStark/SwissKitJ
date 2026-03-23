@@ -21,27 +21,66 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 /**
+ * Happy Learning plugin page for SwissKitJ.
+ * <p>
+ * This plugin provides automated learning functionality with configurable settings.
+ * Users can upload configuration files and set passkeys for authentication.
+ * </p>
+ *
  * @author summer
  */
 @SwissKitPage()
 public class HappyLearning implements KitPage {
 
     private static final Logger log = LoggerFactory.getLogger(HappyLearning.class);
+    
+    /** Authentication key for the learning service */
+    private String key;
 
+    /**
+     * Constructs a new HappyLearning page and initializes UI components.
+     */
     public HappyLearning() {
         initComponents();
     }
 
+    /**
+     * Returns the main panel of this page.
+     *
+     * @return the learning panel
+     */
     @Override
     public JPanel getPanel() {
         return learningPanel;
     }
 
+    /**
+     * Handles the upload button action.
+     * Opens a file chooser dialog to select a config file, then copies it to the config directory.
+     *
+     * @param e the action event
+     */
     private void uploadBtAction(ActionEvent e) {
         File configDir = Path.of(ConfigLoader.CONFIG_DIR).toFile();
         configDir.mkdirs();
         try {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+            // Set config file filter
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                    "Config Files (*.json)", "json"
+            ));
+            fileChooser.setDialogTitle("Select Config File");
+            int result = fileChooser.showOpenDialog(learningPanel);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                configFilePath.setText(fileChooser.getSelectedFile().getAbsolutePath());
+            }
+            
             Path source = Path.of(configFilePath.getText());
+            if (!Files.exists(source)) {
+                throw new IOException("Config file not found: " + source);
+            }
             Path target = configDir.toPath().resolve(source.toFile().getName());
             log.debug("Installing config from {} to {}", source, target);
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
@@ -60,6 +99,25 @@ public class HappyLearning implements KitPage {
 
     }
 
+    /**
+     * Handles the set passkey button action.
+     * Validates and stores the passkey for authentication.
+     *
+     * @param e the action event
+     */
+    private void setPassKeyBtAction(ActionEvent e) {
+        if (passKey.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "PASSKEY IS EMPTY",
+                    "PASSKEY EMPTY Error",
+                    JOptionPane.ERROR_MESSAGE);
+
+        } else {
+            this.key = passKey.getText();
+        }
+
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
         learningPanel = new JPanel();
@@ -68,7 +126,7 @@ public class HappyLearning implements KitPage {
         uploadBt = new JButton();
         label1 = new JLabel();
         passKey = new JTextField();
-        button1 = new JButton();
+        setPassKeyBt = new JButton();
         label2 = new JLabel();
         majorSubjiectPB = new JProgressBar();
         label3 = new JLabel();
@@ -109,9 +167,10 @@ public class HappyLearning implements KitPage {
             learningPanel.add(label1, "cell 0 1");
             learningPanel.add(passKey, "cell 1 1");
 
-            //---- button1 ----
-            button1.setText("SetPassKey");
-            learningPanel.add(button1, "cell 2 1");
+            //---- setPassKeyBt ----
+            setPassKeyBt.setText("SetPassKey");
+            setPassKeyBt.addActionListener(e -> setPassKeyBtAction(e));
+            learningPanel.add(setPassKeyBt, "cell 2 1");
 
             //---- label2 ----
             label2.setText("MajorSubject");
@@ -159,7 +218,7 @@ public class HappyLearning implements KitPage {
     private JButton uploadBt;
     private JLabel label1;
     private JTextField passKey;
-    private JButton button1;
+    private JButton setPassKeyBt;
     private JLabel label2;
     private JProgressBar majorSubjiectPB;
     private JLabel label3;
