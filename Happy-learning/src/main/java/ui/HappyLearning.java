@@ -33,8 +33,10 @@ import java.nio.file.StandardCopyOption;
 public class HappyLearning implements KitPage {
 
     private static final Logger log = LoggerFactory.getLogger(HappyLearning.class);
-    
-    /** Authentication key for the learning service */
+
+    /**
+     * Authentication key for the learning service
+     */
     private String key;
 
     /**
@@ -76,7 +78,7 @@ public class HappyLearning implements KitPage {
             if (result == JFileChooser.APPROVE_OPTION) {
                 configFilePath.setText(fileChooser.getSelectedFile().getAbsolutePath());
             }
-            
+
             Path source = Path.of(configFilePath.getText());
             if (!Files.exists(source)) {
                 throw new IOException("Config file not found: " + source);
@@ -116,6 +118,10 @@ public class HappyLearning implements KitPage {
             this.key = passKey.getText();
         }
 
+    }
+
+    private void startBtAction(ActionEvent e) {
+        // TODO add your code here
     }
 
     private void initComponents() {
@@ -206,6 +212,7 @@ public class HappyLearning implements KitPage {
 
             //---- startBt ----
             startBt.setText("StartHappy");
+            startBt.addActionListener(e -> startBtAction(e));
             learningPanel.add(startBt, "cell 1 5");
         }
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
