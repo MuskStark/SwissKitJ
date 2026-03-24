@@ -41,10 +41,16 @@ public class HappyLearning implements KitPage {
     private String key;
 
     /**
+     * Current learning worker instance
+     */
+    private HappyLearningWorker currentWorker;
+
+    /**
      * Constructs a new HappyLearning page and initializes UI components.
      */
     public HappyLearning() {
         initComponents();
+        stopBt.setEnabled(false);
     }
 
     /**
@@ -133,16 +139,34 @@ public class HappyLearning implements KitPage {
      * @param e the action event
      */
     private void startBtAction(ActionEvent e) {
+        if (currentWorker != null && !currentWorker.isDone()) {
+            JOptionPane.showMessageDialog(null,
+                    "Learning is already running",
+                    "Info",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
         // Determine lesson type based on checkbox selection
         if (onlyMajorCheckBox.isSelected()) {
             // Learn only MajorSubject (必修课)
-            new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, "MajorSubject").execute();
+            currentWorker = new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, "MajorSubject", startBt, stopBt);
         } else if (onlyElectiveCheckBox.isSelected()) {
             // Learn only ElectiveSubject (选修课)
-            new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, "ElectiveSubject").execute();
+            currentWorker = new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, "ElectiveSubject", startBt, stopBt);
         } else {
             // Auto-learning mode: automatically selects course type based on remaining hours
-            new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, null).execute();
+            currentWorker = new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, null, startBt, stopBt);
+        }
+        currentWorker.execute();
+        startBt.setEnabled(false);
+        stopBt.setEnabled(true);
+    }
+
+    private void stopBtAction(ActionEvent e) {
+        if (currentWorker != null && !currentWorker.isDone()) {
+            currentWorker.cancel(true);
+            startBt.setEnabled(true);
+            stopBt.setEnabled(false);
         }
     }
 
@@ -163,6 +187,7 @@ public class HappyLearning implements KitPage {
         onlyMajorCheckBox = new JCheckBox();
         onlyElectiveCheckBox = new JCheckBox();
         startBt = new JButton();
+        stopBt = new JButton();
 
         //======== learningPanel ========
         {
@@ -177,6 +202,7 @@ public class HappyLearning implements KitPage {
                 "[]" +
                 "[23]" +
                 "[27]" +
+                "[]" +
                 "[]" +
                 "[]"));
 
@@ -236,31 +262,31 @@ public class HappyLearning implements KitPage {
             startBt.setText("StartHappy");
             startBt.addActionListener(e -> startBtAction(e));
             learningPanel.add(startBt, "cell 1 5");
+
+            //---- stopBt ----
+            stopBt.setText("Stop");
+            stopBt.addActionListener(e -> stopBtAction(e));
+            learningPanel.add(stopBt, "cell 1 6");
         }
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
-    // Main container panel
     private JPanel learningPanel;
-    // Config file section components
-    private JLabel label4;                  // "ConfigFile" label
-    private JTextField configFilePath;      // Displays selected config file path
-    private JButton uploadBt;               // Opens file chooser to select config
-    // Passkey section components
-    private JLabel label1;                  // "PassKey" label
-    private JTextField passKey;             // Input field for authentication key
-    private JButton setPassKeyBt;           // Saves the passkey
-    // Learning progress section components
-    private JLabel label2;                  // "MajorSubject" label
-    private JProgressBar majorSubjiectPB;   // Shows MajorSubject learning progress
-    private JLabel label3;                  // "ElectiveSubject" label
-    private JProgressBar electiveSubjectPB; // Shows ElectiveSubject learning progress
-    // Course type selection panel
+    private JLabel label4;
+    private JTextField configFilePath;
+    private JButton uploadBt;
+    private JLabel label1;
+    private JTextField passKey;
+    private JButton setPassKeyBt;
+    private JLabel label2;
+    private JProgressBar majorSubjiectPB;
+    private JLabel label3;
+    private JProgressBar electiveSubjectPB;
     private JPanel panel1;
-    private JCheckBox onlyMajorCheckBox;   // Learn only MajorSubject
-    private JCheckBox onlyElectiveCheckBox; // Learn only ElectiveSubject
-    // Start button
-    private JButton startBt;                // Launches the learning process
+    private JCheckBox onlyMajorCheckBox;
+    private JCheckBox onlyElectiveCheckBox;
+    private JButton startBt;
+    private JButton stopBt;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }
