@@ -264,7 +264,7 @@ public class HappyLearning implements KitPage {
             learningPanel.add(startBt, "cell 1 5");
 
             //---- stopBt ----
-            stopBt.setText("Stop");
+            stopBt.setText("UnHAppy");
             stopBt.addActionListener(e -> stopBtAction(e));
             learningPanel.add(stopBt, "cell 1 6");
         }
