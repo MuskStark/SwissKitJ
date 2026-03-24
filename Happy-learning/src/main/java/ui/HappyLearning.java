@@ -11,6 +11,7 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.ConfigLoader;
+import worker.HappyLearningWorker;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -120,8 +121,29 @@ public class HappyLearning implements KitPage {
 
     }
 
+    /**
+     * Handles the start button action.
+     * Launches the learning worker based on selected course type options.
+     * <ul>
+     *   <li>If "OnlyMajorSubject" is selected: learns only MajorSubject courses</li>
+     *   <li>If "OnlyElectiveSubject" is selected: learns only ElectiveSubject courses</li>
+     *   <li>If neither is selected: auto-learning mode (prioritizes ElectiveSubject if not completed)</li>
+     * </ul>
+     *
+     * @param e the action event
+     */
     private void startBtAction(ActionEvent e) {
-        // TODO add your code here
+        // Determine lesson type based on checkbox selection
+        if (onlyMajorCheckBox.isSelected()) {
+            // Learn only MajorSubject (必修课)
+            new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, "MajorSubject").execute();
+        } else if (onlyElectiveCheckBox.isSelected()) {
+            // Learn only ElectiveSubject (选修课)
+            new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, "ElectiveSubject").execute();
+        } else {
+            // Auto-learning mode: automatically selects course type based on remaining hours
+            new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, null).execute();
+        }
     }
 
     private void initComponents() {
@@ -138,8 +160,8 @@ public class HappyLearning implements KitPage {
         label3 = new JLabel();
         electiveSubjectPB = new JProgressBar();
         panel1 = new JPanel();
-        checkBox1 = new JCheckBox();
-        checkBox2 = new JCheckBox();
+        onlyMajorCheckBox = new JCheckBox();
+        onlyElectiveCheckBox = new JCheckBox();
         startBt = new JButton();
 
         //======== learningPanel ========
@@ -200,13 +222,13 @@ public class HappyLearning implements KitPage {
                     "[]" +
                     "[]"));
 
-                //---- checkBox1 ----
-                checkBox1.setText("OnlyMajorSubject");
-                panel1.add(checkBox1, "cell 0 0");
+                //---- onlyMajorCheckBox ----
+                onlyMajorCheckBox.setText("OnlyMajorSubject");
+                panel1.add(onlyMajorCheckBox, "cell 0 0");
 
-                //---- checkBox2 ----
-                checkBox2.setText("OnlyElectiveSubject");
-                panel1.add(checkBox2, "cell 1 0");
+                //---- onlyElectiveCheckBox ----
+                onlyElectiveCheckBox.setText("OnlyElectiveSubject");
+                panel1.add(onlyElectiveCheckBox, "cell 1 0");
             }
             learningPanel.add(panel1, "cell 0 4 3 1");
 
@@ -219,20 +241,26 @@ public class HappyLearning implements KitPage {
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
+    // Main container panel
     private JPanel learningPanel;
-    private JLabel label4;
-    private JTextField configFilePath;
-    private JButton uploadBt;
-    private JLabel label1;
-    private JTextField passKey;
-    private JButton setPassKeyBt;
-    private JLabel label2;
-    private JProgressBar majorSubjiectPB;
-    private JLabel label3;
-    private JProgressBar electiveSubjectPB;
+    // Config file section components
+    private JLabel label4;                  // "ConfigFile" label
+    private JTextField configFilePath;      // Displays selected config file path
+    private JButton uploadBt;               // Opens file chooser to select config
+    // Passkey section components
+    private JLabel label1;                  // "PassKey" label
+    private JTextField passKey;             // Input field for authentication key
+    private JButton setPassKeyBt;           // Saves the passkey
+    // Learning progress section components
+    private JLabel label2;                  // "MajorSubject" label
+    private JProgressBar majorSubjiectPB;   // Shows MajorSubject learning progress
+    private JLabel label3;                  // "ElectiveSubject" label
+    private JProgressBar electiveSubjectPB; // Shows ElectiveSubject learning progress
+    // Course type selection panel
     private JPanel panel1;
-    private JCheckBox checkBox1;
-    private JCheckBox checkBox2;
-    private JButton startBt;
+    private JCheckBox onlyMajorCheckBox;   // Learn only MajorSubject
+    private JCheckBox onlyElectiveCheckBox; // Learn only ElectiveSubject
+    // Start button
+    private JButton startBt;                // Launches the learning process
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }

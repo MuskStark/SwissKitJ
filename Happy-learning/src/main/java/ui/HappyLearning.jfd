@@ -74,13 +74,13 @@ new FormModel {
 			} ) {
 				name: "panel1"
 				add( new FormComponent( "javax.swing.JCheckBox" ) {
-					name: "checkBox1"
+					name: "onlyMajorCheckBox"
 					"text": "OnlyMajorSubject"
 				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 					"value": "cell 0 0"
 				} )
 				add( new FormComponent( "javax.swing.JCheckBox" ) {
-					name: "checkBox2"
+					name: "onlyElectiveCheckBox"
 					"text": "OnlyElectiveSubject"
 				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 					"value": "cell 1 0"
