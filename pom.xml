@@ -6,7 +6,7 @@
 
     <groupId>fan.summer</groupId>
     <artifactId>SwissKit</artifactId>
-    <version>1.0.0-Beta.1</version>
+    <version>1.0.0-Beta.2</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -155,7 +155,7 @@
                                         <Implementation-Version>${project.version}</Implementation-Version>
                                     </manifestEntries>
                                 </transformer>
-                                <!-- Merge service files (resolve SPI issues for FlatLaf etc.) -->
+                                <!-- Merge plugin.swisskit.hpl.service files (resolve SPI issues for FlatLaf etc.) -->
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>

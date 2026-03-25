@@ -1,6 +1,7 @@
 # Architecture
 
-SwissKit is built with a modular, plugin-based architecture that allows for easy extension and maintenance. This section covers the core architectural patterns and design decisions.
+SwissKit is built with a modular, plugin-based architecture that allows for easy extension and maintenance. This section
+covers the core architectural patterns and design decisions.
 
 ## Table of Contents
 
@@ -9,7 +10,7 @@ SwissKit is built with a modular, plugin-based architecture that allows for easy
 - [Project Structure](#project-structure)
 - [Plugin System](#plugin-system)
 - [Database Layer](#database-layer)
-- [UI Components](#ui-components)
+- [UI Components](#plugin.swisskit.hpl.ui-components)
 - [Background Processing](#background-processing)
 - [Excel Processing](#excel-processing)
 - [Technology Stack](#technology-stack)
@@ -39,18 +40,20 @@ SwissKitJ-Api/
 │   │   └── SwissKitPage.java        # Page annotation
 │   ├── api/
 │   │   └── KitPage.java             # Plugin interface
-│   └── ui/components/
+│   └── plugin.swisskit.hpl.ui/components/
 │       ├── GradientProgressBar.java # Custom progress bar
 │       └── FixedWidthComboBox.java  # Fixed-width combo box
 └── pom.xml
 ```
 
 **Key Features:**
+
 - Generates source JAR and Javadoc JAR during package phase
 - Only depends on Lombok (minimal dependencies)
 - Must be installed to local Maven repository before building the main module
 
 **Dependency for Plugins:**
+
 ```xml
 <dependency>
     <groupId>fan.summer.api</groupId>
@@ -77,7 +80,7 @@ SwissKit/
 │       │   └── SwissKitPage.java    # Page annotation
 │       ├── api/
 │       │   └── KitPage.java         # Plugin interface
-│       └── ui/components/
+│       └── plugin.swisskit.hpl.ui/components/
 │           ├── GradientProgressBar.java
 │           └── FixedWidthComboBox.java
 ├── src/main/java/fan/summer/
@@ -118,7 +121,7 @@ SwissKit/
 │   │   │   │   ├── MassSentConfigView.jfd
 │   │   │   │   ├── ViewEmailSentLogView.java
 │   │   │   │   └── ViewEmailSentLogView.jfd
-│   │   │   └── worker/              # Background workers
+│   │   │   └── plugin.swisskit.hpl.worker/              # Background workers
 │   │   │       └── EmailSentWorker.java
 │   │   ├── excel/                   # Excel tool
 │   │   │   ├── ExcelKitPage.java
@@ -131,7 +134,7 @@ SwissKit/
 │   │   │   ├── listener/            # Event listeners
 │   │   │   │   ├── HeaderListener.java
 │   │   │   │   └── NoModelDataListener.java
-│   │   │   └── worker/              # Background workers
+│   │   │   └── plugin.swisskit.hpl.worker/              # Background workers
 │   │   │       ├── ExcelAnalysisWorker.java
 │   │   │       ├── ExcelAnalysisCallback.java
 │   │   │       ├── ExcelSplitWorker.java
@@ -141,7 +144,7 @@ SwissKit/
 │   │   └── setting/                 # Settings page
 │   │       ├── SettingKitPage.java
 │   │       ├── SettingKitPage.jfd
-│   │       ├── dto/
+│   │       ├── plugin.swisskit.hpl.dto/
 │   │       │   └── TagComBoxItemDto.java
 │   │       ├── second/              # Sub-views
 │   │       │   ├── AddAddressView.java
@@ -150,7 +153,7 @@ SwissKit/
 │   │       │   ├── EmailAddressBookView.jfd
 │   │       │   ├── EmailTagsView.java
 │   │       │   └── EmailTagsView.jfd
-│   │       └── worker/second/       # Query workers
+│   │       └── plugin.swisskit.hpl.worker/second/       # Query workers
 │   │           ├── QueryAllEmailInfoCallBack.java
 │   │           └── QueryAllEmailInfoWorker.java
 │   ├── plugin/                      # Plugin system
@@ -158,7 +161,7 @@ SwissKit/
 │   │   └── PluginDiagnostic.java    # Plugin diagnostics
 │   ├── scaner/                      # SPI-based scanner
 │   │   └── SwissKitPageScaner.java  # Auto-discovery scanner
-│   ├── ui/                          # UI components
+│   ├── plugin.swisskit.hpl.ui/                          # UI components
 │   │   ├── StartLoadingPage.java    # Splash screen
 │   │   ├── StartLoadingPage.jfd
 │   │   ├── home/
@@ -172,7 +175,7 @@ SwissKit/
 │       ├── FileNameUtil.java        # File name utilities
 │       ├── StringUtil.java          # String validation utilities
 │       ├── UIUtils.java             # UI utilities
-│       └── ui/
+│       └── plugin.swisskit.hpl.ui/
 │           └── TableUtil.java       # Table initialization utility
 └── src/main/resources/
     ├── app.properties               # Application properties
@@ -189,7 +192,7 @@ SwissKit/
     │       ├── SwissKitSettingEmailMapper.xml
     │       ├── EmailAddressBookMapper.xml
     │       └── EmailTagMapper.xml
-    └── META-INF/services/           # SPI service files
+    └── META-INF/services/           # SPI plugin.swisskit.hpl.service files
         └── fan.summer.api.KitPage
 ```
 
@@ -260,6 +263,7 @@ SwissKit automatically discovers and loads all tools at runtime using SPI:
 **SPI Service File**: `src/main/resources/META-INF/services/fan.summer.api.KitPage`
 
 **Current Registered Pages**:
+
 ```
 fan.summer.kitpage.welcome.WelcomePage
 fan.summer.kitpage.excel.ExcelKitPage
@@ -274,6 +278,7 @@ SwissKit supports loading external JAR plugins:
 **Plugin Directory**: `.swisskit/plugins/`
 
 **Loading Process**:
+
 1. `PluginLoader` scans plugin directory at startup
 2. Loads JAR files using URLClassLoader
 3. Scans for `KitPage` implementations
@@ -291,6 +296,7 @@ SwissKit uses H2 as embedded database with MyBatis for data access.
 ### Database Initialization
 
 The `DatabaseInit` class handles:
+
 - Creating `.swisskit` directory if not exists
 - Creating database tables via `init.sql`
 - Initializing MyBatis SqlSessionFactory
@@ -309,14 +315,14 @@ try (SqlSession session = DatabaseInit.getSqlSession()) {
 
 ### Database Tables
 
-| Table Name | Purpose |
-|------------|---------|
-| `swiss_kit_setting_email` | Email SMTP configuration |
-| `complex_split_config` | Excel complex split configuration |
-| `email_address_book` | Email contacts with nicknames and tags |
-| `email_tag` | Tags for categorizing contacts |
-| `email_mass_sent_config` | Mass email sending configuration |
-| `email_sent_log` | Email sending history with status tracking |
+| Table Name                | Purpose                                    |
+|---------------------------|--------------------------------------------|
+| `swiss_kit_setting_email` | Email SMTP configuration                   |
+| `complex_split_config`    | Excel complex split configuration          |
+| `email_address_book`      | Email contacts with nicknames and tags     |
+| `email_tag`               | Tags for categorizing contacts             |
+| `email_mass_sent_config`  | Mass email sending configuration           |
+| `email_sent_log`          | Email sending history with status tracking |
 
 ### MyBatis Configuration
 
@@ -348,7 +354,8 @@ public class EmailAddressBookEntity {
 
 ## UI Components
 
-SwissKit includes custom UI components for a modern, consistent appearance. These components are located in the `SwissKitJ-Api` module.
+SwissKit includes custom UI components for a modern, consistent appearance. These components are located in the
+`SwissKitJ-Api` module.
 
 ### SideMenuBar
 
@@ -368,6 +375,7 @@ public class SideMenuBar extends JPanel {
 ```
 
 **Features**:
+
 - Dynamic menu item generation
 - Selected state highlighting
 - Mouse hover effects
@@ -398,6 +406,7 @@ public class GradientProgressBar extends JProgressBar {
 ```
 
 **Features**:
+
 - Blue to purple gradient
 - Smooth easing animation (60 FPS)
 - Rounded corners
@@ -455,6 +464,7 @@ public class QueryAllEmailInfoWorker extends SwingWorker<List<EmailAddressBookEn
 ```
 
 **Key Benefits**:
+
 - Non-blocking UI
 - Real-time progress updates
 - Proper error handling
@@ -483,6 +493,7 @@ try (ExcelReader excelReader = FesodSheet.read(file).build()) {
 ### Listeners
 
 **HeaderListener** - Extracts headers from first row:
+
 ```java
 public class HeaderListener extends AnalysisEventListener<Map<Integer, String>> {
     private Map<Integer, String> headers = new HashMap<>();
@@ -495,6 +506,7 @@ public class HeaderListener extends AnalysisEventListener<Map<Integer, String>> 
 ```
 
 **NoModelDataListener** - Streams all data with logging:
+
 ```java
 @Slf4j
 public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Object>> {
@@ -520,31 +532,33 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Obje
 
 ### Dependencies
 
-| Dependency | Version | Purpose |
-|------------|---------|---------|
-| flatlaf | 3.5 | Modern UI theme |
-| fesod-sheet | 2.0.1-incubating | Excel streaming |
-| log4j-core | 2.25.3 | Logging |
-| log4j-slf4j2-impl | 2.25.3 | SLF4J binding |
-| slf4j-api | 2.0.16 | Logging API |
-| lombok | 1.18.42 | Code simplification |
-| fastjson2 | 2.0.59 | JSON processing |
-| h2 | 2.4.240 | H2 Database |
-| mybatis | 3.5.19 | MyBatis ORM |
-| miglayout-swing | 11.3 | Layout manager |
-| simple-java-mail | 8.12.6 | Email sending via SMTP |
+| Dependency        | Version          | Purpose                |
+|-------------------|------------------|------------------------|
+| flatlaf           | 3.5              | Modern UI theme        |
+| fesod-sheet       | 2.0.1-incubating | Excel streaming        |
+| log4j-core        | 2.25.3           | Logging                |
+| log4j-slf4j2-impl | 2.25.3           | SLF4J binding          |
+| slf4j-api         | 2.0.16           | Logging API            |
+| lombok            | 1.18.42          | Code simplification    |
+| fastjson2         | 2.0.59           | JSON processing        |
+| h2                | 2.4.240          | H2 Database            |
+| mybatis           | 3.5.19           | MyBatis ORM            |
+| miglayout-swing   | 11.3             | Layout manager         |
+| simple-java-mail  | 8.12.6           | Email sending via SMTP |
 
 ## Design Patterns
 
 SwissKit employs several design patterns:
 
 ### Plugin Pattern
+
 ```java
 public interface KitPage { }
 public class ExcelPage implements KitPage { }
 ```
 
 ### Observer Pattern
+
 ```java
 public interface QueryAllEmailInfoCallBack {
     void onSuccess(List<EmailAddressBookEntity> result);
@@ -553,6 +567,7 @@ public interface QueryAllEmailInfoCallBack {
 ```
 
 ### Factory Pattern
+
 ```java
 public class UIUtils {
     public static JPanel createSectionPanel(String title, JComponent content) { }
@@ -561,6 +576,7 @@ public class UIUtils {
 ```
 
 ### Module Pattern
+
 ```java
 // SwissKitJ-Api module provides shared components
 // Main module depends on API module

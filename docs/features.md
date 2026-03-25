@@ -9,7 +9,7 @@ SwissKit provides a variety of tools for everyday tasks. This section covers all
 - [Settings](#settings)
 - [Welcome Page](#welcome-page)
 - [Plugin System](#plugin-system)
-- [Custom UI Components](#custom-ui-components)
+- [Custom UI Components](#custom-plugin.swisskit.hpl.ui-components)
 
 ## Excel Tool
 
@@ -20,6 +20,7 @@ The Excel tool provides powerful file processing capabilities including analysis
 Analyze Excel files to extract structure and header information.
 
 **Features**:
+
 - Read all sheet pages
 - Extract headers from each sheet
 - Real-time progress display
@@ -33,6 +34,7 @@ Analyze Excel files to extract structure and header information.
 4. View results in the progress area
 
 **Example Output**:
+
 ```
 Parsing completed! Total 3 sheets
 - Sheet1: [ID, Name, Email, Phone]
@@ -45,6 +47,7 @@ Parsing completed! Total 3 sheets
 Split Excel files by sheet into separate files.
 
 **Features**:
+
 - Split each sheet into individual Excel file
 - Real-time progress updates with percentage
 - Automatic header preservation
@@ -59,6 +62,7 @@ Split Excel files by sheet into separate files.
 5. Wait for completion
 
 **Output Structure**:
+
 ```
 output/
 ├── Sheet1.xlsx
@@ -71,6 +75,7 @@ output/
 Advanced splitting with custom configuration stored in database.
 
 **Features**:
+
 - Custom header row index
 - Custom split column index
 - Configuration persistence
@@ -95,9 +100,11 @@ All Excel operations include real-time progress tracking:
 
 ## Email Tool
 
-The email tool allows you to compose and send emails, with support for single and mass email sending. SwissKit uses **Simple Java Mail** library for robust SMTP email handling.
+The email tool allows you to compose and send emails, with support for single and mass email sending. SwissKit uses *
+*Simple Java Mail** library for robust SMTP email handling.
 
 **Features**:
+
 - Email composition with subject and body
 - Mass email mode with tag-based recipients
 - SMTP configuration integration (via Simple Java Mail)
@@ -121,6 +128,7 @@ Send emails to individual recipients.
 Send emails to multiple recipients based on tag configuration.
 
 **Features**:
+
 - Tag-based recipient selection
 - Attachment files from tag-based folders
 - Automatic recipient matching by tags
@@ -162,6 +170,7 @@ View the current mass sending configuration.
 View the history of all sent emails with status tracking.
 
 **Features**:
+
 - View all sent emails in a table
 - Track email status (success/failure)
 - View recipients (To, Cc, Bcc)
@@ -173,26 +182,26 @@ View the history of all sent emails with status tracking.
 1. Click "ViewSentLog" button on Email Tool page
 2. A dialog will appear with all sent email records
 3. Review email details including:
-   - Subject
-   - Recipients (To, Cc, Bcc)
-   - Content
-   - Attachments
-   - Send Time
-   - Success Status
+    - Subject
+    - Recipients (To, Cc, Bcc)
+    - Content
+    - Attachments
+    - Send Time
+    - Success Status
 
 **Table Columns**:
 
-| Column | Description |
-|--------|-------------|
-| ID | Record identifier |
-| Subject | Email subject line |
-| To | Primary recipients |
-| Cc | Carbon copy recipients |
-| Bcc | Blind carbon copy recipients |
-| Content | Email body content |
-| Attachment | Attached files |
-| Send Time | Timestamp when email was sent |
-| Success | Whether the email was sent successfully |
+| Column     | Description                             |
+|------------|-----------------------------------------|
+| ID         | Record identifier                       |
+| Subject    | Email subject line                      |
+| To         | Primary recipients                      |
+| Cc         | Carbon copy recipients                  |
+| Bcc        | Blind carbon copy recipients            |
+| Content    | Email body content                      |
+| Attachment | Attached files                          |
+| Send Time  | Timestamp when email was sent           |
+| Success    | Whether the email was sent successfully |
 
 ## Settings
 
@@ -203,6 +212,7 @@ The settings page provides application configuration options with multiple tabs.
 Configure SMTP server for email sending.
 
 **Features**:
+
 - Protocol selection (SMTP)
 - Server URL and port configuration
 - Username and password
@@ -214,6 +224,7 @@ Configure SMTP server for email sending.
 Manage email contacts with nicknames and tags.
 
 **Features**:
+
 - Add new email addresses
 - Edit contact nicknames
 - Assign tags to contacts
@@ -232,6 +243,7 @@ Manage email contacts with nicknames and tags.
 Create and manage tags for categorizing contacts.
 
 **Features**:
+
 - Create new tags
 - Edit existing tags
 - Delete tags
@@ -249,6 +261,7 @@ Create and manage tags for categorizing contacts.
 Install external JAR plugins to extend functionality.
 
 **Features**:
+
 - Select JAR file from file system
 - Install plugins to `.swisskit/plugins/` directory
 - Plugins loaded on next startup
@@ -265,6 +278,7 @@ Install external JAR plugins to extend functionality.
 The welcome page provides an overview of the application.
 
 **Features**:
+
 - Application introduction
 - Quick access to all tools
 - Operation guidance
@@ -281,7 +295,7 @@ To add a new tool:
 1. Create a package under `fan.summer.kitpage`
 2. Implement the `KitPage` interface (from `fan.summer.api.KitPage`)
 3. Add `@SwissKitPage` annotation (from `fan.summer.annoattion.SwissKitPage`)
-4. Register in SPI service file (`META-INF/services/fan.summer.api.KitPage`)
+4. Register in SPI plugin.swisskit.hpl.service file (`META-INF/services/fan.summer.api.KitPage`)
 5. The tool will be automatically discovered and sorted by order
 
 **Example**:
@@ -335,24 +349,26 @@ SwissKit includes a built-in database layer using H2 and MyBatis for persistent 
 
 ### Current Tables
 
-| Table | Purpose |
-|-------|---------|
-| `swiss_kit_setting_email` | Email SMTP configuration |
-| `complex_split_config` | Excel complex split settings |
-| `email_address_book` | Email contacts with nicknames and tags |
-| `email_tag` | Tags for categorizing contacts |
-| `email_mass_sent_config` | Mass email sending configuration |
-| `email_sent_log` | Email sending history with status tracking |
+| Table                     | Purpose                                    |
+|---------------------------|--------------------------------------------|
+| `swiss_kit_setting_email` | Email SMTP configuration                   |
+| `complex_split_config`    | Excel complex split settings               |
+| `email_address_book`      | Email contacts with nicknames and tags     |
+| `email_tag`               | Tags for categorizing contacts             |
+| `email_mass_sent_config`  | Mass email sending configuration           |
+| `email_sent_log`          | Email sending history with status tracking |
 
 ## Custom UI Components
 
-SwissKit includes custom UI components for enhanced user experience. These components are available in the `SwissKitJ-Api` module.
+SwissKit includes custom UI components for enhanced user experience. These components are available in the
+`SwissKitJ-Api` module.
 
 ### GradientProgressBar
 
 A progress bar with smooth animation and gradient effects.
 
 **Features**:
+
 - Blue to purple gradient
 - Smooth easing animation
 - Rounded corners
@@ -361,6 +377,7 @@ A progress bar with smooth animation and gradient effects.
 - 60 FPS animation
 
 **Usage**:
+
 ```java
 GradientProgressBar progressBar = new GradientProgressBar();
 progressBar.setMinimum(0);
@@ -375,11 +392,13 @@ progressBar.setString("Processing... 50%");
 A combo box with fixed width for consistent UI layout.
 
 **Features**:
+
 - Fixed width configuration
 - Consistent appearance
 - Easy integration
 
 **Usage**:
+
 ```java
 FixedWidthComboBox comboBox = new FixedWidthComboBox(200);
 comboBox.addItem("Option 1");
@@ -391,6 +410,7 @@ comboBox.addItem("Option 2");
 Dynamic side menu component with modern styling.
 
 **Features**:
+
 - 160px width
 - Selected state highlighting
 - Mouse hover effects
@@ -399,6 +419,7 @@ Dynamic side menu component with modern styling.
 - Automatic page discovery
 
 **Color Scheme**:
+
 - Selected background: Dark gray (#2D2D2D)
 - Selected text: Purple (#BB86FC)
 - Hover background: Light gray (#E8E8E8)
@@ -409,11 +430,13 @@ Dynamic side menu component with modern styling.
 Utility class for consistent JTable initialization.
 
 **Features**:
+
 - Easy table setup with column names and data
 - Configurable cell editability
 - Simple API
 
 **Usage**:
+
 ```java
 // Initialize table with non-editable cells
 TableUtil.initTable(table, columns, rowData, 99);

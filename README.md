@@ -2,7 +2,9 @@
 
 ![SwissKit](https://img.shields.io/badge/SwissKit-Desktop%20Toolbox-blue) ![Java](https://img.shields.io/badge/Java-11-orange) ![License](https://img.shields.io/badge/License-MIT-green) ![Maven](https://img.shields.io/badge/Maven-3.6+-red)
 
-**SwissKit** is a *modular desktop toolbox* built with Java Swing. It provides a clean, extensible platform for various utility tools including Excel file processing, email sending, email address book management, and plugin support. The application uses a plugin-based architecture with automatic page discovery, making it easy to add new functionality.
+**SwissKit** is a *modular desktop toolbox* built with Java Swing. It provides a clean, extensible platform for various
+utility tools including Excel file processing, email sending, email address book management, and plugin support. The
+application uses a plugin-based architecture with automatic page discovery, making it easy to add new functionality.
 
 If you want a lightweight, fast, and customizable desktop utility suite, this is it.
 
@@ -11,6 +13,7 @@ If you want a lightweight, fast, and customizable desktop utility suite, this is
 ## Quick Start
 
 **Requirements:**
+
 - **JDK 11 or higher**
 - **Maven 3.6 or higher**
 
@@ -28,7 +31,7 @@ mvn install -f SwissKitJ-Api/pom.xml -DskipTests
 mvn clean package
 
 # Run the application (executable JAR)
-java -jar target/SwissKit-1.0.0-Bata.1.jar
+java -jar target/SwissKit-1.0.0-Beta.2.jar
 ```
 
 Or using Maven exec plugin:
@@ -65,6 +68,7 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 ### Current Tools
 
 #### 📊 Excel Tool
+
 - **File Analysis** - Read Excel file structure and extract headers
 - **File Splitting** - Split Excel files by sheets or column values
 - **Complex Split Mode** - Advanced splitting with custom configuration
@@ -74,6 +78,7 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 - **Streaming Data Processing** - Efficient memory usage with Apache FESOD
 
 #### 📧 Email Tool
+
 - **Email Composition** - Compose emails with subject and body
 - **Recipient Management** - Add multiple recipients (To, Cc)
 - **Mass Email Support** - Send emails to multiple contacts based on tags
@@ -83,12 +88,14 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 - **Sent Log Viewer** - View history of sent emails with status tracking
 
 #### ⚙️ Settings
+
 - **Email Server Configuration** - SMTP settings with TLS/SSL support
 - **Email Address Book** - Manage email contacts with nicknames
 - **Tag Management** - Create and manage tags for categorizing contacts
 - **Plugin Installation** - Install JAR plugins via file upload
 
 #### 🏠 Welcome Page
+
 - Application overview and guidance
 - Quick access to all tools
 
@@ -100,11 +107,11 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 
 SwissKit uses a multi-module Maven structure:
 
-| Module | Description |
-|--------|-------------|
-| `SwissKitJ-Api` | Shared API module containing interfaces, annotations, and UI components |
-| `SwissKit` (main) | Core application with Excel, Email, and Settings tools |
-| `SwissKitJ-Plugin-Qcc` | Example plugin project demonstrating plugin development |
+| Module                 | Description                                                             |
+|------------------------|-------------------------------------------------------------------------|
+| `SwissKitJ-Api`        | Shared API module containing interfaces, annotations, and UI components |
+| `SwissKit` (main)      | Core application with Excel, Email, and Settings tools                  |
+| `SwissKitJ-Plugin-Qcc` | Example plugin project demonstrating plugin development                 |
 
 ### Project Structure
 
@@ -116,7 +123,7 @@ SwissKit/
 │       │   └── SwissKitPage.java    # Page annotation
 │       ├── api/
 │       │   └── KitPage.java         # Plugin interface
-│       └── ui/components/
+│       └── plugin.swisskit.hpl.ui/components/
 │           ├── GradientProgressBar.java
 │           └── FixedWidthComboBox.java
 ├── src/main/java/fan/summer/
@@ -150,20 +157,20 @@ SwissKit/
 │   │   │   ├── second/
 │   │   │   │   ├── MassSentConfigView.java
 │   │   │   │   └── ViewEmailSentLogView.java
-│   │   │   └── worker/
+│   │   │   └── plugin.swisskit.hpl.worker/
 │   │   ├── excel/
 │   │   │   ├── second/
 │   │   │   ├── listener/
-│   │   │   └── worker/
+│   │   │   └── plugin.swisskit.hpl.worker/
 │   │   └── setting/
 │   │       ├── second/
-│   │       └── worker/second/
+│   │       └── plugin.swisskit.hpl.worker/second/
 │   ├── plugin/
 │   │   ├── PluginLoader.java
 │   │   └── PluginDiagnostic.java
 │   ├── scaner/
 │   │   └── SwissKitPageScaner.java
-│   ├── ui/
+│   ├── plugin.swisskit.hpl.ui/
 │   │   ├── StartLoadingPage.java
 │   │   ├── home/
 │   │   │   └── HomePage.java
@@ -176,7 +183,7 @@ SwissKit/
 │       ├── FileNameUtil.java
 │       ├── StringUtil.java
 │       ├── UIUtils.java
-│       └── ui/
+│       └── plugin.swisskit.hpl.ui/
 │           └── TableUtil.java
 └── SwissKitJ-Plugin-Qcc/            # Example plugin
 ```
@@ -230,17 +237,17 @@ public class MyToolPage implements KitPage {
 
 ### Tech Stack
 
-| Category | Technology | Version |
-|----------|------------|---------|
-| **Language** | Java | 11 |
-| **Build Tool** | Maven | 3.6+ |
-| **UI Framework** | Swing + FlatLaf | 3.5 |
-| **Excel Processing** | Apache FESOD | 2.0.1-incubating |
-| **Database** | H2 + MyBatis | 2.4.240 / 3.5.19 |
-| **Logging** | Log4j2 + SLF4J | 2.25.3 / 2.0.16 |
-| **JSON** | FastJSON2 | 2.0.59 |
-| **Code Simplification** | Lombok | 1.18.42 |
-| **Email** | Simple Java Mail | 8.12.6 |
+| Category                | Technology       | Version          |
+|-------------------------|------------------|------------------|
+| **Language**            | Java             | 11               |
+| **Build Tool**          | Maven            | 3.6+             |
+| **UI Framework**        | Swing + FlatLaf  | 3.5              |
+| **Excel Processing**    | Apache FESOD     | 2.0.1-incubating |
+| **Database**            | H2 + MyBatis     | 2.4.240 / 3.5.19 |
+| **Logging**             | Log4j2 + SLF4J   | 2.25.3 / 2.0.16  |
+| **JSON**                | FastJSON2        | 2.0.59           |
+| **Code Simplification** | Lombok           | 1.18.42          |
+| **Email**               | Simple Java Mail | 8.12.6           |
 
 ---
 
@@ -248,14 +255,14 @@ public class MyToolPage implements KitPage {
 
 ### Tables
 
-| Table Name | Purpose |
-|------------|---------|
-| `swiss_kit_setting_email` | Email SMTP configuration |
-| `complex_split_config` | Excel complex split configuration |
-| `email_address_book` | Email contacts with nicknames and tags |
-| `email_tag` | Tags for categorizing email contacts |
-| `email_mass_sent_config` | Mass email sending configuration |
-| `email_sent_log` | Email sending history with status tracking |
+| Table Name                | Purpose                                    |
+|---------------------------|--------------------------------------------|
+| `swiss_kit_setting_email` | Email SMTP configuration                   |
+| `complex_split_config`    | Excel complex split configuration          |
+| `email_address_book`      | Email contacts with nicknames and tags     |
+| `email_tag`               | Tags for categorizing email contacts       |
+| `email_mass_sent_config`  | Mass email sending configuration           |
+| `email_sent_log`          | Email sending history with status tracking |
 
 ### Database Location
 
@@ -271,7 +278,7 @@ public class MyToolPage implements KitPage {
 1. Create a new package under `fan.summer.kitpage` (e.g., `pdf/`, `image/`)
 2. Create a class implementing `KitPage` (from `SwissKitJ-Api` module)
 3. Add `@SwissKitPage` annotation for menu configuration
-4. Register in SPI service file (`META-INF/services/fan.summer.api.KitPage`)
+4. Register in SPI plugin.swisskit.hpl.service file (`META-INF/services/fan.summer.api.KitPage`)
 5. The tool will be automatically discovered
 
 ### Creating a Plugin
@@ -311,7 +318,7 @@ mvn clean package
 mvn clean package -DskipTests
 
 # Run executable JAR
-java -jar target/SwissKit-1.0.0-Bata.1.jar
+java -jar target/SwissKit-1.0.0-Beta.2.jar
 ```
 
 ---

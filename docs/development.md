@@ -1,6 +1,7 @@
 # Development Guide
 
-This guide covers everything you need to know to contribute to SwissKit, from setting up your development environment to implementing new features.
+This guide covers everything you need to know to contribute to SwissKit, from setting up your development environment to
+implementing new features.
 
 ## Table of Contents
 
@@ -81,9 +82,9 @@ SwissKit/
 │   │   ├── WelcomePage.java        # Welcome page
 │   │   ├── excel/                  # Excel tool
 │   │   │   ├── listener/           # Event listeners
-│   │   │   └── worker/             # Background workers
+│   │   │   └── plugin.swisskit.hpl.worker/             # Background workers
 │   │   └── email/                  # Email tool
-│   ├── ui/                         # Custom UI components
+│   ├── plugin.swisskit.hpl.ui/                         # Custom UI components
 │   │   └── components/
 │   └── utils/                      # Utilities
 ├── src/main/resources/              # Resources (icons, etc.)
@@ -96,18 +97,21 @@ SwissKit/
 ### Naming Conventions
 
 **Packages**:
+
 - Tool pages: `fan.summer.kitpage.{toolName}`
 - Listeners: `listener/{function}Listener.java`
-- Workers: `worker/{function}Worker.java`
-- Callbacks: `worker/{function}Callback.java`
+- Workers: `plugin.swisskit.hpl.worker/{function}Worker.java`
+- Callbacks: `plugin.swisskit.hpl.worker/{function}Callback.java`
 
 **Classes**:
+
 - Pages: `{ToolName}KitPage` or `{ToolName}Page`
 - Listeners: `{Function}Listener`
 - Workers: `{Function}Worker`
 - Callbacks: `{Function}Callback`
 
 **Methods and Variables**:
+
 - Use camelCase
 - Be descriptive and concise
 
@@ -211,12 +215,12 @@ public class MyToolPage implements KitPage {
 
 **Annotation Properties**:
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `menuName` | String | "" | Display name in sidebar |
-| `menuTooltip` | String | "" | Tooltip on hover |
-| `visible` | boolean | true | Whether to show in menu |
-| `order` | int | 0 | Display order (lower = first) |
+| Property      | Type    | Default | Description                   |
+|---------------|---------|---------|-------------------------------|
+| `menuName`    | String  | ""      | Display name in sidebar       |
+| `menuTooltip` | String  | ""      | Tooltip on hover              |
+| `visible`     | boolean | true    | Whether to show in menu       |
+| `order`       | int     | 0       | Display order (lower = first) |
 
 **3. Build and Test**
 
@@ -385,6 +389,7 @@ mvn dependency:resolve
 ### Adding an Icon
 
 Place icon in `src/main/resources/`:
+
 - `icon.png` (preferred)
 - `icon.jpg`
 - `app.png`

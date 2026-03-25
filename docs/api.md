@@ -9,8 +9,8 @@ This section provides detailed API documentation for SwissKit's core interfaces 
 - [@SwissKitPage Annotation](#swisskitpage-annotation)
 - [SwissKitPageScanner](#swisskitpagescanner)
 - [Database Layer](#database-layer)
-- [UI Components](#ui-components)
-- [Worker Classes](#worker-classes)
+- [UI Components](#plugin.swisskit.hpl.ui-components)
+- [Worker Classes](#plugin.swisskit.hpl.worker-classes)
 - [Utility Classes](#utility-classes)
 - [Listeners](#listeners)
 - [Entity Classes](#entity-classes)
@@ -19,14 +19,14 @@ This section provides detailed API documentation for SwissKit's core interfaces 
 
 SwissKit uses a multi-module architecture. Key components are organized as follows:
 
-| Module | Package | Description |
-|--------|---------|-------------|
-| `SwissKitJ-Api` | `fan.summer.api` | Core interfaces (KitPage) |
-| `SwissKitJ-Api` | `fan.summer.annoattion` | Annotations (SwissKitPage) |
-| `SwissKitJ-Api` | `fan.summer.ui.components` | Shared UI components |
-| `SwissKit` (main) | `fan.summer.database` | Database layer |
-| `SwissKit` (main) | `fan.summer.kitpage` | Tool implementations |
-| `SwissKit` (main) | `fan.summer.utils` | Utility classes |
+| Module            | Package                                        | Description                |
+|-------------------|------------------------------------------------|----------------------------|
+| `SwissKitJ-Api`   | `fan.summer.api`                               | Core interfaces (KitPage)  |
+| `SwissKitJ-Api`   | `fan.summer.annoattion`                        | Annotations (SwissKitPage) |
+| `SwissKitJ-Api`   | `fan.summer.plugin.swisskit.hpl.ui.components` | Shared UI components       |
+| `SwissKit` (main) | `fan.summer.database`                          | Database layer             |
+| `SwissKit` (main) | `fan.summer.kitpage`                           | Tool implementations       |
+| `SwissKit` (main) | `fan.summer.utils`                             | Utility classes            |
 
 ---
 
@@ -104,12 +104,12 @@ public interface KitPage {
 
 ### Methods
 
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `getPanel()` | `JPanel` | Returns the main panel containing all UI elements |
-| `getMenuName()` | `String` | Returns the menu display name (default: from annotation) |
-| `getMenuIcon()` | `Icon` | Returns the menu icon (default: `null`) |
-| `getMenuTooltip()` | `String` | Returns the menu tooltip (default: from annotation) |
+| Method             | Return Type | Description                                              |
+|--------------------|-------------|----------------------------------------------------------|
+| `getPanel()`       | `JPanel`    | Returns the main panel containing all UI elements        |
+| `getMenuName()`    | `String`    | Returns the menu display name (default: from annotation) |
+| `getMenuIcon()`    | `Icon`      | Returns the menu icon (default: `null`)                  |
+| `getMenuTooltip()` | `String`    | Returns the menu tooltip (default: from annotation)      |
 
 ### Example Implementation
 
@@ -189,12 +189,12 @@ public @interface SwissKitPage {
 
 ### Properties
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `menuName` | String | "" | Display name in sidebar |
-| `menuTooltip` | String | "" | Tooltip on hover |
-| `visible` | boolean | true | Whether to show in menu |
-| `order` | int | 0 | Display order (lower = first) |
+| Property      | Type    | Default | Description                   |
+|---------------|---------|---------|-------------------------------|
+| `menuName`    | String  | ""      | Display name in sidebar       |
+| `menuTooltip` | String  | ""      | Tooltip on hover              |
+| `visible`     | boolean | true    | Whether to show in menu       |
+| `order`       | int     | 0       | Display order (lower = first) |
 
 ---
 
@@ -357,7 +357,7 @@ UI components are located in the `SwissKitJ-Api` module for shared use across th
 
 A progress bar with gradient colors and smooth animation.
 
-**Location**: `SwissKitJ-Api/src/main/java/fan/summer/ui/components/GradientProgressBar.java`
+**Location**: `SwissKitJ-Api/src/main/java/fan/summer/plugin.swisskit.hpl.ui/components/GradientProgressBar.java`
 
 #### Constructor
 
@@ -367,11 +367,11 @@ public GradientProgressBar()
 
 #### Methods
 
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `setValue(int value)` | `void` | Sets the current value (triggers animation) |
-| `setStringPainted(boolean painted)` | `void` | Enables/disables text display |
-| `setString(String text)` | `void` | Sets the text to display |
+| Method                              | Return Type | Description                                 |
+|-------------------------------------|-------------|---------------------------------------------|
+| `setValue(int value)`               | `void`      | Sets the current value (triggers animation) |
+| `setStringPainted(boolean painted)` | `void`      | Enables/disables text display               |
+| `setString(String text)`            | `void`      | Sets the text to display                    |
 
 #### Example Usage
 
@@ -388,7 +388,7 @@ progressBar.setString("Processing... 50%");
 
 A combo box with fixed width.
 
-**Location**: `SwissKitJ-Api/src/main/java/fan/summer/ui/components/FixedWidthComboBox.java`
+**Location**: `SwissKitJ-Api/src/main/java/fan/summer/plugin.swisskit.hpl.ui/components/FixedWidthComboBox.java`
 
 #### Constructor
 
@@ -400,7 +400,7 @@ public FixedWidthComboBox(int width)
 
 Dynamic side menu component.
 
-**Location**: `src/main/java/fan/summer/ui/sidebar/SideMenuBar.java`
+**Location**: `src/main/java/fan/summer/plugin.swisskit.hpl.ui/sidebar/SideMenuBar.java`
 
 #### Constructor
 
@@ -410,19 +410,19 @@ public SideMenuBar(List<KitPage> pages, JPanel contentPanel)
 
 #### Methods
 
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `addPage(KitPage page)` | `void` | Adds a page to the menu |
-| `removePage(int index)` | `void` | Removes a page from the menu |
-| `selectPage(int index)` | `void` | Sets the selected page |
-| `rebuildMenu()` | `void` | Rebuilds menu from pages list |
-| `setPages(List<KitPage> newPages)` | `void` | Sets new page list |
+| Method                             | Return Type | Description                   |
+|------------------------------------|-------------|-------------------------------|
+| `addPage(KitPage page)`            | `void`      | Adds a page to the menu       |
+| `removePage(int index)`            | `void`      | Removes a page from the menu  |
+| `selectPage(int index)`            | `void`      | Sets the selected page        |
+| `rebuildMenu()`                    | `void`      | Rebuilds menu from pages list |
+| `setPages(List<KitPage> newPages)` | `void`      | Sets new page list            |
 
 ### TableUtil
 
 Utility class for consistent JTable initialization.
 
-**Location**: `src/main/java/fan/summer/utils/ui/TableUtil.java`
+**Location**: `src/main/java/fan/summer/utils/plugin.swisskit.hpl.ui/TableUtil.java`
 
 ```java
 public abstract class TableUtil {
@@ -458,7 +458,7 @@ public abstract class TableUtil {
 
 ### QueryAllEmailInfoWorker
 
-Background worker for loading email contacts.
+Background plugin.swisskit.hpl.worker for loading email contacts.
 
 #### Constructor
 
@@ -484,7 +484,7 @@ new QueryAllEmailInfoWorker(new QueryAllEmailInfoCallBack() {
 
 ### ExcelAnalysisWorker
 
-Background worker for analyzing Excel files.
+Background plugin.swisskit.hpl.worker for analyzing Excel files.
 
 #### Constructor
 
@@ -499,7 +499,7 @@ public ExcelAnalysisWorker(
 
 ### ExcelSplitWorker
 
-Background worker for splitting Excel files.
+Background plugin.swisskit.hpl.worker for splitting Excel files.
 
 #### Constructor
 
@@ -515,7 +515,7 @@ public ExcelSplitWorker(
 
 ### EmailSentWorker
 
-Background worker for sending emails.
+Background plugin.swisskit.hpl.worker for sending emails.
 
 #### Constructor
 
@@ -689,7 +689,8 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Obje
 
 Callback interface for email info queries.
 
-**Location**: `src/main/java/fan/summer/kitpage/setting/worker/second/QueryAllEmailInfoCallBack.java`
+**Location**:
+`src/main/java/fan/summer/kitpage/setting/plugin.swisskit.hpl.worker/second/QueryAllEmailInfoCallBack.java`
 
 ```java
 public interface QueryAllEmailInfoCallBack {
@@ -702,7 +703,7 @@ public interface QueryAllEmailInfoCallBack {
 
 Callback interface for Excel analysis results.
 
-**Location**: `src/main/java/fan/summer/kitpage/excel/worker/ExcelAnalysisCallback.java`
+**Location**: `src/main/java/fan/summer/kitpage/excel/plugin.swisskit.hpl.worker/ExcelAnalysisCallback.java`
 
 ```java
 public interface ExcelAnalysisCallback {
