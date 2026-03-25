@@ -226,7 +226,7 @@ Manage email contacts with nicknames and tags.
 **Features**:
 
 - Add new email addresses
-- Edit contact nicknames
+- Edit existing contacts by double-clicking a row
 - Assign tags to contacts
 - View all contacts in table format
 
@@ -237,6 +237,7 @@ Manage email contacts with nicknames and tags.
 3. Click "Add New Address" to add a contact
 4. Enter email, nickname, and select tags
 5. Click "Insert" to save
+6. Double-click any row to edit the contact information
 
 ### Tag Management
 

@@ -22,4 +22,11 @@ public interface EmailAddressBookMapper {
      * @param emailAddressBookEntity the entity to insert
      */
     void insert(EmailAddressBookEntity emailAddressBookEntity);
+
+    /**
+     * Updates an existing email address book entry.
+     *
+     * @param emailAddressBookEntity the entity to update
+     */
+    void update(EmailAddressBookEntity emailAddressBookEntity);
 }

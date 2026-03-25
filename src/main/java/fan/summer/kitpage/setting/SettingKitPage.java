@@ -125,9 +125,9 @@ public class SettingKitPage implements KitPage {
                 if (dataBaseInfo != null && !dataBaseInfo.isEmpty()) {
                     List<Object[]> rowData = new ArrayList<>();
                     for (EmailAddressBookEntity info : dataBaseInfo) {
-                        rowData.add(new Object[]{info.getEmailAddress(), info.getNickname(), info.getTags()});
+                        rowData.add(new Object[]{info.getId(), info.getEmailAddress(), info.getNickname(), info.getTags()});
                     }
-                    new EmailAddressBookView(settingPanle).initTable(rowData).setVisible(true);
+                    new EmailAddressBookView(settingPanle).initTable(rowData, dataBaseInfo).setVisible(true);
                 } else {
                     new EmailAddressBookView(settingPanle).setVisible(true);
                 }

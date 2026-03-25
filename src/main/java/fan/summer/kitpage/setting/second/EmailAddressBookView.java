@@ -4,6 +4,7 @@
 
 package fan.summer.kitpage.setting.second;
 
+import fan.summer.database.entity.setting.email.EmailAddressBookEntity;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 /**
@@ -24,6 +27,7 @@ public class EmailAddressBookView extends JDialog {
     private static final Logger log = LoggerFactory.getLogger(EmailAddressBookView.class);
 
     private JPanel pannel;
+    private List<EmailAddressBookEntity> entities;
 
     public EmailAddressBookView(JPanel panel) {
         super(SwingUtilities.getWindowAncestor(panel));
@@ -32,14 +36,17 @@ public class EmailAddressBookView extends JDialog {
     }
 
     /**
-     * Initializes the table with the provided row data.
-     * Creates a non-editable table with Address, NickName, and Tags columns.
+     * Initializes the table with the provided row data and entities.
+     * Creates a non-editable table with Id, Address, NickName, and Tags columns.
+     * Double-clicking a row opens the edit dialog.
      *
-     * @param rowData list of row data arrays containing [address, nickname, tags]
+     * @param rowData list of row data arrays containing [id, address, nickname, tags]
+     * @param entities list of email address book entities corresponding to each row
      * @return this EmailAddressBookView instance for method chaining
      */
-    public EmailAddressBookView initTable(List<Object[]> rowData) {
-        String[] columns = {"Address", "NickName", "Tags"};
+    public EmailAddressBookView initTable(List<Object[]> rowData, List<EmailAddressBookEntity> entities) {
+        this.entities = entities;
+        String[] columns = {"Id", "Address", "NickName", "Tags"};
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -50,6 +57,19 @@ public class EmailAddressBookView extends JDialog {
             model.addRow(row);
         }
         addressInfoTable.setModel(model);
+        addressInfoTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int row = addressInfoTable.rowAtPoint(e.getPoint());
+                    if (row >= 0 && row < entities.size()) {
+                        EmailAddressBookEntity entity = entities.get(row);
+                        log.debug("Double-clicked row {}, opening edit view for: {}", row, entity.getEmailAddress());
+                        new AddAddressView(pannel, EmailAddressBookView.this, entity).initTagsCompBox().setVisible(true);
+                    }
+                }
+            }
+        });
         return this;
     }
 

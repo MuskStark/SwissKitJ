@@ -12,6 +12,14 @@
         INSERT INTO email_address_book (email_address, nickname, tags)
         VALUES (#{emailAddress}, #{nickname}, #{tags, typeHandler=org.apache.ibatis.type.StringTypeHandler})
     </insert>
+
+    <update id="update"
+            parameterType="fan.summer.database.entity.setting.email.EmailAddressBookEntity">
+        UPDATE email_address_book
+        SET email_address = #{emailAddress}, nickname = #{nickname}, tags = #{tags}
+        WHERE id = #{id}
+    </update>
+
     <select id="selectEmailAddressBook"
             resultType="fan.summer.database.entity.setting.email.EmailAddressBookEntity">
         select *

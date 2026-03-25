@@ -5,12 +5,23 @@ All notable changes to SwissKit will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.0.0-Beta.3
+
+### 🚀 Enhancements
+
+- Email Address Book: Add double-click editing functionality for contacts
+- Email Address Book: Reset button now clears only tag information
+
+---
+
 ## 1.0.0-Beta.2
 
 ### 🔧 Fixes
 
-- PluginLoader: IsolatedPluginClassLoader now properly delegates JDK classes (java.*, javax.*, sun.*, com.sun.*) to main app ClassLoader
-- PluginLoader: Universal classloading fallback ensures plugin DTOs and third-party library classes are accessible from isolated plugin JARs
+- PluginLoader: IsolatedPluginClassLoader now properly delegates JDK classes (java.*, javax.*, sun.*, com.sun.*) to main
+  app ClassLoader
+- PluginLoader: Universal classloading fallback ensures plugin DTOs and third-party library classes are accessible from
+  isolated plugin JARs
 
 ### 📝 Documentation
 

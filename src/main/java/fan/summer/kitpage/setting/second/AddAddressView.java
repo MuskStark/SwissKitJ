@@ -38,11 +38,35 @@ public class AddAddressView extends JDialog {
     private List<EmailAddressBookEntity> dataBaseInfo;
     private EmailAddressBookView emailAddressBookView;
     private boolean comboBoxReady = false;
+    private EmailAddressBookEntity editEntity;
 
     public AddAddressView(JPanel panel, EmailAddressBookView emailAddressBookView) {
         super(SwingUtilities.getWindowAncestor(panel));
         this.emailAddressBookView = emailAddressBookView;
+        this.editEntity = null;
         initComponents();
+    }
+
+    public AddAddressView(JPanel panel, EmailAddressBookView emailAddressBookView, EmailAddressBookEntity entity) {
+        super(SwingUtilities.getWindowAncestor(panel));
+        this.emailAddressBookView = emailAddressBookView;
+        this.editEntity = entity;
+        initComponents();
+        prefillData(entity);
+    }
+
+    private void prefillData(EmailAddressBookEntity entity) {
+        addressField.setText(entity.getEmailAddress());
+        nicknameField.setText(entity.getNickname());
+        try {
+            List<String> tagNames = JSON.parseArray(entity.getTags(), String.class);
+            if (tagNames != null) {
+                tagsField.setText(JSON.toJSONString(tagNames));
+                chosedTagName.addAll(tagNames);
+            }
+        } catch (Exception e) {
+            log.debug("No tags to prefill", e);
+        }
     }
 
     public AddAddressView initTagsCompBox() {
@@ -69,56 +93,65 @@ public class AddAddressView extends JDialog {
     }
 
     /**
-     * Handles the insert button action.
-     * Validates the email address and saves it to the database.
+     * Handles the save button action.
+     * Validates the email address and saves/updates it to the database.
      *
      * @param e the action event
      */
     private void insertBtAction(ActionEvent e) {
-        // Validate email format
-        if (StringUtil.checkEmail(addressField.getText())) {
-            log.debug("Inserting email address: {}", addressField.getText());
-            try (SqlSession session = DatabaseInit.getSqlSession()) {
-                EmailAddressBookMapper mapper = session.getMapper(EmailAddressBookMapper.class);
-                EmailAddressBookEntity emailAddressBookEntity = new EmailAddressBookEntity();
-                emailAddressBookEntity.setEmailAddress(addressField.getText());
-                emailAddressBookEntity.setNickname(nicknameField.getText());
-                emailAddressBookEntity.setTags(JSON.toJSONString(tags));
-                mapper.insert(emailAddressBookEntity);
-                session.commit();
-                log.info("Successfully inserted email address: {}", addressField.getText());
-                new QueryAllEmailInfoWorker(new QueryAllEmailInfoCallBack() {
-                    @Override
-                    public void onSuccess(List<EmailAddressBookEntity> emailAddressBookEntities) {
-                        dataBaseInfo = emailAddressBookEntities;
-                        log.debug("Loaded {} email addresses", emailAddressBookEntities.size());
-                        if (dataBaseInfo != null && !dataBaseInfo.isEmpty()) {
-                            List<Object[]> rowData = new ArrayList<>();
-                            for (EmailAddressBookEntity info : dataBaseInfo) {
-                                rowData.add(new Object[]{info.getEmailAddress(), info.getNickname(), info.getTags()});
-                            }
-                            emailAddressBookView.initTable(rowData);
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        log.error("Failed to load email addresses", e);
-                        JOptionPane.showMessageDialog(contentPanel,
-                                "Can Not Find Any Email Address!",
-                                "Warning",
-                                JOptionPane.WARNING_MESSAGE);
-                    }
-                }).execute();
-                this.setVisible(false);
-            } catch (Exception ex) {
-                log.error("Failed to insert email address: {}", addressField.getText(), ex);
-                this.setVisible(false);
-                JOptionPane.showMessageDialog(this,
-                        "Can Not Insert Email Address :" + ex.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
+        if (!StringUtil.checkEmail(addressField.getText())) {
+            return;
+        }
+        boolean isEdit = editEntity != null;
+        log.debug("{} email address: {}", isEdit ? "Updating" : "Inserting", addressField.getText());
+        try (SqlSession session = DatabaseInit.getSqlSession()) {
+            EmailAddressBookMapper mapper = session.getMapper(EmailAddressBookMapper.class);
+            EmailAddressBookEntity emailAddressBookEntity = new EmailAddressBookEntity();
+            if (isEdit) {
+                emailAddressBookEntity.setId(editEntity.getId());
             }
+            emailAddressBookEntity.setEmailAddress(addressField.getText());
+            emailAddressBookEntity.setNickname(nicknameField.getText());
+            emailAddressBookEntity.setTags(JSON.toJSONString(tags));
+            if (isEdit) {
+                mapper.update(emailAddressBookEntity);
+                log.info("Successfully updated email address: {}", addressField.getText());
+            } else {
+                mapper.insert(emailAddressBookEntity);
+                log.info("Successfully inserted email address: {}", addressField.getText());
+            }
+            session.commit();
+            new QueryAllEmailInfoWorker(new QueryAllEmailInfoCallBack() {
+                @Override
+                public void onSuccess(List<EmailAddressBookEntity> emailAddressBookEntities) {
+                    dataBaseInfo = emailAddressBookEntities;
+                    log.debug("Loaded {} email addresses", emailAddressBookEntities.size());
+                    if (dataBaseInfo != null && !dataBaseInfo.isEmpty()) {
+                        List<Object[]> rowData = new ArrayList<>();
+                        for (EmailAddressBookEntity info : dataBaseInfo) {
+                            rowData.add(new Object[]{info.getId(), info.getEmailAddress(), info.getNickname(), info.getTags()});
+                        }
+                        emailAddressBookView.initTable(rowData, dataBaseInfo);
+                    }
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    log.error("Failed to load email addresses", e);
+                    JOptionPane.showMessageDialog(contentPanel,
+                            "Can Not Find Any Email Address!",
+                            "Warning",
+                            JOptionPane.WARNING_MESSAGE);
+                }
+            }).execute();
+            this.setVisible(false);
+        } catch (Exception ex) {
+            log.error("Failed to {} email address: {}", isEdit ? "update" : "insert", addressField.getText(), ex);
+            this.setVisible(false);
+            JOptionPane.showMessageDialog(this,
+                    (isEdit ? "Can Not Update" : "Can Not Insert") + " Email Address :" + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -135,7 +168,6 @@ public class AddAddressView extends JDialog {
     }
 
     private void resetBtAction(ActionEvent e) {
-        initComponents();
         tagsField.setText("");
         tags.clear();
         chosedTagName.clear();

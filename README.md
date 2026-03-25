@@ -90,7 +90,7 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 #### ⚙️ Settings
 
 - **Email Server Configuration** - SMTP settings with TLS/SSL support
-- **Email Address Book** - Manage email contacts with nicknames
+- **Email Address Book** - Manage email contacts with nicknames; double-click to edit
 - **Tag Management** - Create and manage tags for categorizing contacts
 - **Plugin Installation** - Install JAR plugins via file upload
 
