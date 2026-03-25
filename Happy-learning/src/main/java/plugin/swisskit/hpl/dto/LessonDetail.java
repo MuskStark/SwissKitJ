@@ -1,4 +1,4 @@
-package dto;
+package plugin.swisskit.hpl.dto;
 
 
 import lombok.Data;

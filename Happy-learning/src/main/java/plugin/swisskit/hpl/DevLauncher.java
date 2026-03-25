@@ -1,5 +1,7 @@
+package plugin.swisskit.hpl;
+
 import fan.summer.api.KitPage;
-import ui.HappyLearning;
+import plugin.swisskit.hpl.ui.HappyLearning;
 
 import javax.swing.*;
 

@@ -1,11 +1,14 @@
-package util;
+package plugin.swisskit.hpl.util;
 
 import com.alibaba.fastjson2.JSON;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -16,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Utility class for HTTP requests and cookie parsing.
@@ -78,7 +82,16 @@ public abstract class WebUtil {
                 .GET();
 
         if (headers != null) {
-            headers.forEach(requestBuilder::header);
+            headers.forEach((key, value) -> {
+                // Skip restricted headers that HttpClient manages automatically
+                if (key.equalsIgnoreCase("Connection") || key.equalsIgnoreCase("Content-Length")
+                        || key.equalsIgnoreCase("Host") || key.equalsIgnoreCase("Keep-Alive")
+                        || key.equalsIgnoreCase("TE") || key.equalsIgnoreCase("Trailer")
+                        || key.equalsIgnoreCase("Transfer-Encoding") || key.equalsIgnoreCase("Upgrade")) {
+                    return;
+                }
+                requestBuilder.header(key, value);
+            });
         }
 
         return execute(requestBuilder.build(), tClass);
@@ -178,10 +191,10 @@ public abstract class WebUtil {
 
     private static <T> T execute(HttpRequest request, Class<T> tClass) {
         try {
-            CompletableFuture<HttpResponse<String>> future = HTTP_CLIENT.sendAsync(
-                    request, HttpResponse.BodyHandlers.ofString());
+            CompletableFuture<HttpResponse<byte[]>> future = HTTP_CLIENT.sendAsync(
+                    request, HttpResponse.BodyHandlers.ofByteArray());
 
-            HttpResponse<String> response = future.get(30, TimeUnit.SECONDS);
+            HttpResponse<byte[]> response = future.get(30, TimeUnit.SECONDS);
 
             int statusCode = response.statusCode();
             if (statusCode >= 400 && statusCode < 500) {
@@ -191,11 +204,19 @@ public abstract class WebUtil {
                 throw new RuntimeException("Server error, status code: " + statusCode);
             }
 
-            String body = response.body();
+            byte[] rawBody = response.body();
+            String body = decompressIfGzip(rawBody, response.headers());
             if (tClass == String.class) {
                 return tClass.cast(body);
             }
-            return JSON.parseObject(body, tClass);  // fastjson2 deserialization
+            // Set context classloader so fastjson2 can load DTO classes from plugin JAR
+            ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(WebUtil.class.getClassLoader());
+            try {
+                return JSON.parseObject(body, tClass);  // fastjson2 deserialization
+            } finally {
+                Thread.currentThread().setContextClassLoader(originalClassLoader);
+            }
 
         } catch (TimeoutException e) {
             throw new RuntimeException("HTTP request timeout after 30 seconds", e);
@@ -205,6 +226,25 @@ public abstract class WebUtil {
             Thread.currentThread().interrupt();
             throw new RuntimeException("HTTP request interrupted", e);
         }
+    }
+
+    /**
+     * Decompress gzip-encoded response body if Content-Encoding is gzip.
+     * Falls back to raw bytes if not gzip or if decompression fails.
+     */
+    private static String decompressIfGzip(byte[] rawBody, HttpHeaders headers) {
+        // Check Content-Encoding header for gzip
+        String contentEncoding = headers.firstValue("Content-Encoding").orElse("");
+        if (contentEncoding.equalsIgnoreCase("gzip")) {
+            try (GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(rawBody))) {
+                byte[] decompressed = gis.readAllBytes();
+                return new String(decompressed, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to decompress gzip response", e);
+            }
+        }
+        // Not gzip, return as plain string
+        return new String(rawBody, StandardCharsets.UTF_8);
     }
 
     private static URI buildUri(String baseUrl, String uri, Map<String, List<String>> params) {

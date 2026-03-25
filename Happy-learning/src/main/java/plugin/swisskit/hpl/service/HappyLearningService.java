@@ -1,10 +1,10 @@
-package service;
+package plugin.swisskit.hpl.service;
 
-import dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.ConfigLoader;
-import util.WebUtil;
+import plugin.swisskit.hpl.dto.*;
+import plugin.swisskit.hpl.util.ConfigLoader;
+import plugin.swisskit.hpl.util.WebUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
- * Auto learning service
+ * Auto learning plugin.swisskit.hpl.service
  *
  * @author summer
  * @version 1.00

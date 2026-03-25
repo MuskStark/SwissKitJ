@@ -2,7 +2,7 @@
  * Created by JFormDesigner on Thu Mar 19 10:27:32 CST 2026
  */
 
-package ui;
+package plugin.swisskit.hpl.ui;
 
 
 import fan.summer.annoattion.SwissKitPage;
@@ -10,8 +10,8 @@ import fan.summer.api.KitPage;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.ConfigLoader;
-import worker.HappyLearningWorker;
+import plugin.swisskit.hpl.util.ConfigLoader;
+import plugin.swisskit.hpl.worker.HappyLearningWorker;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -36,12 +36,12 @@ public class HappyLearning implements KitPage {
     private static final Logger log = LoggerFactory.getLogger(HappyLearning.class);
 
     /**
-     * Authentication key for the learning service
+     * Authentication key for the learning plugin.swisskit.hpl.service
      */
     private String key;
 
     /**
-     * Current learning worker instance
+     * Current learning plugin.swisskit.hpl.worker instance
      */
     private HappyLearningWorker currentWorker;
 
@@ -135,7 +135,7 @@ public class HappyLearning implements KitPage {
 
     /**
      * Handles the start button action.
-     * Launches the learning worker based on selected course type options.
+     * Launches the learning plugin.swisskit.hpl.worker based on selected course type options.
      * <ul>
      *   <li>If "OnlyMajorSubject" is selected: learns only MajorSubject courses</li>
      *   <li>If "OnlyElectiveSubject" is selected: learns only ElectiveSubject courses</li>
@@ -173,18 +173,18 @@ public class HappyLearning implements KitPage {
             lessonType = "Auto";
         }
 
-        log.info("[UI] Starting learning worker, lessonType: {}", lessonType);
+        log.info("[UI] Starting learning plugin.swisskit.hpl.worker, lessonType: {}", lessonType);
         currentWorker = new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB,
                 "Auto".equals(lessonType) ? null : lessonType, startBt, stopBt);
         currentWorker.execute();
         startBt.setEnabled(false);
         stopBt.setEnabled(true);
-        log.info("[UI] Learning worker started, UI buttons updated");
+        log.info("[UI] Learning plugin.swisskit.hpl.worker started, UI buttons updated");
     }
 
     private void stopBtAction(ActionEvent e) {
         if (currentWorker != null && !currentWorker.isDone()) {
-            log.info("[UI] Stop button clicked, cancelling worker");
+            log.info("[UI] Stop button clicked, cancelling plugin.swisskit.hpl.worker");
             currentWorker.cancel(true);
             startBt.setEnabled(true);
             stopBt.setEnabled(false);

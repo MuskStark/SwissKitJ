@@ -1,18 +1,18 @@
-package worker;
+package plugin.swisskit.hpl.worker;
 
-import dto.UserSearchResp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import service.HappyLearningService;
-import util.ConfigLoader;
-import util.WebUtil;
+import plugin.swisskit.hpl.dto.UserSearchResp;
+import plugin.swisskit.hpl.service.HappyLearningService;
+import plugin.swisskit.hpl.util.ConfigLoader;
+import plugin.swisskit.hpl.util.WebUtil;
 
 import javax.swing.*;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Happy learning background worker
+ * Happy learning background plugin.swisskit.hpl.worker
  * <p>
  * Executes the auto-learning process in a background thread while periodically
  * updating the UI progress bars. Supports cancellation via stop button.
@@ -34,7 +34,7 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
     private final JButton stopBt;
 
     /**
-     * Stores the exception that caused the worker to fail, for display in done()
+     * Stores the exception that caused the plugin.swisskit.hpl.worker to fail, for display in done()
      */
     private Exception workerException;
 
@@ -61,6 +61,9 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
         log.info("[Worker] Loading ConfigLoader...");
         ConfigLoader.loadConfig();
         log.info("[Worker] ConfigLoader loaded successfully");
+
+        // Set context classloader so fastjson2 can load DTO classes from plugin JAR
+        Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 
         String token;
         log.info("[Worker] About to extract token from cookie...");
@@ -94,7 +97,14 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
                     e.getCause() != null ? e.getCause().getClass().getSimpleName() : "null",
                     e.getCause() != null ? e.getCause().getMessage() : e.getMessage(),
                     e.getCause());
-            workerException = e.getCause() != null ? (Exception) e.getCause() : e;
+            Throwable cause = e.getCause();
+            if (cause instanceof Exception) {
+                workerException = (Exception) cause;
+            } else if (cause instanceof Error) {
+                workerException = new Exception("Error: " + cause.getClass().getSimpleName() + " - " + cause.getMessage());
+            } else {
+                workerException = new Exception(cause);
+            }
             return null;
         } catch (Exception e) {
             log.error("[Worker] Failed to initialize progress bars: {} - {}",
@@ -107,11 +117,11 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
 
         // Run autoLearning in a separate thread
         CountDownLatch latch = new CountDownLatch(1);
-        log.info("[Worker] About to start learning thread, service: {}", service);
+        log.info("[Worker] About to start learning thread, plugin.swisskit.hpl.service: {}", service);
         Thread learningThread = new Thread(() -> {
             log.info("[LearningThread] === LearningThread START ===");
             try {
-                log.info("[LearningThread] Calling service.autoLearning(type={}, token={}, passKey={})",
+                log.info("[LearningThread] Calling plugin.swisskit.hpl.service.autoLearning(type={}, token={}, passKey={})",
                         type, token != null ? "present" : "null", passKey != null ? "present" : "null");
                 service.autoLearning(type, token, passKey);
                 log.info("[LearningThread] autoLearning returned successfully");
@@ -140,7 +150,7 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
                 break;
             }
             if (majorSubjectProgressBar.getParent() == null) {
-                log.warn("[Worker] Progress bar panel removed from container, stopping worker");
+                log.warn("[Worker] Progress bar panel removed from container, stopping plugin.swisskit.hpl.worker");
                 updateProgress();
                 learningThread.interrupt();
                 break;
@@ -182,7 +192,7 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
             String token = WebUtil.getValueFromCookie(passKey, "m0biletoken");
             log.info("[initProcess] Token extracted from passKey");
 
-            log.info("[initProcess] Calling service.getPersonInfo...");
+            log.info("[initProcess] Calling plugin.swisskit.hpl.service.getPersonInfo...");
             UserSearchResp resp = service.getPersonInfo(passKey, token);
             log.info("[initProcess] getPersonInfo returned: {}", resp != null ? "not null" : "null");
 
@@ -266,6 +276,26 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
                 workerException = cause instanceof Exception ? (Exception) cause : new Exception(cause);
             }
         }
+
+        // If cancelled by user, ignore any stored exception and show cancellation message
+        if (isCancelled()) {
+            log.info("[Worker] Worker was cancelled, resetting UI buttons");
+            SwingUtilities.invokeLater(() -> {
+                if (startBt != null) {
+                    startBt.setEnabled(true);
+                }
+                if (stopBt != null) {
+                    stopBt.setEnabled(false);
+                }
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Learning was cancelled",
+                        "Cancelled",
+                        JOptionPane.INFORMATION_MESSAGE);
+            });
+            return;
+        }
+
         if (workerException != null) {
             log.error("[Worker] Worker failed with exception, type: {}, message: {}, stackTrace: {}",
                     workerException.getClass().getSimpleName(),
@@ -289,11 +319,7 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
             return;
         }
 
-        if (isCancelled()) {
-            log.info("[Worker] Worker was cancelled, resetting UI buttons");
-        } else {
-            log.info("[Worker] Worker completed successfully, resetting UI buttons");
-        }
+        log.info("[Worker] Worker completed successfully, resetting UI buttons");
 
         SwingUtilities.invokeLater(() -> {
             if (startBt != null) {
