@@ -11,11 +11,11 @@ import lombok.Data;
  */
 @Data
 public class LessonInfo {
-    private String lessonId;
+    private Long lessonId;
     @JSONField(name = "classhour")
-    private Float classHour;
+    private Integer classHour;
     @JSONField(name = "isonline")
     private Integer isOnline;
     @JSONField(name = "ispass")
-    private Float isPass;
+    private Integer isPass;
 }

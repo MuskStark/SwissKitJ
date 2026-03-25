@@ -105,7 +105,7 @@ public class HappyLearningService {
 
                 for (LessonInfo lessonInfo : lessons) {
                     if (lessonInfo.getIsPass() == null) {
-                        lessonInfo.setIsPass(0f);
+                        lessonInfo.setIsPass(0);
                     }
                     if (lessonInfo.getIsPass() != 1.0f) {
                         log.info("Found unpassed course, course ID: " + lessonInfo.getLessonId());
@@ -211,25 +211,21 @@ public class HappyLearningService {
     }
 
     /**
-     * Upload learning progress, loop until sub-course passed or retry threshold exceeded
+     * Upload learning progress, loop until sub-course passed or retry threshold exceeded.
+     * Supports breakpoint learning: resumes from the server's recorded exitplaytime.
      */
     private boolean upLoadLessonLearning(Long lessonId, Long coursewareId, String token) {
         Map<String, List<String>> headers = toMultiValueMap(
                 ConfigLoader.headers("portalJsonPost", Map.of("M0biletoken", token)));
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        Map<String, Object> body = new HashMap<>();
-        body.put("businessId", lessonId);
-        body.put("businesstype", 1);
-        body.put("learncount", 0);
-        body.put("learndate", LocalDate.now().format(dtf));
-        body.put("lessonId", lessonId);
 
-        List<Map<String, Object>> requestBody = new ArrayList<>();
+        // Get initial exitplaytime from server for breakpoint resume
+        double exitPlaytime = getExitPlaytimeFromServer(lessonId, coursewareId, token);
+        log.info("Breakpoint resume - initial exitplaytime: {}", exitPlaytime);
 
         boolean isLearning = true;
         boolean isFinished = false;
-        double exitPlaytime = 0.0;
         final double maxSecond = 61.0;
         final double minSecond = 60.0;
         int retryTimes = 0;
@@ -237,17 +233,25 @@ public class HappyLearningService {
 
         while (isLearning) {
             double learnTime = minSecond + (maxSecond - minSecond) * Math.random();
-            log.info("Simulated learning time: " + learnTime);
+            log.info("Simulated learning time: {}", learnTime);
             exitPlaytime = exitPlaytime + learnTime - 0.99999 * Math.random();
 
             learnTime = BigDecimal.valueOf(learnTime).setScale(3, RoundingMode.HALF_UP).doubleValue();
             exitPlaytime = BigDecimal.valueOf(exitPlaytime).setScale(6, RoundingMode.HALF_UP).doubleValue();
 
+            // Build request body as array with single entry per specification
+            Map<String, Object> body = new HashMap<>();
+            body.put("businessId", lessonId);
+            body.put("businesstype", 1);
             body.put("coursewareId", coursewareId);
             body.put("exitplaytime", exitPlaytime);
             body.put("finished", 0);
+            body.put("learncount", 0);
+            body.put("learndate", LocalDate.now().format(dtf));
             body.put("learntime", learnTime);
-            requestBody.add(new HashMap<>(body));
+            body.put("lessonId", lessonId);
+            List<Map<String, Object>> requestBody = new ArrayList<>();
+            requestBody.add(body);
 
             try {
                 Thread.sleep((long) (learnTime * 1000));
@@ -256,7 +260,7 @@ public class HappyLearningService {
                 throw new RuntimeException(e);
             }
 
-            log.info("Uploading learning progress");
+            log.info("Uploading learning progress, exitplaytime: {}, learntime: {}", exitPlaytime, learnTime);
             String uri = ConfigLoader.rawUrl("uploadLearn") + "?_t=" + System.currentTimeMillis();
             WebUtil.sendPostRequest(
                     ConfigLoader.rawUrl("baseUrl"), uri, headers, requestBody, String.class);
@@ -293,6 +297,26 @@ public class HappyLearningService {
             }
         }
         return isFinished;
+    }
+
+    /**
+     * Get the recorded exitplaytime from server for a specific courseware.
+     * Returns 0.0 if not found or on error.
+     */
+    private double getExitPlaytimeFromServer(Long lessonId, Long coursewareId, String token) {
+        try {
+            LessonDetailResp resp = getLessonInfo(lessonId, token);
+            if (resp != null && resp.getData() != null) {
+                for (UserLearnCourseWareVOList info : resp.getData().getUserlearncoursewareVOList()) {
+                    if (coursewareId.equals(info.getCoursewareId())) {
+                        return info.getExitplaytime() != null ? info.getExitplaytime() : 0.0;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to get exitplaytime from server: {}", e.getMessage());
+        }
+        return 0.0;
     }
 
     /**

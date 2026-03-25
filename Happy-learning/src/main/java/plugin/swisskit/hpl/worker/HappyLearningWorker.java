@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Happy learning background plugin.swisskit.hpl.worker
+ * Happy learning background worker
  * <p>
  * Executes the auto-learning process in a background thread while periodically
  * updating the UI progress bars. Supports cancellation via stop button.
@@ -34,7 +34,7 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
     private final JButton stopBt;
 
     /**
-     * Stores the exception that caused the plugin.swisskit.hpl.worker to fail, for display in done()
+     * Stores the exception that caused the worker to fail, for display in done()
      */
     private Exception workerException;
 
@@ -117,11 +117,11 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
 
         // Run autoLearning in a separate thread
         CountDownLatch latch = new CountDownLatch(1);
-        log.info("[Worker] About to start learning thread, plugin.swisskit.hpl.service: {}", service);
+        log.info("[Worker] About to start learning thread, service: {}", service);
         Thread learningThread = new Thread(() -> {
             log.info("[LearningThread] === LearningThread START ===");
             try {
-                log.info("[LearningThread] Calling plugin.swisskit.hpl.service.autoLearning(type={}, token={}, passKey={})",
+                log.info("[LearningThread] Calling service.autoLearning(type={}, token={}, passKey={})",
                         type, token != null ? "present" : "null", passKey != null ? "present" : "null");
                 service.autoLearning(type, token, passKey);
                 log.info("[LearningThread] autoLearning returned successfully");
@@ -150,15 +150,15 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
                 break;
             }
             if (majorSubjectProgressBar.getParent() == null) {
-                log.warn("[Worker] Progress bar panel removed from container, stopping plugin.swisskit.hpl.worker");
+                log.warn("[Worker] Progress bar panel removed from container, stopping worker");
                 updateProgress();
                 learningThread.interrupt();
                 break;
             }
             updateProgress();
             try {
-                log.debug("[Worker] Progress polled, sleeping for 5 minutes until next poll");
-                Thread.sleep(300000);
+                log.debug("[Worker] Progress polled, sleeping for 30 seconds until next poll");
+                Thread.sleep(30000);
             } catch (InterruptedException e) {
                 log.info("[Worker] Progress polling interrupted, exiting loop");
                 Thread.currentThread().interrupt();
@@ -192,7 +192,7 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
             String token = WebUtil.getValueFromCookie(passKey, "m0biletoken");
             log.info("[initProcess] Token extracted from passKey");
 
-            log.info("[initProcess] Calling plugin.swisskit.hpl.service.getPersonInfo...");
+            log.info("[initProcess] Calling service.getPersonInfo...");
             UserSearchResp resp = service.getPersonInfo(passKey, token);
             log.info("[initProcess] getPersonInfo returned: {}", resp != null ? "not null" : "null");
 
@@ -265,17 +265,8 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
         log.info("[Worker] === done() START ===, workerException: {}, isCancelled: {}",
                 workerException != null, isCancelled());
 
-        // Retrieve and rethrow any exception from doInBackground()
-        try {
-            get();
-        } catch (Throwable t) {
-            log.error("[Worker] Throwable from doInBackground(), type: {}, message: {}",
-                    t.getClass().getSimpleName(), t.getMessage(), t);
-            Throwable cause = t instanceof java.util.concurrent.ExecutionException ? t.getCause() : t;
-            if (workerException == null) {
-                workerException = cause instanceof Exception ? (Exception) cause : new Exception(cause);
-            }
-        }
+        // NOTE: do NOT call get() here - it can cause deadlock with EDT.
+        // workerException is already set by the background thread for us to use directly.
 
         // If cancelled by user, ignore any stored exception and show cancellation message
         if (isCancelled()) {
@@ -297,10 +288,9 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
         }
 
         if (workerException != null) {
-            log.error("[Worker] Worker failed with exception, type: {}, message: {}, stackTrace: {}",
+            log.error("[Worker] Worker failed with exception, type: {}, message: {}, stack: {}",
                     workerException.getClass().getSimpleName(),
-                    workerException.getMessage(),
-                    getStackTraceString(workerException));
+                    workerException.getMessage(), getStackTraceString(workerException));
 
             SwingUtilities.invokeLater(() -> {
                 if (startBt != null) {
