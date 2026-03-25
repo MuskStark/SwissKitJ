@@ -331,6 +331,37 @@ public class MyToolPage implements KitPage {
 3. Select and upload the JAR file
 4. Restart SwissKit
 
+## HappyLearning Plugin
+
+The HappyLearning plugin provides automated online learning functionality with real-time progress tracking.
+
+**Features**:
+
+- **Passkey Configuration** - Set authentication passkey for learning service
+- **Config Upload** - Upload learning configuration files (netschool-headers.json)
+- **Auto Learning** - Automated learning with configurable lesson type
+- **Progress Tracking** - Real-time progress bars for major and elective subjects
+- **Start/Stop Control** - Manual control over learning sessions with cancel support
+- **Background Processing** - Non-blocking UI using SwingWorker with periodic progress polling
+
+**How to Use**:
+
+1. Upload configuration file (netschool-headers.json) via "Upload Config" button
+2. Enter passkey in the text field
+3. Click "Set PassKey" to save authentication credentials
+4. Select lesson type (Auto or specific type)
+5. Click "Start" to begin automated learning
+6. Monitor progress via the dual progress bars (major and elective subjects)
+7. Click "Stop" to cancel learning at any time
+
+**Architecture**:
+
+- `HappyLearning` - Main UI page implementing `KitPage`
+- `HappyLearningService` - Service layer for API calls
+- `HappyLearningWorker` - SwingWorker for background learning with progress updates
+- `WebUtil` - HTTP client with gzip decompression support
+- `ConfigLoader` - JSON configuration file loader
+
 ## Database Layer
 
 SwissKit includes a built-in database layer using H2 and MyBatis for persistent storage.

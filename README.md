@@ -99,6 +99,14 @@ mvn exec:java -Dexec.mainClass="fan.summer.Main"
 - Application overview and guidance
 - Quick access to all tools
 
+#### 🎓 HappyLearning Plugin
+
+- **Auto Learning** - Automated online learning with configurable passkey
+- **Config Upload** - Upload and manage learning configuration files
+- **Progress Tracking** - Real-time progress bars for major and elective subjects
+- **Start/Stop Control** - Manual control over learning sessions
+- **Background Processing** - Non-blocking UI with SwingWorker
+
 ---
 
 ## Architecture
@@ -112,6 +120,7 @@ SwissKit uses a multi-module Maven structure:
 | `SwissKitJ-Api`        | Shared API module containing interfaces, annotations, and UI components |
 | `SwissKit` (main)      | Core application with Excel, Email, and Settings tools                  |
 | `SwissKitJ-Plugin-Qcc` | Example plugin project demonstrating plugin development                 |
+| `Happy-learning`       | Auto-learning plugin with progress tracking                             |
 
 ### Project Structure
 
@@ -186,6 +195,13 @@ SwissKit/
 │       └── plugin.swisskit.hpl.ui/
 │           └── TableUtil.java
 └── SwissKitJ-Plugin-Qcc/            # Example plugin
+Happy-learning/                    # Auto-learning plugin
+    └── src/main/java/plugin/swisskit/hpl/
+        ├── ui/HappyLearning.java  # Main UI page
+        ├── service/HappyLearningService.java
+        ├── worker/HappyLearningWorker.java
+        ├── dto/                    # Data transfer objects
+        └── util/                  # WebUtil, ConfigLoader
 ```
 
 ### Plugin System

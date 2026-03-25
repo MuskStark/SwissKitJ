@@ -70,6 +70,10 @@ The core application with Excel, Email, and Settings tools.
 
 Example plugin project demonstrating plugin development.
 
+### Happy-learning Plugin
+
+Auto-learning plugin demonstrating isolated plugin classloading with Java 11 HttpClient and fastjson2.
+
 ## Project Structure
 
 ```
@@ -194,6 +198,22 @@ SwissKit/
     │       └── EmailTagMapper.xml
     └── META-INF/services/           # SPI plugin.swisskit.hpl.service files
         └── fan.summer.api.KitPage
+├── Happy-learning/                   # Auto-learning plugin
+│   └── src/main/java/plugin/swisskit/hpl/
+│       ├── HappyLearning.java        # Main UI page
+│       ├── HappyLearningService.java  # Service layer
+│       ├── HappyLearningWorker.java  # SwingWorker for background tasks
+│       ├── DevLauncher.java          # Dev launcher
+│       ├── dto/                       # Data transfer objects
+│       │   ├── UserSearchResp.java
+│       │   ├── LessonSearchResp.java
+│       │   ├── LessonDetailResp.java
+│       │   ├── EnterLessonResp.java
+│       │   └── LearnProcess.java
+│       └── util/
+│           ├── WebUtil.java          # HTTP client with gzip support
+│           └── ConfigLoader.java      # JSON config loader
+└── SwissKitJ-Plugin-Qcc/             # Example plugin
 ```
 
 ## Plugin System
@@ -280,9 +300,26 @@ SwissKit supports loading external JAR plugins:
 **Loading Process**:
 
 1. `PluginLoader` scans plugin directory at startup
-2. Loads JAR files using URLClassLoader
-3. Scans for `KitPage` implementations
+2. Loads JAR files using `IsolatedPluginClassLoader` (extends URLClassLoader with parent=null)
+3. Scans for `KitPage` implementations via SPI ServiceLoader
 4. Registers discovered pages
+
+**IsolatedPluginClassLoader Strategy**:
+
+The `IsolatedPluginClassLoader` implements isolated classloading with a break-parent-delegation strategy:
+
+| Class Pattern          | Loading Strategy                                      |
+|------------------------|-------------------------------------------------------|
+| `fan.summer.*`         | Delegate to main app ClassLoader (shared interfaces)  |
+| `java.*`, `javax.*`    | Delegate to main app ClassLoader (JDK modules)         |
+| `sun.*`, `com.sun.*`   | Delegate to main app ClassLoader (JDK internals)      |
+| Other classes          | Try main app ClassLoader first → plugin JAR → fallback |
+
+This ensures:
+- Plugin classes (DTOs, services, utils) are loaded from plugin JAR
+- Third-party libraries (fastjson2, HttpClient) are accessible from plugin JAR
+- `fan.summer.*` interfaces/annotations use shared Class objects for correct instanceof behavior
+- Classes in plugin JAR are found even when called via `Class.forName()` from third-party library internals
 
 ## Database Layer
 
