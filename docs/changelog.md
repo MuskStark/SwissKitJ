@@ -5,6 +5,21 @@ All notable changes to SwissKit will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.0.0-Beta.2
+
+### 🔧 Fixes
+
+- PluginLoader: IsolatedPluginClassLoader now properly delegates JDK classes (java.*, javax.*, sun.*, com.sun.*) to main app ClassLoader
+- PluginLoader: Universal classloading fallback ensures plugin DTOs and third-party library classes are accessible from isolated plugin JARs
+
+### 📝 Documentation
+
+- Add IsolatedPluginClassLoader classloading strategy to architecture.md
+- Fix JAR filename typos: Bata.1.jar → Beta.2.jar in documentation
+- Update table alignment and spacing in README.md and docs/
+
+---
+
 ## 1.0.0-Beta.1
 
 ### 🚀 Enhancements
