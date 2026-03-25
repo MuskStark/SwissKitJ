@@ -21,7 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Background worker for sending emails with attachments.
+ * Background plugin.swisskit.hpl.worker for sending emails with attachments.
  * Supports both single recipient mode and mass sending mode based on email tags.
  *
  * <p>Mass sending mode workflow:</p>
@@ -105,7 +105,7 @@ public class EmailSentWorker extends SwingWorker<Void, Integer> {
         if (isMassModel) {
             executeMassSending();
         } else {
-            log.info("Single recipient mode - no action needed in this worker");
+            log.info("Single recipient mode - no action needed in this plugin.swisskit.hpl.worker");
         }
 
         log.info("Email sending task completed");

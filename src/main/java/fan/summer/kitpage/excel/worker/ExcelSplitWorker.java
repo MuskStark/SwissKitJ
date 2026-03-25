@@ -6,12 +6,9 @@ import fan.summer.database.mapper.excel.ComplexSplitConfigMapper;
 import fan.summer.kitpage.excel.listener.NoModelDataListener;
 import fan.summer.utils.ExcelUtil;
 import fan.summer.utils.FileNameUtil;
-import org.apache.fesod.sheet.EasyExcel;
 import org.apache.fesod.sheet.ExcelReader;
-import org.apache.fesod.sheet.ExcelWriter;
 import org.apache.fesod.sheet.FesodSheet;
 import org.apache.fesod.sheet.read.metadata.ReadSheet;
-import org.apache.fesod.sheet.write.metadata.WriteSheet;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +57,7 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
      * Sets the split model to split by selected sheet names.
      *
      * @param sheetNames set of sheet names to split into separate files
-     * @return this worker for method chaining
+     * @return this plugin.swisskit.hpl.worker for method chaining
      */
     public ExcelSplitWorker setSplitSheetModel(Set<String> sheetNames) {
         config.clear();
@@ -75,7 +72,7 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
      *
      * @param sheetName  the name of the sheet to split
      * @param columnName the name of the column to group by
-     * @return this worker for method chaining
+     * @return this plugin.swisskit.hpl.worker for method chaining
      */
     public ExcelSplitWorker setSplitColumnModel(String sheetName, String columnName) {
         config.clear();
@@ -96,7 +93,7 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
      * Sets the Excel file analysis result map containing sheet names and column headers.
      *
      * @param excelFileAnalysisResultMap map of sheet names to column header maps
-     * @return this worker for method chaining
+     * @return this plugin.swisskit.hpl.worker for method chaining
      */
     public ExcelSplitWorker setExcelFileAnalysisResultMap(Map<String, Map<Integer, String>> excelFileAnalysisResultMap) {
         if (configValidation()) {
@@ -251,13 +248,13 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
         }
     }
 
-    private void doComplexSplit(){
-        try(SqlSession sqlSession = DatabaseInit.getSqlSession()){
+    private void doComplexSplit() {
+        try (SqlSession sqlSession = DatabaseInit.getSqlSession()) {
             ComplexSplitConfigMapper mapper = sqlSession.getMapper(ComplexSplitConfigMapper.class);
             List<ComplexSplitConfigEntity> splitConfigs = mapper.selectAllByTaskId((String) config.get("taskId"));
-            if(splitConfigs == null || splitConfigs.isEmpty()){
+            if (splitConfigs == null || splitConfigs.isEmpty()) {
                 throw new RuntimeException("Empty Config");
-            }else {
+            } else {
                 for (ComplexSplitConfigEntity splitConfig : splitConfigs) {
                     NoModelDataListener noModelDataListener = new NoModelDataListener();
                     try (ExcelReader excelReader = FesodSheet.read(orgFilePath.toFile()).build()) {
@@ -273,8 +270,8 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
                         group.forEach((k, v) -> {
                             String splitFileName = FileNameUtil.getFileName(orgFilePath.getFileName().toString()) + "_" + k.toString() + ".xlsx";
                             try {
-                                ExcelUtil.appendSheet(orgFilePath.toString(),outputPath.resolve(splitFileName).toString(),splitConfig.getSheetName(),splitConfig.getHeaderIndex()-1);
-                                ExcelUtil.appendDataRowsByPoi(orgFilePath.toString(),outputPath.resolve(splitFileName).toString(),splitConfig.getSheetName(),splitConfig.getHeaderIndex(),v);
+                                ExcelUtil.appendSheet(orgFilePath.toString(), outputPath.resolve(splitFileName).toString(), splitConfig.getSheetName(), splitConfig.getHeaderIndex() - 1);
+                                ExcelUtil.appendDataRowsByPoi(orgFilePath.toString(), outputPath.resolve(splitFileName).toString(), splitConfig.getSheetName(), splitConfig.getHeaderIndex(), v);
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
@@ -305,8 +302,8 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
     /**
      * Converts raw data rows to the format required by FesodSheet for writing.
      *
-     * @param headMap   map of column index to header name
-     * @param dataList  list of row data maps
+     * @param headMap  map of column index to header name
+     * @param dataList list of row data maps
      * @return list of rows in correct column order
      */
     private static List<List<Object>> buildRows(Map<Integer, String> headMap,

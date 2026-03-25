@@ -25,7 +25,7 @@ public class ExcelAnalysisWorker extends SwingWorker<Map<String, Map<Integer, St
     private final JButton startBtn;
 
     /**
-     * Constructor - Initialize the Excel analysis worker
+     * Constructor - Initialize the Excel analysis plugin.swisskit.hpl.worker
      *
      * @param filePath    the path to the Excel file to analyze
      * @param progressBar the progress bar to update during analysis
@@ -65,7 +65,7 @@ public class ExcelAnalysisWorker extends SwingWorker<Map<String, Map<Integer, St
                 String sheetName = sheet.getSheetName();
 
                 Map<Integer, String> headers = new LinkedHashMap<>();
-                        Row headerRow = sheet.getRow(0); // Get the first row directly
+                Row headerRow = sheet.getRow(0); // Get the first row directly
 
                 if (headerRow != null) {
                     for (Cell cell : headerRow) {

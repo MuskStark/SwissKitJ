@@ -78,7 +78,7 @@ public class ExcelKitPage implements KitPage {
 
         });
 
-        // ActionListener for analysis button - starts Excel file analysis in background worker
+        // ActionListener for analysis button - starts Excel file analysis in background plugin.swisskit.hpl.worker
         excelFileAnalysisBt.addActionListener(e -> {
             excelFileAnalysisBt.setEnabled(false);
             new ExcelAnalysisWorker(excelFilePath, progressBar1, excelSplitBt, new ExcelAnalysisCallback() {
