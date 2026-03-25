@@ -281,7 +281,7 @@ public class HappyLearningService {
                             log.info("Course: " + info.getCoursewareId()
                                     + ", progress stalled, retrying: " + retryTimes + " times");
                         }
-                        if (retryTimes >= 20) {
+                        if (retryTimes >= 2) {
                             log.info("Course: " + info.getCoursewareId()
                                     + ", progress stalled, skipping this course.");
                             isLearning = false;
