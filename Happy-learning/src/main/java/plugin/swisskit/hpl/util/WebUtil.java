@@ -12,6 +12,10 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Utility class for HTTP requests and cookie parsing.
@@ -107,8 +111,16 @@ public abstract class WebUtil {
                 .POST(bodyPublisher);
 
         if (headers != null) {
-            headers.forEach((key, values) ->
-                    values.forEach(value -> requestBuilder.header(key, value)));
+            headers.forEach((key, values) -> {
+                // Skip restricted headers that HttpClient manages automatically
+                if (key.equalsIgnoreCase("Connection") || key.equalsIgnoreCase("Content-Length")
+                        || key.equalsIgnoreCase("Host") || key.equalsIgnoreCase("Keep-Alive")
+                        || key.equalsIgnoreCase("TE") || key.equalsIgnoreCase("Trailer")
+                        || key.equalsIgnoreCase("Transfer-Encoding") || key.equalsIgnoreCase("Upgrade")) {
+                    return;
+                }
+                values.forEach(value -> requestBuilder.header(key, value));
+            });
         }
 
         return execute(requestBuilder.build(), tClass);
@@ -147,8 +159,16 @@ public abstract class WebUtil {
                 .POST(bodyPublisher);
 
         if (headers != null) {
-            headers.forEach((key, values) ->
-                    values.forEach(value -> requestBuilder.header(key, value)));
+            headers.forEach((key, values) -> {
+                // Skip restricted headers that HttpClient manages automatically
+                if (key.equalsIgnoreCase("Connection") || key.equalsIgnoreCase("Content-Length")
+                        || key.equalsIgnoreCase("Host") || key.equalsIgnoreCase("Keep-Alive")
+                        || key.equalsIgnoreCase("TE") || key.equalsIgnoreCase("Trailer")
+                        || key.equalsIgnoreCase("Transfer-Encoding") || key.equalsIgnoreCase("Upgrade")) {
+                    return;
+                }
+                values.forEach(value -> requestBuilder.header(key, value));
+            });
         }
 
         return execute(requestBuilder.build(), tClass);
@@ -158,8 +178,10 @@ public abstract class WebUtil {
 
     private static <T> T execute(HttpRequest request, Class<T> tClass) {
         try {
-            HttpResponse<String> response = HTTP_CLIENT.send(
+            CompletableFuture<HttpResponse<String>> future = HTTP_CLIENT.sendAsync(
                     request, HttpResponse.BodyHandlers.ofString());
+
+            HttpResponse<String> response = future.get(30, TimeUnit.SECONDS);
 
             int statusCode = response.statusCode();
             if (statusCode >= 400 && statusCode < 500) {
@@ -175,10 +197,13 @@ public abstract class WebUtil {
             }
             return JSON.parseObject(body, tClass);  // fastjson2 deserialization
 
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("HTTP request execution failed", e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException("HTTP request timeout after 30 seconds", e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException("HTTP request execution failed", e.getCause());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("HTTP request interrupted", e);
         }
     }
 

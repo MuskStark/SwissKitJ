@@ -27,7 +27,9 @@ public class PluginLoader {
 
     private static final Logger logger = LoggerFactory.getLogger(PluginLoader.class);
 
-    /** Plugin directory, located at .swisskit/plugins under working directory */
+    /**
+     * Plugin directory, located at .swisskit/plugins under working directory
+     */
     public static String PLUGIN_DIR = Path.of(System.getProperty("user.dir"))
             .resolve(".swisskit")
             .resolve("plugins")
@@ -131,7 +133,7 @@ public class PluginLoader {
      * <ul>
      *   <li>fan.summer.api.KitPage — interface must be same Class, otherwise instanceof fails</li>
      *   <li>fan.summer.annoattion.* — annotation must be same Class, otherwise getAnnotation returns null</li>
-     *   <li>fan.summer.ui.components.* — plugins can directly use main app's UI components (e.g., GradientProgressBar)</li>
+     *   <li>fan.summer.plugin.swisskit.hpl.ui.components.* — plugins can directly use main app's UI components (e.g., GradientProgressBar)</li>
      * </ul>
      */
     private static class IsolatedPluginClassLoader extends URLClassLoader {
@@ -160,13 +162,23 @@ public class PluginLoader {
                     return appClassLoader.loadClass(name);
                 }
 
-                // 3. JDK core classes → delegate to bootstrap
+                // 3. JDK core classes → delegate to app ClassLoader (supports Java 9+ modules like java.net.http)
                 if (name.startsWith("java.") || name.startsWith("javax.")
                         || name.startsWith("sun.") || name.startsWith("com.sun.")) {
-                    return Class.forName(name, resolve, null);
+                    return appClassLoader.loadClass(name);
                 }
 
-                // 4. Others (plugin's own classes, third-party libraries) → prioritize loading from plugin JAR
+                // 4. All other classes (plugin's own dto/service/util and third-party libs like fastjson2):
+                //    Try appClassLoader first → then plugin JAR → then appClassLoader again as last resort.
+                //    This ensures classes in plugin JAR (dto.*, fastjson2 ASM-generated classes, etc.) are found
+                //    even when called via Class.forName(name, resolve, null) from third-party library internals.
+                try {
+                    return appClassLoader.loadClass(name);
+                } catch (ClassNotFoundException e) {
+                    // Not in appClassLoader, try plugin JAR
+                }
+
+                // 5. Others (plugin's own classes, third-party libraries) → prioritize loading from plugin JAR
                 try {
                     Class<?> c = findClass(name);
                     if (resolve) resolveClass(c);

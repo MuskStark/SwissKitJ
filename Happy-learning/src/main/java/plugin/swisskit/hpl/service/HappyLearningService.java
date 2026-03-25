@@ -39,14 +39,16 @@ public class HappyLearningService {
         Map<String, List<String>> headers = toMultiValueMap(
                 ConfigLoader.headers("personInfoPost", dynamics));
 
-        Map<String, List<String>> formParams = new LinkedHashMap<>();
-        formParams.put("openSchedule", List.of("1"));
-        formParams.put("m0biletoken", List.of(token));
+        // Build query params string for URL
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append("openSchedule=1");
+//        queryBuilder.append("&m0biletoken=").append(token);
+//        queryBuilder.append("&_t=").append(System.currentTimeMillis());
 
-        String uri = ConfigLoader.rawUrl("personInfo") + "?_t=" + System.currentTimeMillis();
+        String uri = ConfigLoader.rawUrl("personInfo") + "?" + queryBuilder;
 
-        return WebUtil.sendFormPostRequest(
-                ConfigLoader.rawUrl("baseUrl"), uri, headers, formParams, UserSearchResp.class);
+        return WebUtil.sendPostRequest(
+                ConfigLoader.rawUrl("baseUrl"), uri, headers, null, UserSearchResp.class);
     }
 
     /**

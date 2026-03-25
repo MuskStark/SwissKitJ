@@ -1,0 +1,325 @@
+package worker;
+
+import dto.UserSearchResp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import service.HappyLearningService;
+import util.ConfigLoader;
+import util.WebUtil;
+
+import javax.swing.*;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+
+/**
+ * Happy learning background worker
+ * <p>
+ * Executes the auto-learning process in a background thread while periodically
+ * updating the UI progress bars. Supports cancellation via stop button.
+ * </p>
+ *
+ * @author phoebej
+ * @version 1.00
+ * @Date 2026/3/23
+ */
+public class HappyLearningWorker extends SwingWorker<Void, int[]> {
+    private static final Logger log = LoggerFactory.getLogger(HappyLearningWorker.class);
+
+    private final String passKey;
+    private final JProgressBar majorSubjectProgressBar;
+    private final JProgressBar electiveSubjectProgressBar;
+    private final String type;
+    private HappyLearningService service;
+    private final JButton startBt;
+    private final JButton stopBt;
+
+    /**
+     * Stores the exception that caused the worker to fail, for display in done()
+     */
+    private Exception workerException;
+
+    public HappyLearningWorker(String passKey, JProgressBar majorSubjectProgressBar,
+                               JProgressBar electiveSubjectProgressBar, String type,
+                               JButton startBt, JButton stopBt) {
+        this.passKey = passKey;
+        this.majorSubjectProgressBar = majorSubjectProgressBar;
+        this.electiveSubjectProgressBar = electiveSubjectProgressBar;
+        this.type = type;
+        this.startBt = startBt;
+        this.stopBt = stopBt;
+        this.service = new HappyLearningService();
+        log.debug("HappyLearningWorker created with type: {}", type);
+    }
+
+    @Override
+    protected Void doInBackground() throws Exception {
+        log.info("[Worker] === doInBackground START ===");
+        log.info("[Worker] passKey is null: {}, passKey first 10 chars: {}",
+                passKey == null, passKey != null ? passKey.substring(0, Math.min(10, passKey.length())) : "null");
+
+        // Load config before using ConfigLoader
+        log.info("[Worker] Loading ConfigLoader...");
+        ConfigLoader.loadConfig();
+        log.info("[Worker] ConfigLoader loaded successfully");
+
+        String token;
+        log.info("[Worker] About to extract token from cookie...");
+        token = WebUtil.getValueFromCookie(passKey, "m0biletoken");
+        log.info("[Worker] Token extraction completed");
+        log.info("[Worker] Token extracted, present: {}", token != null && !token.isEmpty());
+
+        log.info("[Worker] Token value (first 20 chars): {}",
+                token != null && token.length() > 20 ? token.substring(0, 20) + "..." :
+                        token != null ? token : "null");
+
+        if (token == null || token.isEmpty()) {
+            log.error("[Worker] Token is null or empty, cannot proceed with learning");
+            workerException = new RuntimeException("Token is null or empty, please login first");
+            return null;
+        }
+
+        log.info("[Worker] Starting happy learning, type: {}", type != null ? type : "Auto");
+
+        // Initialize progress bar maximums on EDT
+        try {
+            log.info("[Worker] Calling invokeAndWait to initProcess...");
+            SwingUtilities.invokeAndWait(this::initProcess);
+            log.info("[Worker] invokeAndWait completed successfully");
+        } catch (InterruptedException e) {
+            log.error("[Worker] invokeAndWait was interrupted: {}", e.getMessage(), e);
+            workerException = e;
+            return null;
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            log.error("[Worker] invokeAndWait threw exception: {} - {}",
+                    e.getCause() != null ? e.getCause().getClass().getSimpleName() : "null",
+                    e.getCause() != null ? e.getCause().getMessage() : e.getMessage(),
+                    e.getCause());
+            workerException = e.getCause() != null ? (Exception) e.getCause() : e;
+            return null;
+        } catch (Exception e) {
+            log.error("[Worker] Failed to initialize progress bars: {} - {}",
+                    e.getClass().getSimpleName(), e.getMessage(), e);
+            workerException = e;
+            return null;
+        }
+
+        log.info("[Worker] invokeAndWait succeeded, proceeding to start learning thread");
+
+        // Run autoLearning in a separate thread
+        CountDownLatch latch = new CountDownLatch(1);
+        log.info("[Worker] About to start learning thread, service: {}", service);
+        Thread learningThread = new Thread(() -> {
+            log.info("[LearningThread] === LearningThread START ===");
+            try {
+                log.info("[LearningThread] Calling service.autoLearning(type={}, token={}, passKey={})",
+                        type, token != null ? "present" : "null", passKey != null ? "present" : "null");
+                service.autoLearning(type, token, passKey);
+                log.info("[LearningThread] autoLearning returned successfully");
+            } catch (Exception e) {
+                if (!isCancelled()) {
+                    log.error("[LearningThread] Auto learning failed: {} - {}",
+                            e.getClass().getSimpleName(), e.getMessage(), e);
+                    workerException = e;
+                } else {
+                    log.info("[LearningThread] Auto learning was cancelled by user");
+                }
+            } finally {
+                latch.countDown();
+                log.info("[LearningThread] === LearningThread END ===, latch countdown");
+            }
+        });
+        learningThread.start();
+        log.info("[Worker] Learning thread started, thread id: {}", learningThread.getId());
+
+        // Poll progress periodically while learning is running
+        while (latch.getCount() > 0) {
+            if (isCancelled()) {
+                log.info("[Worker] Worker cancelled, interrupting learning thread");
+                updateProgress();
+                learningThread.interrupt();
+                break;
+            }
+            if (majorSubjectProgressBar.getParent() == null) {
+                log.warn("[Worker] Progress bar panel removed from container, stopping worker");
+                updateProgress();
+                learningThread.interrupt();
+                break;
+            }
+            updateProgress();
+            try {
+                log.debug("[Worker] Progress polled, sleeping for 5 minutes until next poll");
+                Thread.sleep(300000);
+            } catch (InterruptedException e) {
+                log.info("[Worker] Progress polling interrupted, exiting loop");
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        log.info("[Worker] Worker finished, latch count: {}", latch.getCount());
+        return null;
+    }
+
+    @Override
+    protected void process(List<int[]> chunks) {
+        if (chunks.isEmpty()) {
+            return;
+        }
+        int[] latest = chunks.get(chunks.size() - 1);
+        log.trace("[Worker] Processing progress update: Major={}, Elective={}", latest[0], latest[1]);
+
+        if (latest[0] >= 0) {
+            majorSubjectProgressBar.setValue(latest[0]);
+        }
+        if (latest[1] >= 0) {
+            electiveSubjectProgressBar.setValue(latest[1]);
+        }
+    }
+
+    private void initProcess() {
+        log.info("[initProcess] === initProcess START ===");
+        try {
+            String token = WebUtil.getValueFromCookie(passKey, "m0biletoken");
+            log.info("[initProcess] Token extracted from passKey");
+
+            log.info("[initProcess] Calling service.getPersonInfo...");
+            UserSearchResp resp = service.getPersonInfo(passKey, token);
+            log.info("[initProcess] getPersonInfo returned: {}", resp != null ? "not null" : "null");
+
+            if (resp == null) {
+                log.error("[initProcess] Response is null");
+                throw new RuntimeException("Failed to get person info: response is null");
+            }
+            if (resp.getData() == null) {
+                log.error("[initProcess] Response data is null, status: {}", resp.getStatus());
+                throw new RuntimeException("Failed to get person info: data is null, status " + resp.getStatus());
+            }
+            if (resp.getData().getPeriodDataRU() == null) {
+                log.error("[initProcess] periodDataRU is null");
+                throw new RuntimeException("Failed to get person info: periodDataRU is null");
+            }
+
+            Float majorSubjectLearned = resp.getData().getPeriodDataRU().getGroupLearningTotal();
+            Float majorSubjectGoal = resp.getData().getPeriodDataRU().getGroupLearningGoal();
+            Float electiveSubjectLearned = resp.getData().getPeriodDataRU().getSelfLearningTotal();
+            Float electiveSubjectGoal = resp.getData().getPeriodDataRU().getSelfLearningGoal();
+
+            log.info("[initProcess] Learning status - Major: {}/{}h, Elective: {}/{}h",
+                    majorSubjectLearned, majorSubjectGoal, electiveSubjectLearned, electiveSubjectGoal);
+
+            // Set maximum to goal (required hours), value to learned hours
+            majorSubjectProgressBar.setMaximum(majorSubjectGoal.intValue());
+            majorSubjectProgressBar.setValue(majorSubjectLearned.intValue());
+            electiveSubjectProgressBar.setMaximum(electiveSubjectGoal.intValue());
+            electiveSubjectProgressBar.setValue(electiveSubjectLearned.intValue());
+
+            log.info("[initProcess] === initProcess END ===");
+        } catch (Exception e) {
+            log.error("[initProcess] Exception: {} - {}", e.getClass().getSimpleName(), e.getMessage(), e);
+            throw e; // Re-throw so invokeAndWait catches it
+        }
+    }
+
+    private void updateProgress() {
+        String token = WebUtil.getValueFromCookie(passKey, "m0biletoken");
+
+        try {
+            UserSearchResp resp = service.getPersonInfo(passKey, token);
+            if (resp == null || resp.getData() == null) {
+                log.warn("[Worker] Failed to update progress, response is null");
+                return;
+            }
+
+            int majorCurrent = resp.getData().getPeriodDataRU().getGroupLearningTotal().intValue();
+            int majorMax = majorSubjectProgressBar.getMaximum();
+            int electiveCurrent = resp.getData().getPeriodDataRU().getSelfLearningTotal().intValue();
+            int electiveMax = electiveSubjectProgressBar.getMaximum();
+
+            // Calculate percentages for logging
+            int majorPercent = majorMax > 0 ? (majorCurrent * 100 / majorMax) : 0;
+            int electivePercent = electiveMax > 0 ? (electiveCurrent * 100 / electiveMax) : 0;
+
+            log.info("[Worker] Progress update - " +
+                            "MajorSubject: {}/{}h ({}%), ElectiveSubject: {}/{}h ({}%)",
+                    majorCurrent, majorMax, majorPercent,
+                    electiveCurrent, electiveMax, electivePercent);
+
+            publish(new int[]{majorMax > 0 ? majorCurrent : -1, electiveMax > 0 ? electiveCurrent : -1});
+        } catch (Exception e) {
+            log.error("[Worker] Failed to update progress: {}", e.getMessage(), e);
+        }
+    }
+
+    @Override
+    protected void done() {
+        log.info("[Worker] === done() START ===, workerException: {}, isCancelled: {}",
+                workerException != null, isCancelled());
+
+        // Retrieve and rethrow any exception from doInBackground()
+        try {
+            get();
+        } catch (Throwable t) {
+            log.error("[Worker] Throwable from doInBackground(), type: {}, message: {}",
+                    t.getClass().getSimpleName(), t.getMessage(), t);
+            Throwable cause = t instanceof java.util.concurrent.ExecutionException ? t.getCause() : t;
+            if (workerException == null) {
+                workerException = cause instanceof Exception ? (Exception) cause : new Exception(cause);
+            }
+        }
+        if (workerException != null) {
+            log.error("[Worker] Worker failed with exception, type: {}, message: {}, stackTrace: {}",
+                    workerException.getClass().getSimpleName(),
+                    workerException.getMessage(),
+                    getStackTraceString(workerException));
+
+            SwingUtilities.invokeLater(() -> {
+                if (startBt != null) {
+                    startBt.setEnabled(true);
+                }
+                if (stopBt != null) {
+                    stopBt.setEnabled(false);
+                }
+                // Show error dialog to user
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Learning failed: " + workerException.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            });
+            return;
+        }
+
+        if (isCancelled()) {
+            log.info("[Worker] Worker was cancelled, resetting UI buttons");
+        } else {
+            log.info("[Worker] Worker completed successfully, resetting UI buttons");
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            if (startBt != null) {
+                startBt.setEnabled(true);
+                log.debug("[Worker] Start button enabled");
+            }
+            if (stopBt != null) {
+                stopBt.setEnabled(false);
+                log.debug("[Worker] Stop button disabled");
+            }
+        });
+    }
+
+    /**
+     * Converts an exception's stack trace to a string for logging
+     */
+    private String getStackTraceString(Exception e) {
+        StringBuilder sb = new StringBuilder();
+        for (StackTraceElement element : e.getStackTrace()) {
+            sb.append("\n    at ").append(element.toString());
+            // Limit stack trace to first 10 elements to avoid log bloat
+            if (sb.toString().split("\n").length >= 10) {
+                sb.append("\n    ... (truncated)");
+                break;
+            }
+        }
+        return sb.toString();
+    }
+}

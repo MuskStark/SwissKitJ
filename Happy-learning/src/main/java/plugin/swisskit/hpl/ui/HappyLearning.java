@@ -30,7 +30,7 @@ import java.nio.file.StandardCopyOption;
  *
  * @author summer
  */
-@SwissKitPage()
+@SwissKitPage(menuName = "HappyLearn", menuTooltip = "HappyLearn", order = 6)
 public class HappyLearning implements KitPage {
 
     private static final Logger log = LoggerFactory.getLogger(HappyLearning.class);
@@ -116,6 +116,7 @@ public class HappyLearning implements KitPage {
      */
     private void setPassKeyBtAction(ActionEvent e) {
         if (passKey.getText().isEmpty()) {
+            log.warn("[UI] Passkey is empty, showing error dialog");
             JOptionPane.showMessageDialog(null,
                     "PASSKEY IS EMPTY",
                     "PASSKEY EMPTY Error",
@@ -123,6 +124,11 @@ public class HappyLearning implements KitPage {
 
         } else {
             this.key = passKey.getText();
+            JOptionPane.showMessageDialog(null,
+                    "PASSKEY SET SUCCESS",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+            log.info("[UI] Passkey set successfully，value:{}", this.key);
         }
 
     }
@@ -140,33 +146,49 @@ public class HappyLearning implements KitPage {
      */
     private void startBtAction(ActionEvent e) {
         if (currentWorker != null && !currentWorker.isDone()) {
+            log.warn("[UI] Start button clicked but learning is already running");
             JOptionPane.showMessageDialog(null,
                     "Learning is already running",
                     "Info",
                     JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-        // Determine lesson type based on checkbox selection
-        if (onlyMajorCheckBox.isSelected()) {
-            // Learn only MajorSubject (必修课)
-            currentWorker = new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, "MajorSubject", startBt, stopBt);
-        } else if (onlyElectiveCheckBox.isSelected()) {
-            // Learn only ElectiveSubject (选修课)
-            currentWorker = new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, "ElectiveSubject", startBt, stopBt);
-        } else {
-            // Auto-learning mode: automatically selects course type based on remaining hours
-            currentWorker = new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB, null, startBt, stopBt);
+
+        if (key == null || key.isEmpty()) {
+            log.warn("[UI] Start button clicked but passkey is not set");
+            JOptionPane.showMessageDialog(null,
+                    "Please set PASSKEY first",
+                    "PASSKEY Not Set",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
         }
+
+        // Determine lesson type based on checkbox selection
+        String lessonType;
+        if (onlyMajorCheckBox.isSelected()) {
+            lessonType = "MajorSubject";
+        } else if (onlyElectiveCheckBox.isSelected()) {
+            lessonType = "ElectiveSubject";
+        } else {
+            lessonType = "Auto";
+        }
+
+        log.info("[UI] Starting learning worker, lessonType: {}", lessonType);
+        currentWorker = new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB,
+                "Auto".equals(lessonType) ? null : lessonType, startBt, stopBt);
         currentWorker.execute();
         startBt.setEnabled(false);
         stopBt.setEnabled(true);
+        log.info("[UI] Learning worker started, UI buttons updated");
     }
 
     private void stopBtAction(ActionEvent e) {
         if (currentWorker != null && !currentWorker.isDone()) {
+            log.info("[UI] Stop button clicked, cancelling worker");
             currentWorker.cancel(true);
             startBt.setEnabled(true);
             stopBt.setEnabled(false);
+            log.info("[UI] Worker cancelled, UI buttons updated");
         }
     }
 
