@@ -22,7 +22,7 @@ import java.util.concurrent.CountDownLatch;
  * @version 1.00
  * @Date 2026/3/23
  */
-public class HappyLearningWorker extends SwingWorker<Void, int[]> {
+public class HappyLearningWorker extends SwingWorker<Void, HappyLearningWorker.LearningUpdate> {
     private static final Logger log = LoggerFactory.getLogger(HappyLearningWorker.class);
 
     private final String passKey;
@@ -32,6 +32,25 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
     private HappyLearningService service;
     private final JButton startBt;
     private final JButton stopBt;
+    private final JTextField subjectIdTextField;
+    private final JTextField subjectName;
+
+    /**
+     * Holds progress and lesson info for UI updates.
+     */
+    public static class LearningUpdate {
+        public final int majorProgress;
+        public final int electiveProgress;
+        public final Long lessonId;
+        public final String lessonName;
+
+        public LearningUpdate(int majorProgress, int electiveProgress, Long lessonId, String lessonName) {
+            this.majorProgress = majorProgress;
+            this.electiveProgress = electiveProgress;
+            this.lessonId = lessonId;
+            this.lessonName = lessonName;
+        }
+    }
 
     /**
      * Stores the exception that caused the worker to fail, for display in done()
@@ -40,13 +59,16 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
 
     public HappyLearningWorker(String passKey, JProgressBar majorSubjectProgressBar,
                                JProgressBar electiveSubjectProgressBar, String type,
-                               JButton startBt, JButton stopBt) {
+                               JButton startBt, JButton stopBt,
+                               JTextField subjectIdTextField, JTextField subjectName) {
         this.passKey = passKey;
         this.majorSubjectProgressBar = majorSubjectProgressBar;
         this.electiveSubjectProgressBar = electiveSubjectProgressBar;
         this.type = type;
         this.startBt = startBt;
         this.stopBt = stopBt;
+        this.subjectIdTextField = subjectIdTextField;
+        this.subjectName = subjectName;
         this.service = new HappyLearningService();
         log.debug("HappyLearningWorker created with type: {}", type);
     }
@@ -171,18 +193,29 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
     }
 
     @Override
-    protected void process(List<int[]> chunks) {
+    protected void process(List<LearningUpdate> chunks) {
         if (chunks.isEmpty()) {
             return;
         }
-        int[] latest = chunks.get(chunks.size() - 1);
-        log.trace("[Worker] Processing progress update: Major={}, Elective={}", latest[0], latest[1]);
+        LearningUpdate latest = chunks.get(chunks.size() - 1);
+        log.trace("[Worker] Processing progress update: Major={}, Elective={}, LessonId={}, LessonName={}",
+                latest.majorProgress, latest.electiveProgress, latest.lessonId, latest.lessonName);
 
-        if (latest[0] >= 0) {
-            majorSubjectProgressBar.setValue(latest[0]);
+        if (latest.majorProgress >= 0) {
+            majorSubjectProgressBar.setValue(latest.majorProgress);
+            int majorMax = majorSubjectProgressBar.getMaximum();
+            majorSubjectProgressBar.setString(latest.majorProgress + "/" + majorMax + " h");
         }
-        if (latest[1] >= 0) {
-            electiveSubjectProgressBar.setValue(latest[1]);
+        if (latest.electiveProgress >= 0) {
+            electiveSubjectProgressBar.setValue(latest.electiveProgress);
+            int electiveMax = electiveSubjectProgressBar.getMaximum();
+            electiveSubjectProgressBar.setString(latest.electiveProgress + "/" + electiveMax + " h");
+        }
+        if (latest.lessonId != null && subjectIdTextField != null) {
+            subjectIdTextField.setText(String.valueOf(latest.lessonId));
+        }
+        if (latest.lessonName != null && subjectName != null) {
+            subjectName.setText(latest.lessonName);
         }
     }
 
@@ -231,10 +264,20 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
     }
 
     private void updateProgress() {
+        if (isCancelled()) {
+            return;
+        }
+
         String token = WebUtil.getValueFromCookie(passKey, "m0biletoken");
 
         try {
+            if (isCancelled()) {
+                return;
+            }
             UserSearchResp resp = service.getPersonInfo(passKey, token);
+            if (isCancelled()) {
+                return;
+            }
             if (resp == null || resp.getData() == null) {
                 log.warn("[Worker] Failed to update progress, response is null");
                 return;
@@ -254,9 +297,15 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
                     majorCurrent, majorMax, majorPercent,
                     electiveCurrent, electiveMax, electivePercent);
 
-            publish(new int[]{majorMax > 0 ? majorCurrent : -1, electiveMax > 0 ? electiveCurrent : -1});
+            publish(new LearningUpdate(
+                    majorMax > 0 ? majorCurrent : -1,
+                    electiveMax > 0 ? electiveCurrent : -1,
+                    service.getCurrentLessonId(),
+                    service.getCurrentLessonName()));
         } catch (Exception e) {
-            log.error("[Worker] Failed to update progress: {}", e.getMessage(), e);
+            if (!isCancelled()) {
+                log.error("[Worker] Failed to update progress: {}", e.getMessage(), e);
+            }
         }
     }
 
@@ -268,9 +317,9 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
         // NOTE: do NOT call get() here - it can cause deadlock with EDT.
         // workerException is already set by the background thread for us to use directly.
 
-        // If cancelled by user, ignore any stored exception and show cancellation message
-        if (isCancelled()) {
-            log.info("[Worker] Worker was cancelled, resetting UI buttons");
+        // If cancelled by user or interrupted, ignore any stored exception and show cancellation message
+        if (isCancelled() || isInterruptedException(workerException)) {
+            log.info("[Worker] Worker was cancelled or interrupted, resetting UI buttons");
             SwingUtilities.invokeLater(() -> {
                 if (startBt != null) {
                     startBt.setEnabled(true);
@@ -337,5 +386,23 @@ public class HappyLearningWorker extends SwingWorker<Void, int[]> {
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * Checks if the exception or its cause chain contains an InterruptedException.
+     * This handles cases where the HTTP client wraps InterruptedException in RuntimeException.
+     */
+    private boolean isInterruptedException(Exception e) {
+        if (e == null) {
+            return false;
+        }
+        Throwable cause = e;
+        while (cause != null) {
+            if (cause instanceof InterruptedException) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 }

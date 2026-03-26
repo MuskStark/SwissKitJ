@@ -23,6 +23,17 @@ public class HappyLearningService {
 
     private static final Logger log = LoggerFactory.getLogger(HappyLearningService.class);
 
+    private volatile Long currentLessonId;
+    private volatile String currentLessonName;
+
+    public Long getCurrentLessonId() {
+        return currentLessonId;
+    }
+
+    public String getCurrentLessonName() {
+        return currentLessonName;
+    }
+
 
     // -------------------------  Public API  -------------------------
 
@@ -119,6 +130,10 @@ public class HappyLearningService {
                         log.info("Course details: " + lessonDetailResp);
 
                         if (lessonDetailResp != null && lessonDetailResp.getData() != null) {
+                            this.currentLessonId = Long.valueOf(lessonInfo.getLessonId());
+                            this.currentLessonName = lessonDetailResp.getData().getLessonDetailVO().getBrief();
+                            log.info("Current lesson set - ID: {}, Name: {}", this.currentLessonId, this.currentLessonName);
+
                             List<UserLearnCourseWareVOList> subLessons =
                                     lessonDetailResp.getData().getUserlearncoursewareVOList();
                             log.info("Sub-course count: " + subLessons.size());

@@ -7,6 +7,7 @@ package plugin.swisskit.hpl.ui;
 
 import fan.summer.annoattion.SwissKitPage;
 import fan.summer.api.KitPage;
+import fan.summer.ui.components.GradientProgressBar;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +51,8 @@ public class HappyLearning implements KitPage {
      */
     public HappyLearning() {
         initComponents();
+        majorSubjiectPB.setStringPainted(true);
+        electiveSubjectPB.setStringPainted(true);
         stopBt.setEnabled(false);
     }
 
@@ -175,7 +178,8 @@ public class HappyLearning implements KitPage {
 
         log.info("[UI] Starting learning plugin.swisskit.hpl.worker, lessonType: {}", lessonType);
         currentWorker = new HappyLearningWorker(key, majorSubjiectPB, electiveSubjectPB,
-                "Auto".equals(lessonType) ? null : lessonType, startBt, stopBt);
+                "Auto".equals(lessonType) ? null : lessonType, startBt, stopBt,
+                subjectIdTextField, subjectName);
         currentWorker.execute();
         startBt.setEnabled(false);
         stopBt.setEnabled(true);
@@ -192,8 +196,15 @@ public class HappyLearning implements KitPage {
         }
     }
 
+    private void createUIComponents() {
+        majorSubjiectPB = new GradientProgressBar();
+        electiveSubjectPB = new GradientProgressBar();
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
+        createUIComponents();
+
         learningPanel = new JPanel();
         label4 = new JLabel();
         configFilePath = new JTextField();
@@ -202,7 +213,6 @@ public class HappyLearning implements KitPage {
         passKey = new JTextField();
         setPassKeyBt = new JButton();
         label2 = new JLabel();
-        majorSubjiectPB = new JProgressBar();
         label3 = new JLabel();
         electiveSubjectPB = new JProgressBar();
         panel1 = new JPanel();
@@ -210,6 +220,12 @@ public class HappyLearning implements KitPage {
         onlyElectiveCheckBox = new JCheckBox();
         startBt = new JButton();
         stopBt = new JButton();
+        label7 = new JLabel();
+        subjectInfo = new JPanel();
+        label5 = new JLabel();
+        subjectIdTextField = new JTextField();
+        label6 = new JLabel();
+        subjectName = new JTextField();
 
         //======== learningPanel ========
         {
@@ -224,6 +240,8 @@ public class HappyLearning implements KitPage {
                 "[]" +
                 "[23]" +
                 "[27]" +
+                "[]" +
+                "[]" +
                 "[]" +
                 "[]" +
                 "[]"));
@@ -289,6 +307,43 @@ public class HappyLearning implements KitPage {
             stopBt.setText("UnHAppy");
             stopBt.addActionListener(e -> stopBtAction(e));
             learningPanel.add(stopBt, "cell 1 6");
+
+            //---- label7 ----
+            label7.setText("---------------------- Happy Info ----------------------");
+            learningPanel.add(label7, "cell 1 7,align center center,grow 0 0");
+
+            //======== subjectInfo ========
+            {
+                subjectInfo.setLayout(new MigLayout(
+                    "hidemode 3",
+                    // columns
+                    "[fill]" +
+                    "[153,fill]" +
+                    "[fill]" +
+                    "[fill]" +
+                    "[245,fill]",
+                    // rows
+                    "[]" +
+                    "[]" +
+                    "[]"));
+
+                //---- label5 ----
+                label5.setText("SubjectId\uff1a");
+                subjectInfo.add(label5, "cell 0 0");
+
+                //---- subjectIdTextField ----
+                subjectIdTextField.setEditable(false);
+                subjectInfo.add(subjectIdTextField, "cell 1 0 2 1");
+
+                //---- label6 ----
+                label6.setText("SubjectName:");
+                subjectInfo.add(label6, "cell 3 0");
+
+                //---- subjectName ----
+                subjectName.setEditable(false);
+                subjectInfo.add(subjectName, "cell 4 0");
+            }
+            learningPanel.add(subjectInfo, "cell 0 8 3 1");
         }
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
     }
@@ -310,5 +365,11 @@ public class HappyLearning implements KitPage {
     private JCheckBox onlyElectiveCheckBox;
     private JButton startBt;
     private JButton stopBt;
+    private JLabel label7;
+    private JPanel subjectInfo;
+    private JLabel label5;
+    private JTextField subjectIdTextField;
+    private JLabel label6;
+    private JTextField subjectName;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }
