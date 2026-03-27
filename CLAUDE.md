@@ -65,6 +65,61 @@ SwissKit auto-discovers tools using Java SPI (Service Provider Interface). To ad
 - All long-running operations must use `SwingWorker` to avoid blocking EDT
 - UI updates from background threads must use `SwingUtilities.invokeLater()`
 
+### JFormDesigner UI Files
+
+Project UI is built with **JFormDesigner** (IntelliJ IDEA plugin). UI classes store the GUI layout in `.java` files using MigLayout, not XML.
+
+**JFormDesigner file structure:**
+```java
+/*
+ * Created by JFormDesigner on [date]
+ */
+public class SomePage {
+    public SomePage() {
+        initComponents();
+    }
+
+    private void initComponents() {
+        // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
+        // ... auto-generated layout code ...
+        // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
+    }
+
+    // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
+    private JPanel panel1;
+    private JLabel label1;
+    // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
+}
+```
+
+**Critical rules for JFormDesigner files:**
+
+1. **NEVER modify** code between `//GEN-BEGIN:initComponents` and `//GEN-END:initComponents`
+2. **NEVER modify** variable declarations between `//GEN-BEGIN:variables` and `//GEN-END:variables`
+3. **NEVER remove** the `@formatter:off` / `@formatter:on` comments — these prevent IDE formatting from corrupting generated code
+4. To add custom components or event handlers, write **separate methods** outside the generated blocks and call them after `initComponents()`
+5. To edit the UI, use **JFormDesigner UI designer in IntelliJ** — do not edit the `.java` file manually
+
+**Example — adding a custom button handler in a JFormDesigner class:**
+```java
+public class SomePage {
+    private JButton submitBtn;
+
+    public SomePage() {
+        initComponents();
+        setupEventHandlers();  // Custom method outside generated blocks
+    }
+
+    private void setupEventHandlers() {
+        submitBtn.addActionListener(e -> {
+            // handle submit
+        });
+    }
+
+    // JFormDesigner blocks remain untouched...
+}
+```
+
 ### Technology Stack
 
 - Java 11
