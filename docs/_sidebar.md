@@ -1,5 +1,6 @@
 - [Home](/)
 - [Getting Started](getting-started.md)
+- [Manual](user-manual.md)
 - [Features](features.md)
 - [Architecture](architecture.md)
 - [Development](development.md)
