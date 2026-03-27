@@ -207,7 +207,6 @@ public class ExcelKitPage implements KitPage {
      * Creates the gradient progress bar and fixed-width combo boxes for sheet and column selection.
      */
     private void createUIComponents() {
-        // TODO: place custom component creation code here
         progressBar1 = new GradientProgressBar();
         choiceSheetBox = new FixedWidthComboBox(200);
         choiceColumnBox = new FixedWidthComboBox(200);

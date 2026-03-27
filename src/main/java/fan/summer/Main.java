@@ -25,7 +25,7 @@ public class Main {
         // Initialize Log4j first by accessing logger
         logger.info("SwissKitJ starting...");
 
-        // Run plugin diagnostic for debugging
+        // Run plugin diagnostic for plugin loading issues (silent, DEBUG level)
         PluginDiagnostic.run();
 
         SwingUtilities.invokeLater(() -> {
