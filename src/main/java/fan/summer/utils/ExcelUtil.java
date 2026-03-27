@@ -3,6 +3,8 @@ package fan.summer.utils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,6 +24,7 @@ import java.util.Set;
  * @date 2026/3/4
  */
 public class ExcelUtil {
+    private static final Logger logger = LoggerFactory.getLogger(ExcelUtil.class);
 
     private static final Set<String> INVALID_VALUES = Set.of(
             "NA", "N/A", "NULL", "NIL", "NONE", "NAN",
@@ -70,8 +73,7 @@ public class ExcelUtil {
             }
             targetWorkbook.close();
 
-            System.out.printf("Done: Sheet[%s] rows 0-%d appended to %s%n",
-                    sheetName, endRowIndex, targetFilePath);
+            logger.debug("Sheet appended | sheet={}, rows=0-{}, target={}", sheetName, endRowIndex, targetFilePath);
         }
     }
 

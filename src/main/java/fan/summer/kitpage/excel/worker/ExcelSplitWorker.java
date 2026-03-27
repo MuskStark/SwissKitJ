@@ -105,7 +105,7 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
 
     @Override
     protected Void doInBackground() throws Exception {
-        // Reset progress bar and disable button in EDT thread
+        logger.info("Excel split started | file={}", orgFilePath.getFileName());
         SwingUtilities.invokeLater(() -> {
             progressBar.setValue(0);
             progressBar.setStringPainted(true);
@@ -114,11 +114,13 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
         });
 
         if (config.isEmpty()) {
+            logger.error("Excel split failed: no split mode configured");
             SwingUtilities.invokeLater(() -> {
                 progressBar.setString("Please select split mode first");
             });
             throw new RuntimeException("Need Set Split Model First!");
         } else {
+            logger.debug("Excel split mode: {}", config.get("model"));
             switch ((String) config.get("model")) {
                 case "SSM":
                     doSplitBySheet((Set<String>) config.get("sheetNames"));
@@ -178,6 +180,7 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
      * @param sheetNames set of sheet names to split
      */
     private void doSplitBySheet(Set<String> sheetNames) {
+        logger.debug("Starting split by sheet | sheets={}, total={}", sheetNames.size(), sheetNames);
         NoModelDataListener noModelDataListener = new NoModelDataListener();
         Map<String, Map<Integer, String>> excelFileAnalysisResultMap = (Map<String, Map<Integer, String>>) config.get("excelFileAnalysisResultMap");
         int totalSheets = sheetNames.size();
@@ -200,6 +203,10 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
                 currentSheet++;
                 publish(currentSheet * 100 / totalSheets);
             }
+            logger.info("Split by sheet completed | file={}, sheets={}", orgFilePath.getFileName(), currentSheet);
+        } catch (Exception e) {
+            logger.error("Split by sheet failed | file={}", orgFilePath.getFileName(), e);
+            throw e;
         }
     }
 
@@ -212,6 +219,7 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
      * @param columnName the name of the column to group by
      */
     private void doSplitByColumn(String sheetName, String columnName) {
+        logger.debug("Starting split by column | sheet={}, column={}", sheetName, columnName);
         NoModelDataListener noModelDataListener = new NoModelDataListener();
         Map<String, Map<Integer, String>> excelFileAnalysisResultMap = (Map<String, Map<Integer, String>>) config.get("excelFileAnalysisResultMap");
         Map<Integer, String> headers = excelFileAnalysisResultMap.get(sheetName);
@@ -245,16 +253,23 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
                 publish(current.get() * 100 / total);
             });
             noModelDataListener.clear();
+            logger.info("Split by column completed | file={}, groups={}", orgFilePath.getFileName(), total);
+        } catch (Exception e) {
+            logger.error("Split by column failed | file={}", orgFilePath.getFileName(), e);
+            throw e;
         }
     }
 
     private void doComplexSplit() {
+        logger.debug("Starting complex split | taskId={}", config.get("taskId"));
         try (SqlSession sqlSession = DatabaseInit.getSqlSession()) {
             ComplexSplitConfigMapper mapper = sqlSession.getMapper(ComplexSplitConfigMapper.class);
             List<ComplexSplitConfigEntity> splitConfigs = mapper.selectAllByTaskId((String) config.get("taskId"));
             if (splitConfigs == null || splitConfigs.isEmpty()) {
+                logger.error("Complex split failed: no config found for taskId={}", config.get("taskId"));
                 throw new RuntimeException("Empty Config");
             } else {
+                logger.debug("Complex split loaded {} configs", splitConfigs.size());
                 for (ComplexSplitConfigEntity splitConfig : splitConfigs) {
                     NoModelDataListener noModelDataListener = new NoModelDataListener();
                     try (ExcelReader excelReader = FesodSheet.read(orgFilePath.toFile()).build()) {
@@ -279,7 +294,11 @@ public class ExcelSplitWorker extends SwingWorker<Void, Integer> {
                         noModelDataListener.clear();
                     }
                 }
+                logger.info("Complex split completed | file={}, configs={}", orgFilePath.getFileName(), splitConfigs.size());
             }
+        } catch (Exception e) {
+            logger.error("Complex split failed | file={}", orgFilePath.getFileName(), e);
+            throw e;
         }
     }
 

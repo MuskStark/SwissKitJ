@@ -23,6 +23,10 @@ import java.net.URI;
 public class WelcomePage implements KitPage {
     private static final Logger logger = LoggerFactory.getLogger(WelcomePage.class);
 
+    /**
+     * Creates a new WelcomePage and initializes the documentation link listener.
+     * Clicking the documentation label will open the SwissKitJ user manual in the browser.
+     */
     public WelcomePage() {
         initComponents();
         doc.addMouseListener(new MouseAdapter() {
@@ -37,11 +41,21 @@ public class WelcomePage implements KitPage {
         });
     }
 
+    /**
+     * Returns the main panel for this welcome page.
+     *
+     * @return the welcome JPanel
+     */
     @Override
     public JPanel getPanel() {
         return welcome;
     }
 
+    /**
+     * Returns the menu display name for this page.
+     *
+     * @return menu name with emoji prefix
+     */
     @Override
     public String getMenuName() {
         return "🏠 Welcome";

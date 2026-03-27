@@ -55,6 +55,11 @@ public class AddAddressView extends JDialog {
         prefillData(entity);
     }
 
+    /**
+     * Prefills the form fields with data from an existing entity for editing.
+     *
+     * @param entity the email address book entity to edit
+     */
     private void prefillData(EmailAddressBookEntity entity) {
         addressField.setText(entity.getEmailAddress());
         nicknameField.setText(entity.getNickname());
@@ -155,6 +160,12 @@ public class AddAddressView extends JDialog {
         }
     }
 
+    /**
+     * Handles tag selection from the combo box.
+     * Adds the selected tag to the tag list and removes it from the dropdown.
+     *
+     * @param e the action event triggered by comboBox1
+     */
     private void tagChoiceComBoxAction(ActionEvent e) {
         if (comboBoxReady) {
             TagComBoxItemDto tag = (TagComBoxItemDto) comboBox1.getSelectedItem();
@@ -167,12 +178,22 @@ public class AddAddressView extends JDialog {
         }
     }
 
+    /**
+     * Clears all selected tags and resets the tags field.
+     *
+     * @param e the action event triggered by reset button
+     */
     private void resetBtAction(ActionEvent e) {
         tagsField.setText("");
         tags.clear();
         chosedTagName.clear();
     }
 
+    /**
+     * Closes the add address dialog window.
+     *
+     * @param e the action event triggered by closeButton
+     */
     private void closeBtAction(ActionEvent e) {
         this.setVisible(false);
     }

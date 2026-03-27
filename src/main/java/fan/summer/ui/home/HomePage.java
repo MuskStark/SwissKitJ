@@ -29,6 +29,12 @@ public class HomePage {
     private SideMenuBar sideMenuBar;
     private List<KitPage> pages;
 
+    /**
+     * Initializes and displays the main application window.
+     * Sets up the FlatLaf theme, discovers all KitPage plugins, creates the side menu,
+     * and displays the first registered page by default.
+     * Should be called once from the EDT after DatabaseInit completes successfully.
+     */
     public void init() {
         FlatIntelliJLaf.setup();
 

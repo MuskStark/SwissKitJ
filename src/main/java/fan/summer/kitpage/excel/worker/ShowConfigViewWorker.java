@@ -5,6 +5,8 @@ import fan.summer.database.entity.excel.ComplexSplitConfigEntity;
 import fan.summer.database.mapper.excel.ComplexSplitConfigMapper;
 import fan.summer.kitpage.excel.second.ConfigView;
 import org.apache.ibatis.session.SqlSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -20,6 +22,8 @@ import java.util.concurrent.ExecutionException;
  * @Date 2026/3/4
  */
 public class ShowConfigViewWorker extends SwingWorker<List<Object[]>, Void> {
+    private static final Logger logger = LoggerFactory.getLogger(ShowConfigViewWorker.class);
+
     private final JPanel jpanel;
     private final String taskId;
 
@@ -56,6 +60,7 @@ public class ShowConfigViewWorker extends SwingWorker<List<Object[]>, Void> {
             }
 
         } catch (Exception e) {
+            logger.error("Failed to load config for taskId: {}", taskId, e);
             return null;
         }
         return rowDatas;
@@ -80,6 +85,7 @@ public class ShowConfigViewWorker extends SwingWorker<List<Object[]>, Void> {
                 );
             }
         } catch (InterruptedException | ExecutionException e) {
+            logger.error("Error loading config view for taskId: {}", taskId, e);
             JOptionPane.showConfirmDialog(
                     jpanel,
                     "Info: " + e.getMessage(),

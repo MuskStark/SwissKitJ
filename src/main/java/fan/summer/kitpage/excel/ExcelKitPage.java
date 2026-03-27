@@ -193,6 +193,9 @@ public class ExcelKitPage implements KitPage {
         }
     }
 
+    /**
+     * Resets the simple split configuration by clearing selected sheet and column names.
+     */
     private void restSimpleSplitConfig() {
         selectedSheetNm = null;
         selectedColumnNm = null;
@@ -215,6 +218,12 @@ public class ExcelKitPage implements KitPage {
     JForm Events
      */
 
+    /**
+     * Handles tab switching in the split way pane.
+     * When the complex split tab is selected, initializes the task ID and populates sheet options.
+     *
+     * @param e the change event triggered by tab selection
+     */
     private void splitWayPaneStateChanged(ChangeEvent e) {
         int selectedIndex = splitWayPane.getSelectedIndex();
         if (selectedIndex == -1) return;
@@ -232,6 +241,12 @@ public class ExcelKitPage implements KitPage {
         }
     }
 
+    /**
+     * Opens a dialog to set the complex split configuration for the current task.
+     * Saves sheet name, header row index, and column row index to the database.
+     *
+     * @param e the action event triggered by setConfigBt
+     */
     private void setConfigBtActionListener(ActionEvent e) {
         new SetComplexSplitConfigWorker(
                 excelKitPage, progressBar1, setConfigBt,
@@ -240,12 +255,22 @@ public class ExcelKitPage implements KitPage {
         ).execute();
     }
 
+    /**
+     * Deletes all complex split configurations for the current task from the database.
+     *
+     * @param e the action event triggered by clearConfigBt
+     */
     private void deleteComplexSplitConfigBtAction(ActionEvent e) {
         new ClearComplexSplitConfigWorker(
                 excelKitPage, splitTaskId, clearConfigBt, progressBar1
         ).execute();
     }
 
+    /**
+     * Opens a dialog to view the saved complex split configuration for the current task.
+     *
+     * @param e the action event triggered by viewConfigBt
+     */
     private void viewConfigBtAction(ActionEvent e) {
         new ShowConfigViewWorker(excelKitPage, splitTaskId).execute();
     }

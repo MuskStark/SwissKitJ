@@ -36,6 +36,9 @@ public class EmailKitPage implements KitPage {
     private static final Logger log = LoggerFactory.getLogger(EmailKitPage.class);
     private String taskId;
 
+    /**
+     * Creates a new EmailKitPage and initializes all UI components.
+     */
     public EmailKitPage() {
         initComponents();
     }
@@ -79,12 +82,24 @@ public class EmailKitPage implements KitPage {
         }
     }
 
+    /**
+     * Opens the mass send configuration dialog for the current task.
+     * Allows user to set To/Cc tags and attachment folder for mass email sending.
+     *
+     * @param e the action event triggered by setMassSentConfigBt
+     */
     private void setMassSentConfigBtAction(ActionEvent e) {
         if (taskId != null) {
             new MassSentConfigView(emailPanel, taskId).setVisible(true);
         }
     }
 
+    /**
+     * Queries and displays the saved mass send configuration for the current task.
+     * Shows To/Cc tags, attachment settings, and folder path in a dialog.
+     *
+     * @param e the action event triggered by viewSentConfigBt
+     */
     private void viewSentConfigBtAction(ActionEvent e) {
         if (taskId == null) {
             return;
@@ -142,6 +157,12 @@ public class EmailKitPage implements KitPage {
         }.execute();
     }
 
+    /**
+     * Triggers the email sending worker with the current subject, body, and configuration.
+     * Executes in background to avoid blocking the UI.
+     *
+     * @param e the action event triggered by sentButton
+     */
     private void sentBtAction(ActionEvent e) {
         new EmailSentWorker(subject.getText(), body.getText(), taskId, massSentCheckBox.isSelected(), progressBar1).execute();
     }

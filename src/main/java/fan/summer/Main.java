@@ -21,6 +21,11 @@ public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
+    /**
+     * Application entry point. Initializes logging, database, and displays the main UI.
+     *
+     * @param args command-line arguments (not used)
+     */
     public static void main(String[] args) {
         // Initialize Log4j first by accessing logger
         logger.info("SwissKitJ starting...");

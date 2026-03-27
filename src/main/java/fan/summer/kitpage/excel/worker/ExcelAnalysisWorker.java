@@ -1,5 +1,7 @@
 package fan.summer.kitpage.excel.worker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.poi.ss.usermodel.*;
 
 import javax.swing.*;
@@ -18,6 +20,7 @@ import java.util.Map;
  * @date 2026/3/1
  */
 public class ExcelAnalysisWorker extends SwingWorker<Map<String, Map<Integer, String>>, Integer> {
+    private static final Logger logger = LoggerFactory.getLogger(ExcelAnalysisWorker.class);
 
     private final ExcelAnalysisCallback callback;
     private final Path filePath;
@@ -48,7 +51,7 @@ public class ExcelAnalysisWorker extends SwingWorker<Map<String, Map<Integer, St
      */
     @Override
     protected Map<String, Map<Integer, String>> doInBackground() throws Exception {
-        // Initialize progress bar in EDT thread
+        logger.info("Starting Excel file analysis | file={}", filePath.getFileName());
         SwingUtilities.invokeLater(() -> {
             progressBar.setValue(0);
             progressBar.setStringPainted(true);
@@ -75,32 +78,12 @@ public class ExcelAnalysisWorker extends SwingWorker<Map<String, Map<Integer, St
                 result.put(sheetName, headers);
                 int progress = (int) ((i + 1) * 100.0 / totalSheets);
                 publish(progress);
-//                sheetNames.add(workbook.getSheetName(i));
             }
+            logger.info("Excel analysis completed | file={}, sheets={}", filePath.getFileName(), totalSheets);
+        } catch (Exception e) {
+            logger.error("Excel analysis failed | file={}", filePath.getFileName(), e);
+            throw e;
         }
-//
-//        int total = sheetNames.size();
-//
-//        // 2. Read sheet headers one by one, update progress after each sheet is read
-//        try (ExcelReader excelReader = FesodSheet.read(filePath.toFile()).build()) {
-//            for (int i = 0; i < sheetNames.size(); i++) {
-//                String sheetName = sheetNames.get(i);
-//
-//                HeaderListener headerListener = new HeaderListener();
-//                ReadSheet readSheet = FesodSheet.readSheet(sheetName)
-//                        .headRowNumber(1)
-//                        .registerReadListener(headerListener)
-//                        .build();
-//                excelReader.read(readSheet);
-//
-//                result.put(sheetName, headerListener.getHeaders());
-//
-//                // Calculate percentage and publish progress
-//                int progress = (int) ((i + 1) * 100.0 / total);
-//                publish(progress);
-//                setProgress(progress); // Can also use PropertyChangeListener to monitor
-//            }
-//        }
 
         return result;
     }

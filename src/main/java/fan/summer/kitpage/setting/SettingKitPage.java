@@ -47,6 +47,9 @@ public class SettingKitPage implements KitPage {
      */
     private List<EmailAddressBookEntity> dataBaseInfo;
 
+    /**
+     * Creates a new SettingKitPage and initializes all UI components, settings, and plugin list.
+     */
     public SettingKitPage() {
         initComponents();
         initSettingPageInfo();
@@ -266,6 +269,12 @@ public class SettingKitPage implements KitPage {
         TableUtil.initTable(installedPluginTable, columns, rowData, 99);
     }
 
+    /**
+     * Validates and saves the email server settings to the database.
+     * Reads SMTP address, port, email address, and password from the form fields.
+     *
+     * @param e the action event triggered by saveBtAction
+     */
     private void saveBtAction(ActionEvent e) {
         // Validate required fields before saving
         String smtpAddress = textField1.getText().trim();
@@ -407,6 +416,12 @@ public class SettingKitPage implements KitPage {
 
     }
 
+    /**
+     * Sends a test email to the configured email address using current SMTP settings.
+     * Validates that settings are saved before attempting to send.
+     *
+     * @param e the action event triggered by sentTestEmailBt
+     */
     private void sentTestEmailBtAction(ActionEvent e) {
         try (SqlSession session = DatabaseInit.getSqlSession()) {
             SwissKitSettingEmailMapper mapper = session.getMapper(SwissKitSettingEmailMapper.class);
