@@ -15,6 +15,7 @@ import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoCallBack;
 import fan.summer.kitpage.setting.worker.second.QueryAllEmailInfoWorker;
 import fan.summer.plugin.PluginLoader;
 import fan.summer.utils.EmailUtil;
+import fan.summer.utils.ui.TableUtil;
 import net.miginfocom.swing.MigLayout;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
@@ -49,6 +50,7 @@ public class SettingKitPage implements KitPage {
     public SettingKitPage() {
         initComponents();
         initSettingPageInfo();
+        refreshPluginList();
     }
 
     /**
@@ -201,7 +203,67 @@ public class SettingKitPage implements KitPage {
                     "Plugin Install Error",
                     JOptionPane.ERROR_MESSAGE);
         }
+        refreshPluginList();
+    }
 
+    /**
+     * Handles the plugin uninstall action.
+     * Deletes the selected plugin JAR file from the plugins directory.
+     *
+     * @param e the action event
+     */
+    private void uninstallPluginBtAction(ActionEvent e) {
+        int selectedRow = installedPluginTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(settingTable,
+                    "Please select a plugin to uninstall",
+                    "No Selection",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String pluginName = (String) installedPluginTable.getValueAt(selectedRow, 0);
+        int confirm = JOptionPane.showConfirmDialog(settingTable,
+                "Uninstall plugin: " + pluginName + "?\n(Need restart SwissKitJ)",
+                "Confirm Uninstall", JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            File pluginFile = new File(PluginLoader.PLUGIN_DIR, pluginName);
+            if (pluginFile.delete()) {
+                JOptionPane.showMessageDialog(settingTable,
+                        "Plugin uninstalled. Please restart SwissKitJ.",
+                        "Uninstall Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                refreshPluginList();
+            } else {
+                JOptionPane.showMessageDialog(settingTable,
+                        "Failed to delete plugin file.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    /**
+     * Refreshes the installed plugins table with current plugin directory contents.
+     */
+    private void refreshPluginList() {
+        List<File> plugins = PluginLoader.getInstalledPlugins();
+        List<Object[]> rowData = new ArrayList<>();
+        for (File plugin : plugins) {
+            String size;
+            long bytes = plugin.length();
+            if (bytes < 1024) {
+                size = bytes + " B";
+            } else if (bytes < 1024 * 1024) {
+                size = String.format("%.1f KB", bytes / 1024.0);
+            } else {
+                size = String.format("%.1f MB", bytes / (1024.0 * 1024.0));
+            }
+            rowData.add(new Object[]{plugin.getName(), plugin.getAbsolutePath(), size});
+        }
+        String[] columns = {"Plugin Name", "Path", "Size"};
+        TableUtil.initTable(installedPluginTable, columns, rowData, 99);
     }
 
     private void saveBtAction(ActionEvent e) {
@@ -378,9 +440,12 @@ public class SettingKitPage implements KitPage {
         saveBtAction = new JButton();
         button3 = new JButton();
         plugin = new JPanel();
+        pluginScrollPane = new JScrollPane();
+        installedPluginTable = new JTable();
         choicePluginBt = new JButton();
         pluginPath = new JTextField();
         pluginUploadBt = new JButton();
+        uninstallPluginBt = new JButton();
 
         //======== settingPanle ========
         {
@@ -490,23 +555,35 @@ public class SettingKitPage implements KitPage {
                         "[fill]" +
                         "[465,fill]",
                         // rows
+                        "[200:200,fill]" +
                         "[]" +
                         "[]" +
                         "[]"));
 
+                    //======== pluginScrollPane ========
+                    {
+                        pluginScrollPane.setViewportView(installedPluginTable);
+                    }
+                    plugin.add(pluginScrollPane, "cell 0 0 2 1,grow");
+
                     //---- choicePluginBt ----
                     choicePluginBt.setText("ChoicePlugin");
                     choicePluginBt.addActionListener(e -> choicePluginBtAction(e));
-                    plugin.add(choicePluginBt, "cell 0 0");
+                    plugin.add(choicePluginBt, "cell 0 1");
 
                     //---- pluginPath ----
                     pluginPath.setEditable(false);
-                    plugin.add(pluginPath, "cell 1 0");
+                    plugin.add(pluginPath, "cell 1 1");
 
                     //---- pluginUploadBt ----
                     pluginUploadBt.setText("Upload");
                     pluginUploadBt.addActionListener(e -> pluginUploadBtAction(e));
                     plugin.add(pluginUploadBt, "cell 0 2 2 1");
+
+                    //---- uninstallPluginBt ----
+                    uninstallPluginBt.setText("Uninstall");
+                    uninstallPluginBt.addActionListener(e -> uninstallPluginBtAction(e));
+                    plugin.add(uninstallPluginBt, "cell 0 3 2 1");
                 }
                 settingTable.addTab("Plugin", plugin);
             }
@@ -537,8 +614,11 @@ public class SettingKitPage implements KitPage {
     private JButton saveBtAction;
     private JButton button3;
     private JPanel plugin;
+    private JScrollPane pluginScrollPane;
+    private JTable installedPluginTable;
     private JButton choicePluginBt;
     private JTextField pluginPath;
     private JButton pluginUploadBt;
+    private JButton uninstallPluginBt;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }

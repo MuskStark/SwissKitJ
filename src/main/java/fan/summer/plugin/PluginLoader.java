@@ -9,6 +9,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -39,6 +41,20 @@ public class PluginLoader {
 
     public static List<KitPage> loadFromPluginDir() {
         return loadFromDir(Path.of(PLUGIN_DIR).toFile());
+    }
+
+    /**
+     * Returns list of installed plugin JAR files.
+     *
+     * @return List of File objects for each JAR in plugin directory
+     */
+    public static List<File> getInstalledPlugins() {
+        File dir = Path.of(PLUGIN_DIR).toFile();
+        if (!dir.exists()) {
+            return Collections.emptyList();
+        }
+        File[] jars = dir.listFiles(f -> f.getName().endsWith(".jar"));
+        return jars != null ? Arrays.asList(jars) : Collections.emptyList();
     }
 
     public static List<KitPage> loadFromDir(File dir) {

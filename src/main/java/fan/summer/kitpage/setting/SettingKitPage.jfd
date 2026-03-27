@@ -124,21 +124,29 @@ new FormModel {
 				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
 					"$layoutConstraints": "hidemode 3"
 					"$columnConstraints": "[fill][465,fill]"
-					"$rowConstraints": "[][][]"
+					"$rowConstraints": "[200:200,fill][][][]"
 				} ) {
 					name: "plugin"
+					add( new FormContainer( "javax.swing.JScrollPane", new FormLayoutManager( class javax.swing.JScrollPane ) ) {
+						name: "pluginScrollPane"
+						add( new FormComponent( "javax.swing.JTable" ) {
+							name: "installedPluginTable"
+						} )
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 0 0 2 1,grow"
+					} )
 					add( new FormComponent( "javax.swing.JButton" ) {
 						name: "choicePluginBt"
 						"text": "ChoicePlugin"
 						addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "choicePluginBtAction", true ) )
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
-						"value": "cell 0 0"
+						"value": "cell 0 1"
 					} )
 					add( new FormComponent( "javax.swing.JTextField" ) {
 						name: "pluginPath"
 						"editable": false
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
-						"value": "cell 1 0"
+						"value": "cell 1 1"
 					} )
 					add( new FormComponent( "javax.swing.JButton" ) {
 						name: "pluginUploadBt"
@@ -146,6 +154,13 @@ new FormModel {
 						addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "pluginUploadBtAction", true ) )
 					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 						"value": "cell 0 2 2 1"
+					} )
+					add( new FormComponent( "javax.swing.JButton" ) {
+						name: "uninstallPluginBt"
+						"text": "Uninstall"
+						addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "uninstallPluginBtAction", true ) )
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 0 3 2 1"
 					} )
 				}, new FormLayoutConstraints( null ) {
 					"title": "Plugin"
