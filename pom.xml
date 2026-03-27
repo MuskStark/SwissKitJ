@@ -89,6 +89,7 @@
                                     <headerType>gui</headerType>
                                     <outfile>target/SwissKit.exe</outfile>
                                     <jar>target/SwissKit-${project.version}.jar</jar>
+                                    <icon>src/main/resources/icons/SwissKit.ico</icon>
                                     <errTitle>SwissKit Error</errTitle>
                                     <downloadUrl>https://adoptium.net/</downloadUrl>
                                     <supportUrl>https://github.com/MuskStark/SwissKitJ</supportUrl>

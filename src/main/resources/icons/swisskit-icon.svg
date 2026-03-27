@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Background circle (white) -->
+  <circle cx="128" cy="128" r="120" fill="#FFFFFF" stroke="#D52B1E" stroke-width="8"/>
+
+  <!-- Red cross (Swiss flag) -->
+  <!-- Vertical bar -->
+  <rect x="108" y="48" width="40" height="160" fill="#D52B1E"/>
+  <!-- Horizontal bar -->
+  <rect x="48" y="108" width="160" height="40" fill="#D52B1E"/>
+
+  <!-- Small toolbox accent at bottom -->
+  <rect x="88" y="200" width="80" height="20" rx="4" fill="#333333"/>
+  <rect x="98" y="195" width="60" height="8" rx="2" fill="#666666"/>
+</svg>
