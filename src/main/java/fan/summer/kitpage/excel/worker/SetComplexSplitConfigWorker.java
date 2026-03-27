@@ -28,15 +28,21 @@ public class SetComplexSplitConfigWorker extends SwingWorker<Void, Integer> {
     private final JButton startBtn;
     private final Path excelFilePath;
     private final String splitTaskId;
+    private final String selectedSheetName;
+    private final int headerIndexValue;
+    private final int columnIndexValue;
+    private final int selectedComboIndex;
+    // Swing components accessed only on EDT via invokeLater
     private final JComboBox comboBox;
-    private final JTextField headerRowIndex;
-    private final JTextField columnRowIndex;
+    private final JTextField headerRowIndexField;
+    private final JTextField columnRowIndexField;
 
     /** Flag indicating if an error occurred during execution */
     private boolean isError;
 
     /**
      * Creates a new SetComplexSplitConfigWorker.
+     * Reads Swing component values on the EDT (constructor) to avoid EDT violations in doInBackground.
      *
      * @param fatherPanel     the parent panel for dialog positioning
      * @param progressBar     the progress bar to update during operation
@@ -53,9 +59,14 @@ public class SetComplexSplitConfigWorker extends SwingWorker<Void, Integer> {
         this.startBtn = startBtn;
         this.excelFilePath = excelFilePath;
         this.splitTaskId = splitTaskId;
+        // Read Swing component values on the EDT (constructor runs on EDT)
         this.comboBox = comboBox;
-        this.headerRowIndex = headerRowIndex;
-        this.columnRowIndex = columnRowIndex;
+        this.headerRowIndexField = headerRowIndex;
+        this.columnRowIndexField = columnRowIndex;
+        this.selectedSheetName = comboBox.getSelectedItem().toString();
+        this.headerIndexValue = Integer.parseInt(headerRowIndex.getText());
+        this.columnIndexValue = Integer.parseInt(columnRowIndex.getText());
+        this.selectedComboIndex = comboBox.getSelectedIndex();
     }
 
 
@@ -80,28 +91,30 @@ public class SetComplexSplitConfigWorker extends SwingWorker<Void, Integer> {
             ComplexSplitConfigEntity entity = new ComplexSplitConfigEntity();
             entity.setTaskId(this.splitTaskId);
             entity.setFieldName(excelFilePath.getFileName().toString());
-            entity.setSheetName(this.comboBox.getSelectedItem().toString());
-            entity.setHeaderIndex(Integer.parseInt(this.headerRowIndex.getText()));
-            entity.setColumnIndex(Integer.parseInt(this.columnRowIndex.getText()));
+            entity.setSheetName(this.selectedSheetName);
+            entity.setHeaderIndex(this.headerIndexValue);
+            entity.setColumnIndex(this.columnIndexValue);
             mapper.insert(entity);
             sqlSession.commit();
             log.info("Successfully saved config for taskId: {}, file: {}", splitTaskId, excelFilePath.getFileName());
             SwingUtilities.invokeLater(() -> {
-                this.comboBox.removeItemAt(this.comboBox.getSelectedIndex());
-                this.headerRowIndex.setText("");
-                this.columnRowIndex.setText("");
+                comboBox.removeItemAt(selectedComboIndex);
+                headerRowIndexField.setText("");
+                columnRowIndexField.setText("");
             });
             int progress = (int) (100 * 100.0 / 100);
             publish(progress);
         } catch (Exception ex) {
             isError = true;
             log.error("Failed to save config for taskId: {}", splitTaskId, ex);
-            JOptionPane.showConfirmDialog(
-                    fatherPanel,
-                    "Info: " + ex.getMessage(),
-                    "Set Config Error",
-                    JOptionPane.DEFAULT_OPTION
-            );
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showConfirmDialog(
+                        fatherPanel,
+                        "Info: " + ex.getMessage(),
+                        "Set Config Error",
+                        JOptionPane.DEFAULT_OPTION
+                );
+            });
         }
         return null;
     }

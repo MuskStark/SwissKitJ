@@ -46,10 +46,10 @@ public class ConfigEditorView extends JDialog {
         this.taskId = taskId;
         this.table = table;
         this.configView = configView;
-        fileNameText.setText(table.getValueAt(row, 0).toString());
-        sheetNameText.setText(table.getValueAt(row, 1).toString());
-        headerIndexText.setText(table.getValueAt(row, 2).toString());
-        columnIndex.setText(table.getValueAt(row, 3).toString());
+        fileNameText.setText(objToString(table.getValueAt(row, 0)));
+        sheetNameText.setText(objToString(table.getValueAt(row, 1)));
+        headerIndexText.setText(objToString(table.getValueAt(row, 2)));
+        columnIndex.setText(objToString(table.getValueAt(row, 3)));
     }
 
     /**
@@ -80,6 +80,13 @@ public class ConfigEditorView extends JDialog {
         } catch (Exception ex) {
             log.error("Failed to update config for taskId: {}", taskId, ex);
         }
+    }
+
+    /**
+     * Converts an object to string, returning empty string if null.
+     */
+    private String objToString(Object obj) {
+        return obj != null ? obj.toString() : "";
     }
 
     private void initComponents() {

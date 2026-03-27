@@ -61,7 +61,7 @@ public class ShowConfigViewWorker extends SwingWorker<List<Object[]>, Void> {
 
         } catch (Exception e) {
             logger.error("Failed to load config for taskId: {}", taskId, e);
-            return null;
+            throw new RuntimeException(e);
         }
         return rowDatas;
     }

@@ -126,12 +126,12 @@ public class EmailKitPage implements KitPage {
                     StringBuilder message = new StringBuilder();
                     String toTagName = null;
                     String ccTagName = null;
-                    if (tagList != null) {
+                    if (config != null && tagList != null) {
                     for (EmailTagEntity tag : tagList) {
-                        if (tag.getId().toString().equals(config.getToTag())) {
+                        if (config.getToTag() != null && tag.getId().toString().equals(config.getToTag())) {
                             toTagName = tag.getTag();
                         }
-                        if (tag.getId().toString().equals(config.getCcTag())) {
+                        if (config.getCcTag() != null && tag.getId().toString().equals(config.getCcTag())) {
                             ccTagName = tag.getTag();
                         }
                     }

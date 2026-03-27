@@ -156,4 +156,16 @@ public class GradientProgressBar extends JProgressBar {
 
         g2.dispose();
     }
+
+    /**
+     * Stops the animation timer when the component is removed from a container.
+     * Prevents resource leaks when the component is no longer visible.
+     */
+    @Override
+    public void removeNotify() {
+        if (animationTimer != null && animationTimer.isRunning()) {
+            animationTimer.stop();
+        }
+        super.removeNotify();
+    }
 }

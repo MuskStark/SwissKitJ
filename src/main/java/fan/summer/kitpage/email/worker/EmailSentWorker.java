@@ -215,8 +215,13 @@ public class EmailSentWorker extends SwingWorker<Void, Integer> {
                 return;
             }
             EmailTagEntity fileTag;
+            List<EmailTagEntity> tagList = tagCollect.get(entry.getKey());
+            if (tagList == null || tagList.isEmpty()) {
+                log.warn("No tag found for key: {}, skipping", entry.getKey());
+                continue;
+            }
             try {
-                fileTag = tagCollect.get(entry.getKey()).get(0);
+                fileTag = tagList.get(0);
             } catch (Exception e) {
                 log.warn("Failed to parse attachment file: {}", entry.getKey());
                 continue;
@@ -233,23 +238,23 @@ public class EmailSentWorker extends SwingWorker<Void, Integer> {
             log.debug("Building recipient lists for tag: {}", fileTag);
             for (EmailAddressBookEntity entity : allEmailAddresses) {
                 // Parse tags from JSON string
-                List<Long> tagList;
+                List<Long> emailTagIds;
                 try {
-                    tagList = JSON.parseArray(entity.getTags(), Long.class);
+                    emailTagIds = JSON.parseArray(entity.getTags(), Long.class);
                 } catch (Exception e) {
                     log.warn("Failed to parse tags for email: {}, skipping", entity.getEmailAddress(), e);
                     continue;
                 }
 
                 // Check if contact has the To tag
-                if (tagList.contains(fileTag.getId())) {
-                    if (config.getToTag() != null && tagList.contains(Long.parseLong(config.getToTag()))) {
+                if (emailTagIds.contains(fileTag.getId())) {
+                    if (config.getToTag() != null && emailTagIds.contains(Long.parseLong(config.getToTag()))) {
                         toList.add(entity.getEmailAddress());
                         log.trace("Added {} to To list (matched tag: {})", entity.getEmailAddress(), config.getToTag());
                     }
 
                     // Check if contact has the Cc tag
-                    if (config.getCcTag() != null && tagList.contains(Long.parseLong(config.getCcTag()))) {
+                    if (config.getCcTag() != null && emailTagIds.contains(Long.parseLong(config.getCcTag()))) {
                         ccList.add(entity.getEmailAddress());
                         log.trace("Added {} to Cc list (matched tag: {})", entity.getEmailAddress(), config.getCcTag());
                     }

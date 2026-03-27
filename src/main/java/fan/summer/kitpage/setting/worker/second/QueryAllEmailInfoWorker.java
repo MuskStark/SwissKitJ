@@ -45,6 +45,10 @@ public class QueryAllEmailInfoWorker extends SwingWorker<List<EmailAddressBookEn
             if (!tagEntities.isEmpty()) {
                 for (EmailAddressBookEntity email : result) {
                     List<Long> tagIds = JSON.parseArray(email.getTags(), Long.class);
+                    if (tagIds == null) {
+                        email.setTags("[]");
+                        continue;
+                    }
                     List<String> tagNames = new ArrayList<>();
                     for (EmailTagEntity tag : tagEntities) {
                         if (tagIds.contains(tag.getId())) {

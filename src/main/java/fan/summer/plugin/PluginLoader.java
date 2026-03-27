@@ -61,8 +61,11 @@ public class PluginLoader {
         List<KitPage> result = new ArrayList<>();
 
         if (!dir.exists()) {
-            dir.mkdirs();
-            logger.info("Plugin directory created: {}", dir.getAbsolutePath());
+            if (dir.mkdirs()) {
+                logger.info("Plugin directory created: {}", dir.getAbsolutePath());
+            } else {
+                logger.warn("Failed to create plugin directory: {}", dir.getAbsolutePath());
+            }
             return result;
         }
 
