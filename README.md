@@ -31,7 +31,7 @@ mvn install -f SwissKitJ-Api/pom.xml -DskipTests
 mvn clean package
 
 # Run the application (executable JAR)
-java -jar target/SwissKit-1.0.0-Beta.2.jar
+java -jar target/SwissKit-1.0.0-Beta.4.jar
 ```
 
 Or using Maven exec plugin:
@@ -334,7 +334,7 @@ mvn clean package
 mvn clean package -DskipTests
 
 # Run executable JAR
-java -jar target/SwissKit-1.0.0-Beta.2.jar
+java -jar target/SwissKit-1.0.0-Beta.4.jar
 ```
 
 ---

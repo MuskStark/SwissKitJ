@@ -5,6 +5,25 @@ All notable changes to SwissKit will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.0.0-Beta.4
+
+### 🚀 Enhancements
+
+- Settings: Add plugin management UI with installed plugins table and uninstall functionality
+- HappyLearning: Display current lesson ID and name (brief) during learning sessions
+- HappyLearning: Add progress bar text display showing "current/max h" format
+
+### 🔧 Fixes
+
+- EDT violations: SetComplexSplitConfigWorker and ClearComplexSplitConfigWorker now properly wrap UI updates in SwingUtilities.invokeLater()
+- Resource leaks: EmailSentWorker SqlSession usage restructured with try-with-resources
+- Resource leaks: ExcelUtil Workbook leaks fixed on exception paths
+- NullPointerExceptions: Fixed in EmailSentWorker (progressBar, emailTags), EmailKitPage (tagList), EmailTagsView (parseLong), Main.java (getCause())
+- Silent failures: QueryAllEmailInfoWorker now returns null instead of empty list on error for proper error handling
+- Cancellation support: EmailSentWorker mass-sending loop now checks isCancelled()
+
+---
+
 ## 1.0.0-Beta.3
 
 ### 🚀 Enhancements
