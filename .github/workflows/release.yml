@@ -96,6 +96,23 @@ jobs:
           mkdir -p release/SwissKit
           cp "$JAR_FILE" release/SwissKit/SwissKit.jar
           cp README.md   release/SwissKit/
+          cp src/main/resources/icons/icon-256.png release/SwissKit/swisskit.png
+
+      # Write launcher with printf in a separate step to avoid any
+      # heredoc / YAML block-mapping conflict.
+      # 'exec' replaces the shell process with java for a cleaner process tree.
+      - name: Create Linux .desktop file
+        run: |
+          printf '%s\n' \
+            '[Desktop Entry]' \
+            'Name=SwissKit' \
+            'Comment=Swiss Army Knife of Productivity Tools' \
+            'Exec=./run.sh' \
+            'Icon=swisskit' \
+            'Terminal=false' \
+            'Type=Application' \
+            'Categories=Office;Utility;' \
+            > release/SwissKit/swisskit.desktop
 
       # Write launcher with printf in a separate step to avoid any
       # heredoc / YAML block-mapping conflict.
@@ -186,6 +203,7 @@ jobs:
           mkdir -p release/SwissKit.app/Contents/MacOS
           mkdir -p release/SwissKit.app/Contents/Resources
           cp "$JAR_FILE" release/SwissKit.app/Contents/Resources/SwissKit.jar
+          cp src/main/resources/icons/SwissKit.icns release/SwissKit.app/Contents/Resources/
 
       # Write launcher with printf in a separate step to avoid any
       # heredoc / YAML block-mapping conflict.
@@ -254,6 +272,8 @@ jobs:
           printf '%s\n' '  <true/>'                                                              >> "$INFO"
           printf '%s\n' '  <key>LSUIElement</key>'                                               >> "$INFO"
           printf '%s\n' '  <false/>'                                                             >> "$INFO"
+          printf '%s\n' '  <key>CFBundleIconFile</key>'                                          >> "$INFO"
+          printf '%s\n' '  <string>SwissKit.icns</string>'                                        >> "$INFO"
           printf '%s\n' '</dict>'                                                                 >> "$INFO"
           printf '%s\n' '</plist>'                                                                >> "$INFO"
           echo "--- Info.plist ---"
