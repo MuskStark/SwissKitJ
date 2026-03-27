@@ -96,11 +96,13 @@ public class EmailSentWorker extends SwingWorker<Void, Integer> {
     @Override
     protected Void doInBackground() throws Exception {
         log.info("Starting email sending task, isMassModel: {}", isMassModel);
-        SwingUtilities.invokeLater(() -> {
-            progressBar.setValue(0);
-            progressBar.setStringPainted(true);
-            progressBar.setString("Sending... 0%");
-        });
+        if (progressBar != null) {
+            SwingUtilities.invokeLater(() -> {
+                progressBar.setValue(0);
+                progressBar.setStringPainted(true);
+                progressBar.setString("Sending... 0%");
+            });
+        }
 
         if (isMassModel) {
             executeMassSending();
@@ -160,6 +162,13 @@ public class EmailSentWorker extends SwingWorker<Void, Integer> {
         try (SqlSession session = DatabaseInit.getSqlSession()) {
             EmailTagMapper mapper = session.getMapper(EmailTagMapper.class);
             emailTags = mapper.selectAll();
+            if (emailTags == null) {
+                log.error("No email tags found in database");
+                return;
+            }
+        } catch (Exception e) {
+            log.error("Failed to load email tags from database", e);
+            return;
         }
         Map<String, List<EmailTagEntity>> tagCollect = emailTags.stream().collect(Collectors.groupingBy(EmailTagEntity::getTag));
 
@@ -201,6 +210,10 @@ public class EmailSentWorker extends SwingWorker<Void, Integer> {
         log.debug("Step 4: Starting to iterate through each tag and send emails");
         totalEmails = taggedFiles.entrySet().size();
         for (Map.Entry<String, List<File>> entry : taggedFiles.entrySet()) {
+            if (isCancelled()) {
+                log.info("Mass sending cancelled by user");
+                return;
+            }
             EmailTagEntity fileTag;
             try {
                 fileTag = tagCollect.get(entry.getKey()).get(0);
@@ -282,12 +295,14 @@ public class EmailSentWorker extends SwingWorker<Void, Integer> {
                 failCount++;
                 // Log failure to database
                 try (SqlSession session = DatabaseInit.getSqlSession()) {
-                    EmailSentLogMapper mapper = session.getMapper(EmailSentLogMapper.class);
-                    emailSentLogEntity.setSuccess(false);
-                    mapper.insert(emailSentLogEntity);
-                    session.commit();
-                } catch (Exception dbEx) {
-                    log.error("Failed to save error log to database", dbEx);
+                    try {
+                        EmailSentLogMapper mapper = session.getMapper(EmailSentLogMapper.class);
+                        emailSentLogEntity.setSuccess(false);
+                        mapper.insert(emailSentLogEntity);
+                        session.commit();
+                    } catch (Exception dbEx) {
+                        log.error("Failed to save error log to database", dbEx);
+                    }
                 }
             }
             publish(successCount * 100 / totalEmails);

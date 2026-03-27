@@ -50,7 +50,7 @@ public class Main {
                         get();
                     } catch (Exception e) {
                         JOptionPane.showMessageDialog(null,
-                            "Database initialization failed: " + e.getCause().getMessage(),
+                            "Database initialization failed: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
                             "Error", JOptionPane.ERROR_MESSAGE);
                         System.exit(1);
                         return;

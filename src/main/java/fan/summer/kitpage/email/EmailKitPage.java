@@ -111,6 +111,7 @@ public class EmailKitPage implements KitPage {
                     StringBuilder message = new StringBuilder();
                     String toTagName = null;
                     String ccTagName = null;
+                    if (tagList != null) {
                     for (EmailTagEntity tag : tagList) {
                         if (tag.getId().toString().equals(config.getToTag())) {
                             toTagName = tag.getTag();
@@ -118,6 +119,7 @@ public class EmailKitPage implements KitPage {
                         if (tag.getId().toString().equals(config.getCcTag())) {
                             ccTagName = tag.getTag();
                         }
+                    }
                     }
                     message.append("<html><body>");
                     message.append("<p><b>Task ID:</b> ").append(taskId).append("</p>");

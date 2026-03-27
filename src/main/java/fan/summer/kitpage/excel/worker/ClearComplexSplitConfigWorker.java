@@ -59,7 +59,7 @@ public class ClearComplexSplitConfigWorker extends SwingWorker<Void, Integer> {
             progressBar.setValue(0);
             progressBar.setStringPainted(true);
         });
-        button.setEnabled(false);
+        SwingUtilities.invokeLater(() -> button.setEnabled(false));
         try(SqlSession session = DatabaseInit.getSqlSession()){
             ComplexSplitConfigMapper mapper = session.getMapper(ComplexSplitConfigMapper.class);
             mapper.deleteAllByTaskId(taskId);

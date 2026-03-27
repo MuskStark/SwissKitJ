@@ -131,6 +131,7 @@ public class ExcelUtil {
         try (FileInputStream fis = new FileInputStream(file)) {
             workbook = WorkbookFactory.create(fis);
         }
+        try {
 
         Sheet sheet = workbook.getSheet(sheetName);
         Map<Integer, CellStyle> styleCache = new HashMap<>();
@@ -165,9 +166,11 @@ public class ExcelUtil {
         }
 
         try (FileOutputStream fos = new FileOutputStream(file)) {
-            workbook.write(fos);
+                workbook.write(fos);
+            }
+        } finally {
+            workbook.close();
         }
-        workbook.close();
     }
 
     /**

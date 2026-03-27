@@ -57,7 +57,7 @@ public class QueryAllEmailInfoWorker extends SwingWorker<List<EmailAddressBookEn
             return result;
         } catch (Exception e) {
             log.error("Failed to query email address book entries", e);
-            return Collections.emptyList();
+            return null;
         }
     }
 

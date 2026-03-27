@@ -219,7 +219,10 @@ public class EmailTagsView extends JDialog {
                 // Select the clicked row for visual feedback
                 tagTable.setRowSelectionInterval(row, row);
                 // Open editor dialog for this row, passing table reference and row index
-                needUpdateId = Long.parseLong(tagTable.getValueAt(row, 0).toString());
+                Object value = tagTable.getValueAt(row, 0);
+                if (value != null) {
+                    needUpdateId = Long.parseLong(value.toString());
+                }
                 Object tag = tagTable.getValueAt(row, 1);
                 if (needUpdateId != null && tag != null) {
                     addTagBt.setText("Update");

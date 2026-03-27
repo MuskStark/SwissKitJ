@@ -69,7 +69,7 @@ public class SetComplexSplitConfigWorker extends SwingWorker<Void, Integer> {
     @Override
     protected Void doInBackground() throws Exception {
         isError = false;
-        startBtn.setEnabled(false);
+        SwingUtilities.invokeLater(() -> startBtn.setEnabled(false));
         log.debug("Setting config for taskId: {}, file: {}", splitTaskId, excelFilePath.getFileName());
         SwingUtilities.invokeLater(() -> {
             progressBar.setValue(0);
@@ -86,9 +86,11 @@ public class SetComplexSplitConfigWorker extends SwingWorker<Void, Integer> {
             mapper.insert(entity);
             sqlSession.commit();
             log.info("Successfully saved config for taskId: {}, file: {}", splitTaskId, excelFilePath.getFileName());
-            this.comboBox.removeItemAt(this.comboBox.getSelectedIndex());
-            this.headerRowIndex.setText("");
-            this.columnRowIndex.setText("");
+            SwingUtilities.invokeLater(() -> {
+                this.comboBox.removeItemAt(this.comboBox.getSelectedIndex());
+                this.headerRowIndex.setText("");
+                this.columnRowIndex.setText("");
+            });
             int progress = (int) (100 * 100.0 / 100);
             publish(progress);
         } catch (Exception ex) {
