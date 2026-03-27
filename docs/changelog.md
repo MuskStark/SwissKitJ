@@ -5,6 +5,28 @@ All notable changes to SwissKit will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.0.0-RC.1
+
+### 🔧 Fixes
+
+- ExcelSplitWorker: Fix EDT violation by using GradientProgressBar type instead of JProgressBar for proper animation
+- EmailSentWorker: Division by zero guard when totalEmails is zero
+- EmailSentWorker: NPE guard when tagCollect returns null
+- SetComplexSplitConfigWorker: EDT violation fix - read Swing component values in constructor
+- MassSentConfigView: NPE guard for config.getToTag()
+- EmailKitPage: NPE guard for config.getToTag()/getCcTag() in equals comparison
+- QueryAllEmailInfoWorker: NPE guard when JSON.parseArray returns null
+- ConfigEditorView: Add null-safe objToString() helper for table values
+- PluginLoader: Check mkdirs() return value
+- GradientProgressBar: Stop animation timer in removeNotify() to prevent resource leaks
+- ShowConfigViewWorker: Re-throw exceptions instead of silent catch
+
+### 🔄 Changes
+
+- Maven: Disable resource filtering to prevent binary icon files from being corrupted
+
+---
+
 ## 1.0.0-Beta.4
 
 ### 🚀 Enhancements
