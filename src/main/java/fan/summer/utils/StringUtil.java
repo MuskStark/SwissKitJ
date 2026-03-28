@@ -11,6 +11,9 @@ import java.util.regex.Pattern;
  * @Date 2026/3/8
  */
 public abstract class StringUtil {
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$");
+
     /**
      * Validates if the given string is a valid email address.
      *
@@ -21,10 +24,7 @@ public abstract class StringUtil {
         if (email == null || email.isEmpty()) {
             return false;
         }
-        // 简单的邮箱格式验证
-        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-        Pattern pattern = Pattern.compile(emailRegex);
-        Matcher matcher = pattern.matcher(email);
+        Matcher matcher = EMAIL_PATTERN.matcher(email);
         return matcher.matches();
     }
 }

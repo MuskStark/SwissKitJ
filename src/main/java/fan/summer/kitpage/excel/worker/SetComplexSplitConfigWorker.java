@@ -63,7 +63,8 @@ public class SetComplexSplitConfigWorker extends SwingWorker<Void, Integer> {
         this.comboBox = comboBox;
         this.headerRowIndexField = headerRowIndex;
         this.columnRowIndexField = columnRowIndex;
-        this.selectedSheetName = comboBox.getSelectedItem().toString();
+        Object selectedItem = comboBox.getSelectedItem();
+        this.selectedSheetName = selectedItem != null ? selectedItem.toString() : "";
         this.headerIndexValue = Integer.parseInt(headerRowIndex.getText());
         this.columnIndexValue = Integer.parseInt(columnRowIndex.getText());
         this.selectedComboIndex = comboBox.getSelectedIndex();
